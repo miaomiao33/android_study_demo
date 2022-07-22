@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/ic_launcher_foreground">
+    <EditText
+        android:id="@+id/ET_User"
+        android:hint="请输入用户名"
+        android:textColorHint="@color/gray"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:inputType="number"
+        android:drawableLeft="@drawable/ic_person_black_24dp"
+        android:drawablePadding="8dp"
+        android:paddingLeft="15dp"
+        android:background="@color/white"
+        />
+    <EditText
+        android:hint="请输入密码"
+        android:textColorHint="@color/gray"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:inputType="numberPassword"
+        />
+
+    <Button
+        android:id="@+id/bt_login"
+        android:text="登录"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        />
+
+
+</LinearLayout>
