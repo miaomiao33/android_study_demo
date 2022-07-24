@@ -55,6 +55,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onclickCallBack(View view) {
+
         startActivity(new Intent(this,MainActivity2.class));
+    }
+
+    public void onclickCallBackService(View view) {
+        startActivity(new Intent(this,MainActivityForService.class));
     }
 }
