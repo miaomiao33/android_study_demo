@@ -21,5 +21,17 @@
         android:text="发送广播"
         android:onClick="sendAction2"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="动态注册广播，发送广播"
+        android:textSize="20dp"
+        android:layout_gravity="center_horizontal"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送广播"
+        android:onClick="sendAction1"/>
+
 
 </LinearLayout>
