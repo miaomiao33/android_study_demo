@@ -4,6 +4,12 @@ android {
     compileSdkVersion 30
     buildToolsVersion "29.0.3"
 
+//    sourceSets {
+//        main {
+//            jniLibs.srcDirs = ['libs']
+//        }
+//    }
+
     defaultConfig {
         applicationId "com.example.android_study_demo_project"
         minSdkVersion 28
@@ -23,6 +29,12 @@ android {
 
 }
 
+//repositories {
+////    flatDir {
+////        dirs 'libs'
+////    }
+////}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
@@ -31,4 +43,15 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    //3D地图
+    implementation 'com.amap.api:3dmap:latest.integration'
+    //地图搜索
+//    implementation 'com.amap.api:search:latest.integration'
+//    //导航
+//    implementation 'com.amap.api:navi-3dmap:latest.integration'
+//    //定位
+//    implementation 'com.amap.api:location:latest.integration'
+
+
 }
