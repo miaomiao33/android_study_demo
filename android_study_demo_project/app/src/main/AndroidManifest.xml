@@ -9,6 +9,10 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- 允许程序读写手机状态和身份 -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" /> <!-- 允许程序访问CellID或WiFi热点来获取粗略的位置 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!--声明后台定位权限-->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
 
     <application
         android:allowBackup="true"
@@ -35,11 +39,10 @@
                 <action android:name="com.derry.receiver_flag_" />
             </intent-filter>
         </receiver> <!-- //开发者申请的key -->
-        <meta-data
-            android:name="com.amap.api.v2.apikey"
-            android:value="313fa0d59119198e1ee8baabc4f73868">
-
+        <meta-data android:name="com.amap.api.v2.apikey"
+            android:value="b36ba9e21b825d2d09e1cfe0bd2c0867" >
         </meta-data>
+        <service android:name="com.amap.api.location.APSService" />
     </application>
 
 </manifest>
