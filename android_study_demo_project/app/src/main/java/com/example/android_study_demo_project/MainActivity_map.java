@@ -1,8 +1,10 @@
 package com.example.android_study_demo_project;
 //高德地图的显示activity
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -136,5 +138,9 @@ public void activate(OnLocationChangedListener listener) {
                 Log.e("AmapErr",errText);
             }
         }
+    }
+
+    public void goToNavi(View view) {
+        startActivity(new  Intent(this,SearchActivity.class));
     }
 }

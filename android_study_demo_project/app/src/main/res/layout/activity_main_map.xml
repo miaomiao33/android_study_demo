@@ -13,10 +13,17 @@
         android:layout_gravity="center"
         android:text="高德地图"
         android:textSize="20sp"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="前往导航"
+        android:onClick="goToNavi"
+        />
     <com.amap.api.maps.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+
 
 
 
