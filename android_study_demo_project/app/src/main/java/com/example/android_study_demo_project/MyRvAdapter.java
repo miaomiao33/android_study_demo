@@ -17,12 +17,14 @@ import com.amap.api.services.help.Tip;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyRvAdapter extends RecyclerView.Adapter<MyViewHoder> {
+public class MyRvAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private  Context searchActivity;
     private List<Tip> searchResultList =  new ArrayList<Tip>();
-    public MyRvAdapter(Context activity,List<Tip> list) {
+    private  RvListener mRvListener;
+    public MyRvAdapter(Context activity,List<Tip> list, RvListener rvListener) {
         searchActivity = activity;
         searchResultList = list;
+        mRvListener = rvListener;
     }
 
     @NonNull
@@ -34,9 +36,8 @@ public class MyRvAdapter extends RecyclerView.Adapter<MyViewHoder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyViewHoder holder, int position) {
-
-        holder.searchInfo.setText(searchResultList.get(position).getName());
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        ((MyViewHoder) holder).searchInfo.setText(searchResultList.get(position).getName());
     }
 
     @Override
@@ -57,14 +58,25 @@ public class MyRvAdapter extends RecyclerView.Adapter<MyViewHoder> {
         this.searchResultList.addAll(list);
         notifyDataSetChanged();//刷新数据
     }
-}
 
-class MyViewHoder extends RecyclerView.ViewHolder {
-    TextView searchInfo;
+   private class MyViewHoder extends RecyclerView.ViewHolder {
+        TextView searchInfo;
 
-    public MyViewHoder(@NonNull View itemView) {
-        super(itemView);
-        searchInfo = itemView.findViewById(R.id.textView);
+        public MyViewHoder(@NonNull View itemView) {
+            super(itemView);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mRvListener.onItemClick(view.getId(), getAdapterPosition(), searchResultList.get(getAdapterPosition()));
+                }
+            });
+            Log.e("AMapException:","345");
+            searchInfo = itemView.findViewById(R.id.textView);
+        }
     }
+
 }
+
+
 

@@ -5,10 +5,11 @@ buildscript {
     repositories {
         google()
         jcenter()
-        
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.3'
+        classpath 'com.google.gms:google-services:4.0.1'  //这行对谷歌服务库进行依赖
     }
 }
 
@@ -17,7 +18,7 @@ allprojects {
         google()
         jcenter()
         //需要添加的部分
-//        maven { url "https://maven.google.com"}
+        maven { url 'https://jitpack.io' }
     }
 }
 
