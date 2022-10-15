@@ -121,6 +121,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onclickCallBackMap(View view) {
+        //高德
         startActivity(new Intent(this,MainActivity_map.class));
+    }
+
+    public void onclickCallBackGlide(View view) {
+        //glide的使用
+        startActivity(new Intent(MainActivity.this,GlideMainActivity.class));
     }
 }

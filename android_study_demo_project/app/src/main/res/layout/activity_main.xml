@@ -41,5 +41,11 @@
         android:layout_height="wrap_content"
         android:text="跳转到高德地图"
         android:onClick="onclickCallBackMap"/>
+    <Button
+        android:id="@+id/bt_glide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到glide的使用"
+        android:onClick="onclickCallBackGlide"/>
 
 </LinearLayout>
