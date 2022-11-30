@@ -19,8 +19,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity android:name=".GlideMainActivity"/>
+        <activity android:name=".OkHttpMainActivity"></activity>
+        <activity android:name=".GlideMainActivity" />
         <activity android:name=".SearchActivity" />
         <activity android:name=".MainActivity_map" />
         <activity android:name=".MainActivityForService" />
@@ -46,9 +46,7 @@
         </receiver> <!-- //开发者申请的key -->
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="b36ba9e21b825d2d09e1cfe0bd2c0867">
-
-        </meta-data>
+            android:value="b36ba9e21b825d2d09e1cfe0bd2c0867"></meta-data>
 
         <service android:name="com.amap.api.location.APSService" />
     </application>

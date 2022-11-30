@@ -47,5 +47,11 @@
         android:layout_height="wrap_content"
         android:text="跳转到glide的使用"
         android:onClick="onclickCallBackGlide"/>
+    <Button
+        android:id="@+id/bt_okHttp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到okHttp的使用"
+        android:onClick="onclickCallBackOkHttp"/>
 
 </LinearLayout>

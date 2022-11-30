@@ -52,4 +52,5 @@ dependencies {
 //    implementation 'com.amap.api:search:9.2.0'
     //导航sdk
     implementation 'com.amap.api:navi-3dmap:9.3.0_3dmap9.3.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.0'
 }

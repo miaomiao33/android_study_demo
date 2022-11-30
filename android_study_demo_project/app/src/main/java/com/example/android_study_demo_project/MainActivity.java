@@ -129,4 +129,8 @@ public class MainActivity extends AppCompatActivity {
         //glide的使用
         startActivity(new Intent(MainActivity.this,GlideMainActivity.class));
     }
+
+    public void onclickCallBackOkHttp(View view) {
+        startActivity(new Intent(MainActivity.this,OkHttpMainActivity.class));
+    }
 }
