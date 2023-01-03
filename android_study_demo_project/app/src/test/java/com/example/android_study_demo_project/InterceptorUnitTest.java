@@ -3,8 +3,10 @@ package com.example.android_study_demo_project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
+import okhttp3.Cache;
 import okhttp3.Call;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -20,7 +22,10 @@ public class InterceptorUnitTest {
     public void InterceptorTest()
     {
         //addInterceptor先于addNetworkInterceptor执行，哪怕是addNetworkInterceptor放在前面
-     OkHttpClient okHttpClient = new OkHttpClient.Builder().addNetworkInterceptor(new Interceptor() {
+     OkHttpClient okHttpClient = new OkHttpClient.Builder()
+             .cache(new Cache(new File("C:\\Users\\machenike\\Desktop"),
+                     1024*1024))//最大为1M
+             .addNetworkInterceptor(new Interceptor() {
          @NotNull
          @Override
          public Response intercept(@NotNull Chain chain) throws IOException {
