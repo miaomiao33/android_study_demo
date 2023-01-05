@@ -25,6 +25,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        targetCompatibility = 1.8
+        sourceCompatibility = 1.8
+    }
 
 }
 
@@ -53,4 +57,5 @@ dependencies {
     //导航sdk
     implementation 'com.amap.api:navi-3dmap:9.3.0_3dmap9.3.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
 }
