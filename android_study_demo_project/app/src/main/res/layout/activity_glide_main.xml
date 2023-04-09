@@ -10,6 +10,6 @@
         android:id="@+id/iv_glide"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        />
+        tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

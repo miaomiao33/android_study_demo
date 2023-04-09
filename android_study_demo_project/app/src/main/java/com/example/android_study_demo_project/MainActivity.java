@@ -133,4 +133,9 @@ public class MainActivity extends AppCompatActivity {
     public void onclickCallBackOkHttp(View view) {
         startActivity(new Intent(MainActivity.this,OkHttpMainActivity.class));
     }
+
+    public void gotoRxJava(View view) {
+        //跳转到rxJava的使用
+        startActivity(new Intent(MainActivity.this,RXJavaMainActivity.class));
+    }
 }

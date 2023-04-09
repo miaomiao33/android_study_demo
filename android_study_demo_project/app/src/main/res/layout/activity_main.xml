@@ -53,5 +53,11 @@
         android:layout_height="wrap_content"
         android:text="跳转到okHttp的使用"
         android:onClick="onclickCallBackOkHttp"/>
+    <Button
+        android:id="@+id/bt_rxJava"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到RXJava的使用"
+        android:onClick="gotoRxJava"/>
 
 </LinearLayout>
