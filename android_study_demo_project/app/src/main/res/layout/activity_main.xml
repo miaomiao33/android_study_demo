@@ -59,5 +59,17 @@
         android:layout_height="wrap_content"
         android:text="跳转到RXJava的使用"
         android:onClick="gotoRxJava"/>
+    <Button
+        android:id="@+id/bt_Intent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到Intent使用，包含url、拨号键盘"
+        />
+    <Button
+        android:id="@+id/bt_Storage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到存储使用"
+        />
 
 </LinearLayout>

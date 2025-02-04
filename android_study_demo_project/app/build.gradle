@@ -30,6 +30,16 @@ android {
         sourceCompatibility = 1.8
     }
 
+    //布局文件资源来源
+    sourceSets {
+        main {
+            res.srcDirs = [
+                    'src/main/res',
+                    'src/main/res/layout',
+                    'src/main/res/layout/storageLayout'
+            ]
+        }
+    }
 }
 
 

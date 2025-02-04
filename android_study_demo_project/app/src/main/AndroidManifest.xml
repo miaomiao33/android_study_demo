@@ -25,6 +25,8 @@
         <activity android:name=".SearchActivity" />
         <activity android:name=".MainActivity_map" />
         <activity android:name=".MainActivityForService" />
+        <activity android:name=".storage.StorageActivity"/>
+        <activity android:name=".intent.IntentMainActivity"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
