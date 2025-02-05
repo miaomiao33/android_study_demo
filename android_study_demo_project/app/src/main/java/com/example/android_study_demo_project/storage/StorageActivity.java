@@ -58,7 +58,8 @@ public class StorageActivity extends AppCompatActivity {
     }
     private void gotoSharePreference()
     {
-
+        Intent intent = new Intent(StorageActivity.this,SharePreferenceActivity.class);
+        startActivity(intent);
     }
     private void gotoSQLite()
     {

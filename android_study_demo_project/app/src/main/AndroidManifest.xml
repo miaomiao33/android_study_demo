@@ -34,6 +34,8 @@
                 <category android:name="com.example.android_study_demo_project.MY_CATEGORY" />
             </intent-filter>
         </activity>
+        <activity android:name=".storage.SharePreferenceLoginActivity"/>
+        <activity android:name=".storage.SharePreferenceActivity"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
