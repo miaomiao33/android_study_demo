@@ -27,6 +27,13 @@
         <activity android:name=".MainActivityForService" />
         <activity android:name=".storage.StorageActivity"/>
         <activity android:name=".intent.IntentMainActivity"/>
+        <activity android:name=".storage.FileUsageActivity">
+            <intent-filter>
+                <action android:name="com.example.android_study_demo_project.ACTION_START"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="com.example.android_study_demo_project.MY_CATEGORY" />
+            </intent-filter>
+        </activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
