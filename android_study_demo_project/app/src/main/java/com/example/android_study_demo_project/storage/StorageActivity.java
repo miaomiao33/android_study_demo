@@ -56,13 +56,16 @@ public class StorageActivity extends AppCompatActivity {
         intent.addCategory("com.example.android_study_demo_project.MY_CATEGORY");
         startActivity(intent);
     }
+    //跳转到SharePreference使用
     private void gotoSharePreference()
     {
         Intent intent = new Intent(StorageActivity.this,SharePreferenceActivity.class);
         startActivity(intent);
     }
+    //跳转到SQLite的使用
     private void gotoSQLite()
     {
-
+        Intent intent = new Intent(StorageActivity.this,SQLiteUsageActivity.class);
+        startActivity(intent);
     }
 }

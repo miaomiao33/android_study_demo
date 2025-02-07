@@ -36,6 +36,8 @@
         </activity>
         <activity android:name=".storage.SharePreferenceLoginActivity"/>
         <activity android:name=".storage.SharePreferenceActivity"/>
+        <activity android:name=".storage.SQLiteUsageActivity"
+            android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
