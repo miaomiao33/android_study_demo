@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.android_study_demo_project.fragmentUsage.FragmentUsageActivity;
 import com.example.android_study_demo_project.intent.IntentMainActivity;
 import com.example.android_study_demo_project.storage.StorageActivity;
 
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button storageButton;
     private Button intentButton;
+    private Button fragmentWithBroadcastButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +85,10 @@ public class MainActivity extends AppCompatActivity {
         //跳转到存储
         storageButton = (Button)findViewById(R.id.bt_Storage);
         intentButton = (Button)findViewById(R.id.bt_Intent);
+        fragmentWithBroadcastButton = (Button)findViewById(R.id.bt_fragment_with_Broadcast);
         storageButton.setOnClickListener(new myClick());
         intentButton.setOnClickListener(new myClick());
+        fragmentWithBroadcastButton.setOnClickListener(new myClick());
     }
 
 
@@ -169,9 +173,17 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //跳转到SQLite等存储的使用
     public void gotoStorage()
     {
         Intent intent = new Intent(MainActivity.this, StorageActivity.class);
+        startActivity(intent);
+    }
+
+    //跳转到fragment和broadcast的使用
+    public void gotoFragmentWithBroadcast()
+    {
+        Intent intent = new Intent(MainActivity.this, FragmentUsageActivity.class);
         startActivity(intent);
     }
 
@@ -187,6 +199,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_Intent:
                     gotoIntent();
+                    break;
+                case R.id.bt_fragment_with_Broadcast:
+                    gotoFragmentWithBroadcast();
                     break;
                 default:
                     break;

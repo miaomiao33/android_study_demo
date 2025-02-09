@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <Button
+        android:id="@+id/bt_changeFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="修改右边碎片"
+        android:textAllCaps="false"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:layout_marginBottom="20dp"
+        />
+
+    <Button
+        android:id="@+id/bt_sendBroadcast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送广播"
+        android:textAllCaps="false"
+        android:gravity="center"
+        android:textSize="18sp"
+        />
+
+</LinearLayout>

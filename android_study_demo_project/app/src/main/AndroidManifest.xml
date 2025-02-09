@@ -38,6 +38,14 @@
         <activity android:name=".storage.SharePreferenceActivity"/>
         <activity android:name=".storage.SQLiteUsageActivity"
             android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".fragmentUsage.FragmentUsageActivity"/>
+        <receiver android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.broadcast.TEST"/>
+            </intent-filter>
+        </receiver>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
