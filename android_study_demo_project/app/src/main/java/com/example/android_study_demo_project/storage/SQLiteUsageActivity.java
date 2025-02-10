@@ -124,31 +124,34 @@ public class SQLiteUsageActivity extends AppCompatActivity {
     private void searchByName(String name)
     {
         SQLiteDatabase db = myDataBaseHelper.getReadableDatabase();
-        //name为空就是查询所有，没有就是根据name查询
-        String selection = (name==null ||name.isEmpty()) ? null:"name=?";
-        String[] selectionArgs = (name==null ||name.isEmpty()) ? null:new String[]{name};
-        Cursor cursor = db.query("Book",null,
-                selection,selectionArgs,null,null,null);
-        //循环打印出来
-        bookModelList.clear();
-        if(cursor.moveToFirst())
+        if(db.isOpen())
         {
-            do{
-                BookModel bookModel = new BookModel();
-                bookModel.setId(cursor.getString(cursor.getColumnIndex("id")));
-                bookModel.setAuthor(cursor.getString(cursor.getColumnIndex("author")));//作者
-                bookModel.setPrice(cursor.getFloat(cursor.getColumnIndex("price")));//价格
-                bookModel.setPages(cursor.getInt(cursor.getColumnIndex("pages")));//页数
-                bookModel.setName(cursor.getString(cursor.getColumnIndex("name")));//书名
-                bookModelList.add(bookModel);
-            }while (cursor.moveToNext());
-            bookResultAdapter.notifyDataSetChanged();//刷新ListView
-        }else
-        {
-            Toast.makeText(SQLiteUsageActivity.this,"未查询到对应名称书籍",Toast.LENGTH_SHORT).show();
+            //name为空就是查询所有，没有就是根据name查询
+            String selection = (name==null ||name.isEmpty()) ? null:"name=?";
+            String[] selectionArgs = (name==null ||name.isEmpty()) ? null:new String[]{name};
+            Cursor cursor = db.query("Book",null,
+                    selection,selectionArgs,null,null,null);
+            //循环打印出来
+            bookModelList.clear();
+            if(cursor.moveToFirst())
+            {
+                do{
+                    BookModel bookModel = new BookModel();
+                    bookModel.setId(cursor.getString(cursor.getColumnIndex("id")));
+                    bookModel.setAuthor(cursor.getString(cursor.getColumnIndex("author")));//作者
+                    bookModel.setPrice(cursor.getFloat(cursor.getColumnIndex("price")));//价格
+                    bookModel.setPages(cursor.getInt(cursor.getColumnIndex("pages")));//页数
+                    bookModel.setName(cursor.getString(cursor.getColumnIndex("name")));//书名
+                    bookModelList.add(bookModel);
+                }while (cursor.moveToNext());
+                bookResultAdapter.notifyDataSetChanged();//刷新ListView
+            }else
+            {
+                Toast.makeText(SQLiteUsageActivity.this,"未查询到对应名称书籍",Toast.LENGTH_SHORT).show();
+            }
+            cursor.close();
+            myDataBaseHelper.close();
         }
-        cursor.close();
-        myDataBaseHelper.close();
     }
 
     //插入数据
@@ -160,17 +163,20 @@ public class SQLiteUsageActivity extends AppCompatActivity {
         }else
         {
             SQLiteDatabase db = myDataBaseHelper.getWritableDatabase();
-            ContentValues values = new ContentValues();
-            //组装插入数据
-            values.put("name",name);
-            values.put("author","Dan Brown");
-            values.put("price",16.962);
-            values.put("pages",454);
-            //插入
-            db.insert("Book",null,values);
-            myDataBaseHelper.close();
-            Toast.makeText(SQLiteUsageActivity.this,"插入成功",Toast.LENGTH_SHORT).show();
-            searchByName(null);//刷新ListView
+            if(db.isOpen())
+            {
+                ContentValues values = new ContentValues();
+                //组装插入数据
+                values.put("name",name);
+                values.put("author","Dan Brown");
+                values.put("price",16.962);
+                values.put("pages",454);
+                //插入
+                db.insert("Book",null,values);
+                myDataBaseHelper.close();
+                Toast.makeText(SQLiteUsageActivity.this,"插入成功",Toast.LENGTH_SHORT).show();
+                searchByName(null);//刷新ListView
+            }
         }
     }
     //更新数据
@@ -182,13 +188,16 @@ public class SQLiteUsageActivity extends AppCompatActivity {
         }else
         {
             SQLiteDatabase db = myDataBaseHelper.getWritableDatabase();
-            ContentValues values = new ContentValues();
-            //组装插入数据
-            values.put("price",10.99);
-            db.update("Book",values,"name=?",new String[]{name});
-            db.close();
-            Toast.makeText(SQLiteUsageActivity.this,"更新成功",Toast.LENGTH_SHORT).show();
-            searchByName(null);//刷新ListView
+            if(db.isOpen())
+            {
+                ContentValues values = new ContentValues();
+                //组装插入数据
+                values.put("price",10.99);
+                db.update("Book",values,"name=?",new String[]{name});
+                db.close();
+                Toast.makeText(SQLiteUsageActivity.this,"更新成功",Toast.LENGTH_SHORT).show();
+                searchByName(null);//刷新ListView
+            }
         }
     }
     //删除数据
@@ -200,10 +209,13 @@ public class SQLiteUsageActivity extends AppCompatActivity {
         }else
         {
             SQLiteDatabase db = myDataBaseHelper.getWritableDatabase();
-            db.delete("Book","name=?",new String[]{name});
-            db.close();
-            Toast.makeText(SQLiteUsageActivity.this,"删除成功",Toast.LENGTH_SHORT).show();
-            searchByName(null);//刷新ListView
+            if(db.isOpen())
+            {
+                db.delete("Book","name=?",new String[]{name});
+                db.close();
+                Toast.makeText(SQLiteUsageActivity.this,"删除成功",Toast.LENGTH_SHORT).show();
+                searchByName(null);//刷新ListView
+            }
         }
     }
 }
