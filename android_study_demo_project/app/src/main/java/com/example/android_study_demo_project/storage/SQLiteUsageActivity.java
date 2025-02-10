@@ -66,8 +66,12 @@ public class SQLiteUsageActivity extends AppCompatActivity {
     //初始化数据库
     private void initDataBase()
     {
-        myDataBaseHelper = new MyDataBaseHelper(SQLiteUsageActivity.this,
-                "BookStore.dp", null, 1);
+//        myDataBaseHelper = new MyDataBaseHelper(SQLiteUsageActivity.this,
+//                "BookStore.dp", null, 1);
+//        myDataBaseHelper.getWritableDatabase();
+
+        //单例模式写法
+        myDataBaseHelper = (MyDataBaseHelper) MyDataBaseHelper.getInstance(SQLiteUsageActivity.this);
         myDataBaseHelper.getWritableDatabase();
     }
 
@@ -143,6 +147,7 @@ public class SQLiteUsageActivity extends AppCompatActivity {
         {
             Toast.makeText(SQLiteUsageActivity.this,"未查询到对应名称书籍",Toast.LENGTH_SHORT).show();
         }
+        cursor.close();
         myDataBaseHelper.close();
     }
 

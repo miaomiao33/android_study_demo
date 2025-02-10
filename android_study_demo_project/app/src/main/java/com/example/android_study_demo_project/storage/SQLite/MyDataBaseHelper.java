@@ -25,6 +25,17 @@ public class MyDataBaseHelper extends SQLiteOpenHelper {
             "category_name text,"+
             "category_code integer)";
 
+    //对外提供的单例模式
+    private static SQLiteOpenHelper instance;
+    public static synchronized SQLiteOpenHelper getInstance(Context context){
+        if(instance == null)
+        {
+            instance = new MyDataBaseHelper(context,
+                    "BookStore.dp", null, 1);
+        }
+        return instance;
+    }
+
     public MyDataBaseHelper(@Nullable Context context, @Nullable String name,
                             @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
