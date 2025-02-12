@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <Button
+        android:id="@+id/bt_ROOM_insert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="插入"
+        android:onClick="insertAction"
+        />
+    <Button
+        android:id="@+id/bt_ROOM_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="删除"
+        android:layout_marginTop="20dp"
+        android:onClick="deleteAction"
+        />
+    <Button
+        android:id="@+id/bt_ROOM_deleteALL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="全部删除"
+        android:layout_marginTop="20dp"
+        android:onClick="deleteAllAction"
+        />
+    <Button
+        android:id="@+id/bt_ROOM_update"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="修改"
+        android:layout_marginTop="20dp"
+        android:onClick="updateAction"
+        />
+    <Button
+        android:id="@+id/bt_ROOM_query_all"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="查询所有"
+        android:layout_marginTop="20dp"
+        android:onClick="queryAllAction"
+        />
+    <Button
+        android:id="@+id/bt_ROOM_query"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="查询"
+        android:layout_marginTop="20dp"
+        android:onClick="queryAction"
+        />
+    
+
+</LinearLayout>

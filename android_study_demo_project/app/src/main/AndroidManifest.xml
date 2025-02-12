@@ -46,6 +46,7 @@
                 <action android:name="com.example.broadcast.TEST"/>
             </intent-filter>
         </receiver>
+        <activity android:name=".storage.ROOM.RoomUsageActivity"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
