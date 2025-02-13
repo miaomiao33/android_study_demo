@@ -77,5 +77,11 @@
         android:layout_height="wrap_content"
         android:text="跳转到Fragment和静态动态广播使用"
         />
+    <Button
+        android:id="@+id/bt_media_usage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到多媒体开发"
+        />
 
 </LinearLayout>

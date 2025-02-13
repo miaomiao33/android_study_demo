@@ -37,7 +37,8 @@ android {
                     'src/main/res',
                     'src/main/res/layout',
                     'src/main/res/layout/storageLayout',
-                    'src/main/res/layout/fragmentUsageLayout'
+                    'src/main/res/layout/fragmentUsageLayout',
+                    'src/main/res/layout/mediaLayout',
             ]
         }
     }

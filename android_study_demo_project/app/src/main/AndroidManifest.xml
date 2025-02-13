@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/><!-- 音频权限 -->
+    <uses-permission android:name="android.permission.CAMERA"/><!-- 摄像头权限 -->
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -39,6 +42,10 @@
         <activity android:name=".storage.SQLiteUsageActivity"
             android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".fragmentUsage.FragmentUsageActivity"/>
+        <activity android:name=".media.MediaMainActivity"/>
+        <activity android:name=".media.MediaRecorderActivity"/>
+        <activity android:name=".media.MediaPlayerActivity"/>
+        <activity android:name=".media.MediaVideoViewActivity"/>
         <receiver android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
             android:enabled="true"
             android:exported="true">

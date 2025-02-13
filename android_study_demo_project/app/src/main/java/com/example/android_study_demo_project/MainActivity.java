@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.android_study_demo_project.fragmentUsage.FragmentUsageActivity;
 import com.example.android_study_demo_project.intent.IntentMainActivity;
+import com.example.android_study_demo_project.media.MediaMainActivity;
 import com.example.android_study_demo_project.storage.StorageActivity;
 
 //default activity
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private Button storageButton;
     private Button intentButton;
     private Button fragmentWithBroadcastButton;
+    private Button MediaUsageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,9 +88,13 @@ public class MainActivity extends AppCompatActivity {
         storageButton = (Button)findViewById(R.id.bt_Storage);
         intentButton = (Button)findViewById(R.id.bt_Intent);
         fragmentWithBroadcastButton = (Button)findViewById(R.id.bt_fragment_with_Broadcast);
+        MediaUsageButton = (Button)findViewById(R.id.bt_media_usage);
+
+
         storageButton.setOnClickListener(new myClick());
         intentButton.setOnClickListener(new myClick());
         fragmentWithBroadcastButton.setOnClickListener(new myClick());
+        MediaUsageButton.setOnClickListener(new myClick());
     }
 
 
@@ -187,6 +193,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //跳转到流媒体开发
+    public void gotoMediaUsage()
+    {
+        Intent intent = new Intent(MainActivity.this, MediaMainActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -202,6 +215,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_fragment_with_Broadcast:
                     gotoFragmentWithBroadcast();
+                    break;
+                case R.id.bt_media_usage:
+                    gotoMediaUsage();
                     break;
                 default:
                     break;
