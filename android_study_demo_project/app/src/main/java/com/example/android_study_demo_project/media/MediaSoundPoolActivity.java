@@ -237,7 +237,7 @@ public class MediaSoundPoolActivity extends AppCompatActivity {
     {
         if(TextUtils.equals(text,"开始录制"))
         {
-            //播放音频的准备
+            //读取音频的准备
             optionButton.setText("结束录制");
             //获得缓冲区字节大小
             int bufferSizeInBytes = AudioRecord.getMinBufferSize(
@@ -262,7 +262,7 @@ public class MediaSoundPoolActivity extends AppCompatActivity {
                     //缓冲区大小
                     bufferSizeInBytes
                     );
-            //
+            //开始录音
             audioRecord.startRecording();
 
             //临时的cache文件
