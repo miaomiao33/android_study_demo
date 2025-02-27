@@ -46,6 +46,7 @@
         <activity android:name=".media.MediaRecorderActivity"/>
         <activity android:name=".media.MediaPlayerActivity"/>
         <activity android:name=".media.MediaVideoViewActivity"/>
+        <activity android:name=".media.MediaSoundPoolActivity"/>
         <receiver android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
             android:enabled="true"
             android:exported="true">

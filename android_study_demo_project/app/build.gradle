@@ -55,7 +55,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     //RecyclerView布局插件
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
     //RXJava插件
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
@@ -81,4 +81,8 @@ dependencies {
     def room_version = '2.2.0-alpha01'
     implementation "androidx.room:room-runtime:$room_version"//Room的api支持
     annotationProcessor "androidx.room:room-compiler:$room_version"//Room的注释处理器
+
+    //Material Design引用
+    implementation 'com.google.android.material:material:1.0.0'
+
 }

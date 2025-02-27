@@ -73,9 +73,10 @@ public class MediaMainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    //跳转到播放音频
+    //跳转到录制和播放音频
     private void gotoMediaSoundPool()
     {
-
+        Intent intent = new Intent(MediaMainActivity.this,MediaSoundPoolActivity.class);
+        startActivity(intent);
     }
 }
