@@ -19,6 +19,9 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
 
+/**
+ * OkHttp的基本使用
+ */
 public class OkHttpMainActivity extends AppCompatActivity {
 
     private OkHttpClient okHttpClient;
@@ -37,16 +40,23 @@ public class OkHttpMainActivity extends AppCompatActivity {
          httpbinService = retrofit.create(HttpbinService.class);
     }
 
+    /**
+     * 同步请求
+     * @param view
+     */
     public void getSync(View view) {
-
         new Thread(){
             @Override
             public void run() {
-                Request request = new Request.Builder().url(url).build();
+                //创建request请求对象
+                Request request = new Request.Builder()
+                        .url(url)
+                        .build();
                 //准备好请求的call对象
                 Call call = okHttpClient.newCall(request);
 
                 try {
+                    //执行请求并获得响应
                     Response response =  call.execute();
                     Log.i("getSync","getSync"+response.body().string());
                 } catch (IOException e) {
@@ -56,8 +66,14 @@ public class OkHttpMainActivity extends AppCompatActivity {
         }.start();
     }
 
+    /**
+     * 异步请求
+     * @param view
+     */
     public void getAsync(View view) {
-        Request request = new Request.Builder().url(url).build();
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
         //准备好请求的call对象
         Call call = okHttpClient.newCall(request);
 
@@ -81,15 +97,28 @@ public class OkHttpMainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * 同步推送
+     * @param view
+     */
     public void postSync(View view) {
         new Thread(){
             @Override
             public void run() {
-                FormBody formBody =  new FormBody.Builder().add("a","1").add("b","2").build();
-                Request request = new Request.Builder().url(postUrl).post(formBody).build();
+                //提交的内容要放在协议体
+                FormBody formBody =  new FormBody.Builder()
+                        .add("a","1")
+                        .add("b","2")
+                        .build();
+                //创建request对象，把提交内容添加到request中
+                Request request = new Request.Builder()
+                        .url(postUrl)
+                        .post(formBody)
+                        .build();
                 //准备好请求的call对象
                 Call call = okHttpClient.newCall(request);
                 try {
+                    //执行请求并获得响应
                     Response response =  call.execute();
                     Log.i("postSync","postSync"+response.body().string());
                 } catch (IOException e) {
@@ -99,6 +128,10 @@ public class OkHttpMainActivity extends AppCompatActivity {
         }.start();
     }
 
+    /**
+     * 异步推送
+     * @param view
+     */
     public void postAsync(View view) {
         //使用okhttp
 //        FormBody formBody =  new FormBody.Builder().add("a","1").add("b","2").build();
@@ -117,7 +150,6 @@ public class OkHttpMainActivity extends AppCompatActivity {
 //                Log.i("postASync","postASync"+response.body().string());
 //            }
 //        });
-        Log.i("postASync","postASync"+"1123123123123123123123");
         //使用retrofit
         retrofit2.Call<ResponseBody> call = httpbinService.post("fengfeng123", "123456");
         call.enqueue(new retrofit2.Callback<ResponseBody>() {

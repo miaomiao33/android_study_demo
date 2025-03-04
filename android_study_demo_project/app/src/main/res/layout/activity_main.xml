@@ -26,7 +26,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="跳转到第二个activity"
-            android:onClick="onclickCallBack"/>
+            android:onClick="onclickCallBack"
+            android:textAllCaps="false"/>
     </LinearLayout>
 
     <Button
@@ -45,25 +46,29 @@
         android:id="@+id/bt_glide"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="跳转到glide的使用"
-        android:onClick="onclickCallBackGlide"/>
+        android:text="跳转到Glide的使用"
+        android:onClick="onclickCallBackGlide"
+        android:textAllCaps="false"/>
     <Button
         android:id="@+id/bt_okHttp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="跳转到okHttp的使用"
-        android:onClick="onclickCallBackOkHttp"/>
+        android:text="跳转到OkHttp的使用"
+        android:onClick="onclickCallBackOkHttp"
+        android:textAllCaps="false"/>
     <Button
         android:id="@+id/bt_rxJava"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="跳转到RXJava的使用"
-        android:onClick="gotoRxJava"/>
+        android:onClick="gotoRxJava"
+        android:textAllCaps="false"/>
     <Button
         android:id="@+id/bt_Intent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="跳转到Intent使用，包含url、拨号键盘"
+        android:text="跳转到Intent使用，包含Url、拨号键盘"
+        android:textAllCaps="false"
         />
     <Button
         android:id="@+id/bt_Storage"
@@ -76,12 +81,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="跳转到Fragment和静态动态广播使用"
+        android:textAllCaps="false"
         />
     <Button
         android:id="@+id/bt_media_usage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="跳转到多媒体开发"
+        android:textAllCaps="false"
         />
 
 </LinearLayout>
