@@ -39,6 +39,7 @@ android {
                     'src/main/res/layout/storageLayout',
                     'src/main/res/layout/fragmentUsageLayout',
                     'src/main/res/layout/mediaLayout',
+                    'src/main/res/layout/imageUsageLayout',
             ]
         }
     }
@@ -56,6 +57,10 @@ dependencies {
     //RecyclerView布局插件
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+
+    //卡片布局
+    //noinspection GradleCompatible
+    implementation 'com.android.support:cardview-v7:24.0.0-alpha1'
 
     //RXJava插件
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'

@@ -144,7 +144,5 @@ public class RXJavaMainActivity extends AppCompatActivity {
 
                     }
                 });
-
-
     }
 }

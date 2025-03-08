@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.android_study_demo_project.fragmentUsage.FragmentUsageActivity;
 import com.example.android_study_demo_project.intent.IntentMainActivity;
+import com.example.android_study_demo_project.internetImageUsage.InternetImageUsageMainActivity;
 import com.example.android_study_demo_project.media.MediaMainActivity;
 import com.example.android_study_demo_project.storage.StorageActivity;
 
@@ -76,7 +77,8 @@ public class MainActivity extends AppCompatActivity {
     private Button storageButton;
     private Button intentButton;
     private Button fragmentWithBroadcastButton;
-    private Button MediaUsageButton;
+    private Button mediaUsageButton;
+    private Button internetImageUsageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,13 +90,15 @@ public class MainActivity extends AppCompatActivity {
         storageButton = (Button)findViewById(R.id.bt_Storage);
         intentButton = (Button)findViewById(R.id.bt_Intent);
         fragmentWithBroadcastButton = (Button)findViewById(R.id.bt_fragment_with_Broadcast);
-        MediaUsageButton = (Button)findViewById(R.id.bt_media_usage);
+        mediaUsageButton = (Button)findViewById(R.id.bt_media_usage);
+        internetImageUsageButton = (Button)findViewById(R.id.bt_internet_image_usage);
 
 
         storageButton.setOnClickListener(new myClick());
         intentButton.setOnClickListener(new myClick());
         fragmentWithBroadcastButton.setOnClickListener(new myClick());
-        MediaUsageButton.setOnClickListener(new myClick());
+        mediaUsageButton.setOnClickListener(new myClick());
+        internetImageUsageButton.setOnClickListener(new myClick());
     }
 
 
@@ -200,6 +204,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //跳转到网络图片开发
+    public void gotoInternetImageUsage()
+    {
+        Intent intent = new Intent(MainActivity.this, InternetImageUsageMainActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -218,6 +229,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_media_usage:
                     gotoMediaUsage();
+                    break;
+                case R.id.bt_internet_image_usage:
+                    gotoInternetImageUsage();
                     break;
                 default:
                     break;

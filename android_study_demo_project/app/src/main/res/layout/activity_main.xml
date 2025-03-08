@@ -90,5 +90,12 @@
         android:text="跳转到多媒体开发"
         android:textAllCaps="false"
         />
+    <Button
+        android:id="@+id/bt_internet_image_usage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到网络图片开发"
+        android:textAllCaps="false"
+        />
 
 </LinearLayout>
