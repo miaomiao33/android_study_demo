@@ -32,10 +32,10 @@
         app:layout_constraintHorizontal_bias="0.33"
         android:layout_marginBottom="10dp"/>
     <Button
-        android:id="@+id/bt_get_internet_image"
+        android:id="@+id/bt_insert_internet_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="下载图片"
+        android:text="插入图片"
         android:background="@drawable/shape_10dp_corners"
         android:textAllCaps="false"
         app:layout_constraintBottom_toBottomOf="parent"

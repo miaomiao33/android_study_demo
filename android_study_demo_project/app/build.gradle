@@ -89,5 +89,9 @@ dependencies {
 
     //Material Design引用
     implementation 'com.google.android.material:material:1.0.0'
-
+    //七牛云SDK
+    implementation ('com.qiniu:qiniu-android-sdk:8.5.0'){
+        exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
+    }
+    implementation 'com.qiniu:qiniu-java-sdk:7.2.+'
 }

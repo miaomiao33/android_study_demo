@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,10 +28,13 @@ public class InternetImageRecyclerViewAdapter extends
         RecyclerView.Adapter<InternetImageRecyclerViewAdapter.BaseViewHolder> {
     List<InternetImageModel> modelList;
     Context context;
+    RecyclerView recyclerView;
+    private OnItemClickListener listener;
 
-    public InternetImageRecyclerViewAdapter(List<InternetImageModel> modelList,Context context) {
+    public InternetImageRecyclerViewAdapter(List<InternetImageModel> modelList,Context context,RecyclerView recyclerView) {
         this.modelList = modelList;
         this.context = context;
+        this.recyclerView = recyclerView;
     }
 
     @NonNull
@@ -41,14 +43,12 @@ public class InternetImageRecyclerViewAdapter extends
         //item样式
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.internet_image_item,parent,false);
-        Log.i("params1","onCreateViewHolder");
         return new InternetImageAdapterHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(@NonNull BaseViewHolder holder, int position) {
         //渲染第几个样式
-        Log.i("params","123");
         holder.setData(modelList.get(position));
     }
 
@@ -80,8 +80,11 @@ public class InternetImageRecyclerViewAdapter extends
             //设置图片的相对于屏幕的宽高比
             params.width = windowWith/2-30;
             params.height =  (int) (params.width + Math.random() * 400) ;//随机才能变成瀑布流
-            Log.i("params1",params.width+"---"+params.height);
             imageView.setLayoutParams(params);
+            if(!itemView.hasOnClickListeners())
+            {
+                itemView.setOnClickListener(new ImageItemClick());
+            }
         }
 
         @Override
@@ -128,6 +131,30 @@ public class InternetImageRecyclerViewAdapter extends
                 {
                     textView.setText(String.format("%d",id));
                 }
+            }
+        }
+    }
+
+    interface OnItemClickListener
+    {
+        void onItemClick(InternetImageModel model,int position);
+    }
+
+    void setOnItemClickListener(OnItemClickListener listener)
+    {
+        this.listener = listener;
+    }
+
+    class ImageItemClick implements View.OnClickListener
+    {
+
+        @Override
+        public void onClick(View view) {
+            //获得点击的view位置
+            if(listener != null)
+            {
+                int position = recyclerView.getChildAdapterPosition(view);
+                listener.onItemClick(modelList.get(position),position);
             }
         }
     }
