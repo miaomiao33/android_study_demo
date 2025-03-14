@@ -1,23 +1,43 @@
 package com.example.android_study_demo_project.internetImageUsage;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
+import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.example.android_study_demo_project.R;
+import com.example.android_study_demo_project.internetImageUsage.control.PermissionTool;
 import com.example.android_study_demo_project.internetImageUsage.model.InternetImageModel;
 import com.example.android_study_demo_project.internetImageUsage.storage.InternetImageDataBaseHelper;
 import com.qiniu.android.common.FixedZone;
@@ -37,12 +57,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * 图片的上传和加载网络图片
@@ -53,7 +77,7 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
     StaggeredGridLayoutManager staggeredGridLayoutManager;
     private Button postButton;
     private Button getButton;
-    private List<InternetImageModel> modelList;
+    private List<InternetImageModel> modelList = new ArrayList<>();;
     InternetImageDataBaseHelper dataBaseHelper;
     private static String QINIU_IMAGE_HEAD = "http://ssuldoa98.hn-bkt.clouddn.com/";
 
@@ -62,6 +86,18 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_internet_image_usage_main);
 
+        //初始化控件 initView
+        initView();
+        //创建瀑布流适配器
+        createAdapter();
+        //初始化数据
+        initModelList();//读取存储可能会慢于页面创建，需要刷新
+    }
+
+    /**
+     * todo 初始化控件 initView
+     */
+    private void initView() {
         recyclerView = (RecyclerView)findViewById(R.id.rv_internet_image_usage);
         postButton = (Button) findViewById(R.id.bt_post_internet_image);
         getButton = (Button) findViewById(R.id.bt_insert_internet_image);
@@ -69,11 +105,14 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
                 new InternetImageUsageMainActivityClick();
         postButton.setOnClickListener(activityClick);
         getButton.setOnClickListener(activityClick);
+    }
 
-        modelList = new ArrayList<>();
+    /**
+     * todo 创建瀑布流适配器
+     */
+    private void createAdapter(){
         staggeredGridLayoutManager =
                 new StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL);
-
         recyclerView.setLayoutManager(staggeredGridLayoutManager);
         recyclerViewAdapter = new InternetImageRecyclerViewAdapter(modelList,this,recyclerView);
         recyclerViewAdapter.setOnItemClickListener(new InternetImageRecyclerViewAdapter.OnItemClickListener() {
@@ -87,9 +126,6 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
             }
         });
         recyclerView.setAdapter(recyclerViewAdapter);
-
-        //初始化数据
-        initModelList();//读取存储可能会慢于页面创建，需要刷新
     }
 
     //初始化数据
@@ -161,7 +197,7 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
             recyclerViewAdapter.notifyItemRangeChanged(position,modelList.size());
         }
     }
-
+    Intent intent;
     //点击按钮处理
     private class InternetImageUsageMainActivityClick implements View.OnClickListener{
         @Override
@@ -169,11 +205,49 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
             switch (view.getId())
             {
                 case R.id.bt_post_internet_image:
-                    postInternetImage();//上传图片
+//                    postInternetImage();//上传图片
+                    createPopupWindow(view);//打开弹窗（上传图片方式选择）
                     break;
                 case R.id.bt_insert_internet_image:
                     internetDefaultImage();//插入六条预定图片
                     break;
+                //拍照上传
+                case R.id.bt_select_image_camera:
+                    popupWindow.dismiss();
+                    //在权限审核结果中进行后续的拍照
+                    //6.0才用动态权限
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        checkPermission();
+                    }
+                    break;
+
+                //从相册中选择
+                case R.id.bt_select_image_photo_album:
+                    popupWindow.dismiss();
+                    //在权限审核结果中进行后续的相册选取
+                    //6.0才用动态权限
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        if(ContextCompat.checkSelfPermission(InternetImageUsageMainActivity.this,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                != PackageManager.PERMISSION_GRANTED) {
+                            // 申请读写内存卡内容的权限
+                            ActivityCompat.requestPermissions(InternetImageUsageMainActivity.this,
+                                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                    WRITE_SDCARD_PERMISSION_REQUEST_CODE);
+                        }else{
+                            intent = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(intent, REQUEST_CODE_FROM_PHOTO);
+                        }
+                    }
+
+                    break;
+                case R.id.bt_select_image_cancel: //点击取消按钮，关闭弹窗
+                    popupWindow.dismiss();
+                    break;
+//                case R.id.eval_commit_btn:
+//                    submitComment();  //提交
+//                    break;
+
             }
         }
     }
@@ -199,7 +273,7 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
 
         uploadImageToQiNiu(filePath, new CallBackParameter() {
             @Override
-            public Void CallBackURL(String url) {
+            public Void CallBackURL(String url,JSONObject response) {
                 //上传成功插入返回的URL
                 InternetImageModel model = new InternetImageModel(url);
                 List<InternetImageModel> dataList = Arrays.asList(model);
@@ -287,7 +361,7 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
     }
 
     //将本地文件上传到七牛
-    protected void uploadImageToQiNiu(String path,CallBackParameter callBackURL)
+    protected void uploadImageToQiNiu(String imagePath,CallBackParameter callBackURL)
     {
         //指定zone的具体区域
         //FixedZone.zone0   华东机房
@@ -365,33 +439,352 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
          */
         //年-月-日-时-分-秒格式传输图片
         LocalDateTime nowTime = LocalDateTime.now();
-        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
-        String filePath = path;    // 文件路径
-        String key = nowTime.format(formatter2)+".jpg";         //在服务器的文件名 文件 key
-        uploadManager.put(filePath, key, uploadToken, new UpCompletionHandler() {
-            @Override
-            public void complete(String key, ResponseInfo info, JSONObject response) {
-                if (info != null && info.isOK()) {
-                    // 上传成功
-                    Log.i("uploadManager info--->",info.toString());
-                    Log.i("uploadManager response--->", String.valueOf(response));
-                    try {
-                        String internetImageURL = QINIU_IMAGE_HEAD + response.get("key");
-                        callBackURL.CallBackURL(internetImageURL);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+        String filePath = imagePath;    // 文件路径
+        String key = nowTime.format(formatter)+".jpg";         //在服务器的文件名 文件 key
+        if(filePath == null || filePath.isEmpty())
+        {
+            Toast.makeText(InternetImageUsageMainActivity.this,"上传的文件路径为空",Toast.LENGTH_SHORT).show();
+        }else {
+            Log.i("ImagePath---->",filePath);
+            uploadManager.put(filePath, key, uploadToken, new UpCompletionHandler() {
+                @Override
+                public void complete(String key, ResponseInfo info, JSONObject response) {
+                    if (info != null && info.isOK()) {
+                        // 上传成功
+                        Log.i("uploadManager info--->",info.toString());
+                        Log.i("uploadManager response--->", String.valueOf(response));
+                        Toast.makeText(InternetImageUsageMainActivity.this,"上传成功",Toast.LENGTH_SHORT).show();
+                        try {
+                            String internetImageURL = QINIU_IMAGE_HEAD + response.get("key");
+                            //下面判断成功状态
+                            response.put("status",1000);
+                            response.put("url",internetImageURL);
+                            callBackURL.CallBackURL(internetImageURL,response);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        // 上传失败
+                        Toast.makeText(InternetImageUsageMainActivity.this,"上传失败",Toast.LENGTH_SHORT).show();
+                        Log.i("ImagePath error ResponseInfo--->",info.toString());
+
                     }
-                } else {
-                    // 上传失败
-                    Log.i("ImagePath error ResponseInfo--->",info.toString());
                 }
-            }
-        }, options);
+            }, options);
+        }
     }
 
     //用于内部类返回参数
     interface CallBackParameter{
-        Void CallBackURL(String url);
+        Void CallBackURL(String url,JSONObject response);
     }
+
+    private final int TAKE_PHOTO_PERMISSION_REQUEST_CODE = 0;  //拍照的权限处理返回码
+    private final int WRITE_SDCARD_PERMISSION_REQUEST_CODE = 1; // 读储存卡内容的权限处理返回码
+    private final int REQUEST_CODE_FROM_PHOTO = 2; //相册选取返回的requestCode
+    private final int REQUEST_CODE_FROM_CAMERA = 1;//拍照返回的requestCode
+
+    AlertDialog alertDialog;
+
+    //使用相机拍摄功能的权限检查并设置
+    private void checkPermission() {
+        PermissionTool.getInstance().checkPermission(this, this,
+                new PermissionTool.PermissionResultCallBackController() {
+            @Override
+            public void checkPermissionCallBack() {
+                //说明权限都已经通过，调起相机拍摄
+                openCamera();
+            }
+        });
+    }
+
+    //手动打开设置应用权限
+    private void permissionDialog() {
+        if (alertDialog == null) {
+            alertDialog = new AlertDialog.Builder(this)
+                    .setTitle("提示信息")
+                    .setMessage("当前应用缺少必要权限，该拍摄功能暂时无法使用。" +
+                            "如若需要，请单击【设置】按钮前往设置中心进行权限授权。")
+                    .setPositiveButton("设置", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            cancelPermissionDialog();
+                            //跳转到权限设置
+                            Uri packageURI = Uri.parse("package:" + getPackageName());
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
+                            startActivity(intent);
+                        }
+                    })
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            cancelPermissionDialog();
+                        }
+                    })
+                    .create();
+        }
+        alertDialog.show();
+    }
+    //用户取消授权，关闭对话款
+    private void cancelPermissionDialog() {
+        alertDialog.cancel();
+    }
+
+    /**
+     * todo 对用户权限授予结果处理
+     * @param requestCode 权限要求码，即我们申请权限时传入的常量 如： TAKE_PHOTO_PERMISSION_REQUEST_CODE
+     * @param permissions  保存权限名称的 String 数组，可以同时申请一个以上的权限
+     * @param grantResults 每一个申请的权限的用户处理结果数组(是否授权)
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case TAKE_PHOTO_PERMISSION_REQUEST_CODE://拍照权限请求
+                boolean hasPermission = true;
+                for(int i=0;i<grantResults.length;i++){
+                    if (grantResults[i] == -1){
+                        hasPermission = false;
+                        break;
+                    }
+                }
+                if(hasPermission){
+                    //全部权限通过，可以进行下一步操作（调起相机拍摄）
+                    openCamera();
+                }else{
+                    //跳转到系统设置权限页面，或者直接关闭页面，不让他继续访问
+                    permissionDialog();
+                }
+                break;
+            case WRITE_SDCARD_PERMISSION_REQUEST_CODE://内存读取权限请求
+                if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                }else{
+                    Toast.makeText(InternetImageUsageMainActivity.this,"读内存卡内容权限被拒绝",Toast.LENGTH_SHORT);
+//                    ToolUtils.midToast(this,"读内存卡内容权限被拒绝",1000);
+                }
+                break;
+        }
+    }
+
+    /**
+     * todo 对拍照、相册选择图片的返回结果进行处理
+     * @param requestCode 返回码，用于确定是哪个 Activity 返回的数据
+     * @param resultCode 返回结果，一般如果操作成功返回的是 RESULT_OK
+     * @param data 返回对应 activity 返回的数据
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            // 表示 调用照相机拍照返回
+            case REQUEST_CODE_FROM_CAMERA:
+                if(resultCode == RESULT_OK){
+                    try {
+                        // 获取输入流
+                        FileInputStream is = new FileInputStream(mFilePath);
+                        // 把流解析成bitmap,此时就得到了清晰的原图
+                        Bitmap imageBitmap = BitmapFactory.decodeStream(is);
+                        //压缩图片
+                        Bitmap newImageBitmap = PermissionTool.getInstance().scaleBitmap(imageBitmap,(float)0.5);
+                        Uri imageUri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(),
+                                newImageBitmap,
+                                "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTimeInMillis(),
+                                null));
+                        //uri 转 file
+                        selectImagePath = PermissionTool.getInstance().UriToFile(imageUri,this);
+                        upLoadImg(selectImagePath,true); //调用接口把图片上传到服务器
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            //从相册中选择图片返回
+            case REQUEST_CODE_FROM_PHOTO:
+                if(resultCode == RESULT_OK){
+                    try {
+                        Uri uri = data.getData();
+                        Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(),uri);
+                        //压缩图片
+                        Bitmap newImageBitmap = PermissionTool.getInstance().scaleBitmap(imageBitmap,(float)0.5);
+                        Uri newUri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(),
+                                newImageBitmap,
+                                "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTimeInMillis(),
+                                null));
+                        //uri 转 file
+                        selectImagePath = PermissionTool.getInstance().UriToFile(newUri,this);
+                        Log.i("imgPath",selectImagePath);
+                        upLoadImg(selectImagePath,true);//上传图片
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
+    }
+
+    private String selectImagePath = ""; //选取的要上传的图片路径
+    private String mFilePath="";  //拍照得到的原图保存的图片路径
+    //打开相机拍照
+    private void openCamera() {
+        // 获取SD卡路径
+        mFilePath = getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+//        mFilePath = Environment.getExternalStorageDirectory().getPath();//外部存储目录
+        // 保存图片的文件名
+        mFilePath = mFilePath + "/" + "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTime() +".png";
+        //android7.0以上版本
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            takePhotoBiggerThan7((new File(mFilePath)).getAbsolutePath());
+        }else{
+            //打开相机
+            Intent openCameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Uri mUri = Uri.fromFile(new File(mFilePath));
+
+            openCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,mUri);
+            startActivityForResult(openCameraIntent,REQUEST_CODE_FROM_CAMERA);
+        }
+//        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(intent, REQUEST_CODE_FROM_CAMERA);
+    }
+
+    private void takePhotoBiggerThan7(String absolutePath) {
+        Uri mCameraTempUri;
+        try {
+            ContentValues values = new ContentValues(1);//使用给定的初始大小创建一组空值
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpg");
+            values.put(MediaStore.Images.Media.DATA, absolutePath);
+            //“主”外部存储卷的样式URI。
+            mCameraTempUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            //
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            if (mCameraTempUri != null) {
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraTempUri);
+                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+            }
+            startActivityForResult(intent, REQUEST_CODE_FROM_CAMERA);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    View popupView;
+    PopupWindow popupWindow;
+
+    /**
+     * todo 创建弹窗(用于上传图片方式选择）
+     * author wang
+     * @param view
+     */
+    private void createPopupWindow(View view) {
+        if(popupView==null){
+            popupView = getLayoutInflater().inflate(R.layout.select_image_view,null);
+        }
+        popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,true);
+//        popupWindow.showAsDropDown(view, view.getWidth(),view.getHeight());
+        popupWindow.showAtLocation(findViewById(R.id.internet_image_usage_main), Gravity.BOTTOM,0,0);  //底部显示弹窗
+        popupWindow.setBackgroundDrawable(getResources().getDrawable(R.color.white));
+
+        PermissionTool.getInstance().setAlpha(0.3f,InternetImageUsageMainActivity.this);
+        //把背景还原
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                PermissionTool.getInstance().setAlpha(1.0f,InternetImageUsageMainActivity.this);
+            }
+        });
+
+        initPopupView();
+    }
+
+    /**
+     * todo 初始化弹窗的控件
+     */
+    private void initPopupView() {
+        Button camera_btn = popupView.findViewById(R.id.bt_select_image_camera);
+        Button pic_btn = popupView.findViewById(R.id.bt_select_image_photo_album);
+        Button cancel_btn = popupView.findViewById(R.id.bt_select_image_cancel);
+        InternetImageUsageMainActivityClick internetImageUsageMainActivityClick =
+                new InternetImageUsageMainActivityClick();
+        camera_btn.setOnClickListener(internetImageUsageMainActivityClick);
+        pic_btn.setOnClickListener(internetImageUsageMainActivityClick);
+        cancel_btn.setOnClickListener(internetImageUsageMainActivityClick);
+    }
+
+    /**
+     * todo 上传图片(api)
+     */
+    private void upLoadImg(String imagePath,boolean deleteOriginalImage) {
+        try{
+            new Thread(){
+                @Override
+                public void run() {
+                    super.run();
+                    //上传图片到七牛
+                    Log.i("uploadImageToQiNiu","imagePath--->"+imagePath);
+                    uploadImageToQiNiu(imagePath, new CallBackParameter() {
+                        @Override
+                        public Void CallBackURL(String url,JSONObject response) {
+                            //成功后通过发射handler的方式去处理
+                            //JSONObject retObj = Helper.imgUpload(imgString,userToken);
+                            if(deleteOriginalImage == true)
+                            {
+                                File file = new File(imagePath);
+                                file.delete();
+                            }
+                            JSONObject retObj = response ;
+                            Message msg = handler.obtainMessage();
+                            msg.what = 1;
+                            msg.obj = retObj;
+                            handler.sendMessage(msg);
+                            Log.i("uploadImageToQiNiu","CallBackURL");
+                            return null;
+                        }
+                    });
+                }
+            }.start();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * todo handler 上传图片成功后的处理
+     */
+    @SuppressLint("HandlerLeak")
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 1:
+                    Log.i("uploadImageToQiNiu","CallBackURL2222");
+                    try{
+                        JSONObject resObj = (JSONObject) msg.obj;
+                        Log.i("uploadImageToQiNiu","CallBackURL333----->"+resObj.toString());
+                        //七牛不会返回状态
+                        if(resObj !=null && resObj.getInt("status")==1000){
+                            Log.i("uploadImageToQiNiu","CallBackURL444");
+                            //String imgUrl = Helper.fixImgUrl(resObj.getString("data"));
+                            String imgUrl = resObj.getString("url");
+                            //上传成功插入返回的URL
+                            InternetImageModel model = new InternetImageModel(imgUrl);
+                            List<InternetImageModel> dataList = Arrays.asList(model);
+                            Log.i("internetImageURL--->",model.getUrl());
+                            insertDataBase(dataList);
+                            refreshModelList(true,modelList.size());//刷新
+                        }
+                    }catch (JSONException je){
+                        je.printStackTrace();
+                    }
+                    break;
+                case 2:
+                    break;
+
+            }
+        }
+    };
 }
