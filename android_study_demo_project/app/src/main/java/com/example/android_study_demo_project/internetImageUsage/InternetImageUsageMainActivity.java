@@ -197,7 +197,7 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
             recyclerViewAdapter.notifyItemRangeChanged(position,modelList.size());
         }
     }
-    Intent intent;
+
     //点击按钮处理
     private class InternetImageUsageMainActivityClick implements View.OnClickListener{
         @Override
@@ -235,7 +235,7 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
                                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                     WRITE_SDCARD_PERMISSION_REQUEST_CODE);
                         }else{
-                            intent = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            Intent intent = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                             startActivityForResult(intent, REQUEST_CODE_FROM_PHOTO);
                         }
                     }
@@ -252,10 +252,10 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
         }
     }
 
-    //上传图片
+    //上传图片测试
     void postInternetImage()
     {
-        //到相册选择图片
+        //在pictures中找第一张图片上传
         String dataPath = getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath(); //要上传的文件路径
         File file = new File(dataPath);
         File[] fileList = file.listFiles();
@@ -453,12 +453,11 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
                 public void complete(String key, ResponseInfo info, JSONObject response) {
                     if (info != null && info.isOK()) {
                         // 上传成功
-                        Log.i("uploadManager info--->",info.toString());
-                        Log.i("uploadManager response--->", String.valueOf(response));
+                        Log.i("uploadManager response--->", response.toString());
                         Toast.makeText(InternetImageUsageMainActivity.this,"上传成功",Toast.LENGTH_SHORT).show();
                         try {
                             String internetImageURL = QINIU_IMAGE_HEAD + response.get("key");
-                            //下面判断成功状态
+                            //下面判断成功状态，以及handler中取用url
                             response.put("status",1000);
                             response.put("url",internetImageURL);
                             callBackURL.CallBackURL(internetImageURL,response);
@@ -479,195 +478,6 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
     //用于内部类返回参数
     interface CallBackParameter{
         Void CallBackURL(String url,JSONObject response);
-    }
-
-    private final int TAKE_PHOTO_PERMISSION_REQUEST_CODE = 0;  //拍照的权限处理返回码
-    private final int WRITE_SDCARD_PERMISSION_REQUEST_CODE = 1; // 读储存卡内容的权限处理返回码
-    private final int REQUEST_CODE_FROM_PHOTO = 2; //相册选取返回的requestCode
-    private final int REQUEST_CODE_FROM_CAMERA = 1;//拍照返回的requestCode
-
-    AlertDialog alertDialog;
-
-    //使用相机拍摄功能的权限检查并设置
-    private void checkPermission() {
-        PermissionTool.getInstance().checkPermission(this, this,
-                new PermissionTool.PermissionResultCallBackController() {
-            @Override
-            public void checkPermissionCallBack() {
-                //说明权限都已经通过，调起相机拍摄
-                openCamera();
-            }
-        });
-    }
-
-    //手动打开设置应用权限
-    private void permissionDialog() {
-        if (alertDialog == null) {
-            alertDialog = new AlertDialog.Builder(this)
-                    .setTitle("提示信息")
-                    .setMessage("当前应用缺少必要权限，该拍摄功能暂时无法使用。" +
-                            "如若需要，请单击【设置】按钮前往设置中心进行权限授权。")
-                    .setPositiveButton("设置", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            cancelPermissionDialog();
-                            //跳转到权限设置
-                            Uri packageURI = Uri.parse("package:" + getPackageName());
-                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
-                            startActivity(intent);
-                        }
-                    })
-                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            cancelPermissionDialog();
-                        }
-                    })
-                    .create();
-        }
-        alertDialog.show();
-    }
-    //用户取消授权，关闭对话款
-    private void cancelPermissionDialog() {
-        alertDialog.cancel();
-    }
-
-    /**
-     * todo 对用户权限授予结果处理
-     * @param requestCode 权限要求码，即我们申请权限时传入的常量 如： TAKE_PHOTO_PERMISSION_REQUEST_CODE
-     * @param permissions  保存权限名称的 String 数组，可以同时申请一个以上的权限
-     * @param grantResults 每一个申请的权限的用户处理结果数组(是否授权)
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode){
-            case TAKE_PHOTO_PERMISSION_REQUEST_CODE://拍照权限请求
-                boolean hasPermission = true;
-                for(int i=0;i<grantResults.length;i++){
-                    if (grantResults[i] == -1){
-                        hasPermission = false;
-                        break;
-                    }
-                }
-                if(hasPermission){
-                    //全部权限通过，可以进行下一步操作（调起相机拍摄）
-                    openCamera();
-                }else{
-                    //跳转到系统设置权限页面，或者直接关闭页面，不让他继续访问
-                    permissionDialog();
-                }
-                break;
-            case WRITE_SDCARD_PERMISSION_REQUEST_CODE://内存读取权限请求
-                if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                }else{
-                    Toast.makeText(InternetImageUsageMainActivity.this,"读内存卡内容权限被拒绝",Toast.LENGTH_SHORT);
-//                    ToolUtils.midToast(this,"读内存卡内容权限被拒绝",1000);
-                }
-                break;
-        }
-    }
-
-    /**
-     * todo 对拍照、相册选择图片的返回结果进行处理
-     * @param requestCode 返回码，用于确定是哪个 Activity 返回的数据
-     * @param resultCode 返回结果，一般如果操作成功返回的是 RESULT_OK
-     * @param data 返回对应 activity 返回的数据
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
-            // 表示 调用照相机拍照返回
-            case REQUEST_CODE_FROM_CAMERA:
-                if(resultCode == RESULT_OK){
-                    try {
-                        // 获取输入流
-                        FileInputStream is = new FileInputStream(mFilePath);
-                        // 把流解析成bitmap,此时就得到了清晰的原图
-                        Bitmap imageBitmap = BitmapFactory.decodeStream(is);
-                        //压缩图片
-                        Bitmap newImageBitmap = PermissionTool.getInstance().scaleBitmap(imageBitmap,(float)0.5);
-                        Uri imageUri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(),
-                                newImageBitmap,
-                                "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTimeInMillis(),
-                                null));
-                        //uri 转 file
-                        selectImagePath = PermissionTool.getInstance().UriToFile(imageUri,this);
-                        upLoadImg(selectImagePath,true); //调用接口把图片上传到服务器
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            //从相册中选择图片返回
-            case REQUEST_CODE_FROM_PHOTO:
-                if(resultCode == RESULT_OK){
-                    try {
-                        Uri uri = data.getData();
-                        Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(),uri);
-                        //压缩图片
-                        Bitmap newImageBitmap = PermissionTool.getInstance().scaleBitmap(imageBitmap,(float)0.5);
-                        Uri newUri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(),
-                                newImageBitmap,
-                                "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTimeInMillis(),
-                                null));
-                        //uri 转 file
-                        selectImagePath = PermissionTool.getInstance().UriToFile(newUri,this);
-                        Log.i("imgPath",selectImagePath);
-                        upLoadImg(selectImagePath,true);//上传图片
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
-        }
-    }
-
-    private String selectImagePath = ""; //选取的要上传的图片路径
-    private String mFilePath="";  //拍照得到的原图保存的图片路径
-    //打开相机拍照
-    private void openCamera() {
-        // 获取SD卡路径
-        mFilePath = getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
-//        mFilePath = Environment.getExternalStorageDirectory().getPath();//外部存储目录
-        // 保存图片的文件名
-        mFilePath = mFilePath + "/" + "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTime() +".png";
-        //android7.0以上版本
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-            takePhotoBiggerThan7((new File(mFilePath)).getAbsolutePath());
-        }else{
-            //打开相机
-            Intent openCameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            Uri mUri = Uri.fromFile(new File(mFilePath));
-
-            openCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,mUri);
-            startActivityForResult(openCameraIntent,REQUEST_CODE_FROM_CAMERA);
-        }
-//        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        startActivityForResult(intent, REQUEST_CODE_FROM_CAMERA);
-    }
-
-    private void takePhotoBiggerThan7(String absolutePath) {
-        Uri mCameraTempUri;
-        try {
-            ContentValues values = new ContentValues(1);//使用给定的初始大小创建一组空值
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpg");
-            values.put(MediaStore.Images.Media.DATA, absolutePath);
-            //“主”外部存储卷的样式URI。
-            mCameraTempUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            //
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            if (mCameraTempUri != null) {
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraTempUri);
-                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-            }
-            startActivityForResult(intent, REQUEST_CODE_FROM_CAMERA);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     View popupView;
@@ -714,6 +524,236 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
         cancel_btn.setOnClickListener(internetImageUsageMainActivityClick);
     }
 
+    private final int TAKE_PHOTO_PERMISSION_REQUEST_CODE = 0;  //拍照的权限处理返回码
+    private final int WRITE_SDCARD_PERMISSION_REQUEST_CODE = 1; // 读储存卡内容的权限处理返回码
+    private final int REQUEST_CODE_FROM_PHOTO = 2; //相册选取返回的requestCode
+    private final int REQUEST_CODE_FROM_CAMERA = 1;//拍照返回的requestCode
+
+    //使用相机拍摄功能的权限检查并设置
+    private void checkPermission() {
+        PermissionTool.getInstance().checkPermission(this, this,
+                new PermissionTool.PermissionResultCallBackController() {
+            @Override
+            public void checkPermissionCallBack() {
+                //说明权限都已经通过，调起相机拍摄
+                openCamera();
+            }
+        });
+    }
+
+    AlertDialog alertDialog;
+    //手动打开设置应用权限
+    private void permissionDialog() {
+        if (alertDialog == null) {
+            alertDialog = new AlertDialog.Builder(this)
+                    .setTitle("提示信息")
+                    .setMessage("当前应用缺少必要权限，该拍摄功能暂时无法使用。" +
+                            "如若需要，请单击【设置】按钮前往设置中心进行权限授权。")
+                    .setPositiveButton("设置", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            cancelPermissionDialog();
+                            //跳转到权限设置
+                            Uri packageURI = Uri.parse("package:" + getPackageName());
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
+                            startActivity(intent);
+                        }
+                    })
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            cancelPermissionDialog();
+                        }
+                    })
+                    .create();
+        }
+        alertDialog.show();
+    }
+    //用户取消授权，关闭对话款
+    private void cancelPermissionDialog() {
+        alertDialog.cancel();
+    }
+
+    private String selectImagePath = ""; //选取的要上传的图片路径
+    private String cameraImageFilePath="";  //拍照得到的原图保存的图片路径
+    //打开相机拍照
+    private void openCamera() {
+        // 获取SD卡路径
+        cameraImageFilePath = getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+//        mFilePath = Environment.getExternalStorageDirectory().getPath();//外部存储目录
+        // 保存图片的文件名
+        cameraImageFilePath = cameraImageFilePath + "/" +
+                "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTimeInMillis() +".png";
+
+        //打开相机拍照并保存文件
+        //android7.0以上版本
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            takePhotoBiggerThan7((new File(cameraImageFilePath)).getAbsolutePath());
+        }else{
+            //7.0以下拍照
+            Intent openCameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Uri cameraUri = Uri.fromFile(new File(cameraImageFilePath));
+
+            openCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,cameraUri);
+            startActivityForResult(openCameraIntent,REQUEST_CODE_FROM_CAMERA);
+        }
+//        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(intent, REQUEST_CODE_FROM_CAMERA);
+    }
+
+    /**
+     * android版本7.0以上的拍照
+     * @param absolutePath 保存图片路径
+     */
+    private void takePhotoBiggerThan7(String absolutePath) {
+        Uri mCameraTempUri;
+        try {
+            ContentValues values = new ContentValues(1);//使用给定的初始大小创建一组空值
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpg");
+            values.put(MediaStore.Images.Media.DATA, absolutePath);
+            //“主”外部存储卷的样式URI。
+            mCameraTempUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            //
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            if (mCameraTempUri != null) {
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraTempUri);
+                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+            }
+            startActivityForResult(intent, REQUEST_CODE_FROM_CAMERA);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * todo 对用户权限授予结果处理
+     * @param requestCode 权限要求码，即我们申请权限时传入的常量 如： TAKE_PHOTO_PERMISSION_REQUEST_CODE
+     * @param permissions  保存权限名称的 String 数组，可以同时申请一个以上的权限
+     * @param grantResults 每一个申请的权限的用户处理结果数组(是否授权)
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case TAKE_PHOTO_PERMISSION_REQUEST_CODE://拍照权限请求
+                boolean hasPermission = true;
+                for(int i=0;i<grantResults.length;i++){
+                    if (grantResults[i] == -1){
+                        hasPermission = false;
+                        break;
+                    }
+                }
+                if(hasPermission){
+                    //全部权限通过，可以进行下一步操作（调起相机拍摄）
+                    openCamera();
+                }else{
+                    //跳转到系统设置权限页面（或者直接关闭页面，不让他继续访问）
+                    permissionDialog();
+                }
+                break;
+            case WRITE_SDCARD_PERMISSION_REQUEST_CODE://内存读取权限请求
+                if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                }else{
+                    Toast.makeText(InternetImageUsageMainActivity.this,"读内存卡内容权限被拒绝",Toast.LENGTH_SHORT);
+//                    ToolUtils.midToast(this,"读内存卡内容权限被拒绝",1000);
+                }
+                break;
+        }
+    }
+
+    /**
+     * todo 对拍照、相册选择图片的返回结果进行处理
+     * @param requestCode 返回码，用于确定是哪个 Activity 返回的数据
+     * @param resultCode 返回结果，一般如果操作成功返回的是 RESULT_OK
+     * @param data 返回对应 activity 返回的数据
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            // 表示 调用照相机拍照返回
+            case REQUEST_CODE_FROM_CAMERA:
+                if(resultCode == RESULT_OK){
+                    try {
+                        // 获取输入流
+                        FileInputStream fileInputStream = new FileInputStream(cameraImageFilePath);
+                        // 把流解析成bitmap,此时就得到了清晰的原图
+                        Bitmap imageBitmap = BitmapFactory.decodeStream(fileInputStream);
+                        //压缩图片
+                        Bitmap newImageBitmap = PermissionTool.getInstance().scaleBitmap(imageBitmap,(float)0.5);
+                        Uri imageUri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(),
+                                newImageBitmap,
+                                "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTimeInMillis(),
+                                null));
+                        //uri 转 file
+                        selectImagePath = PermissionTool.getInstance().UriToFile(imageUri,this);
+                        upLoadImg(selectImagePath,false); //调用接口把图片上传到服务器
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            //从相册中选择图片返回
+            case REQUEST_CODE_FROM_PHOTO:
+                if(resultCode == RESULT_OK){
+                    try {
+                        Uri uri = data.getData();
+                        Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(),uri);
+                        //压缩图片
+                        Bitmap newImageBitmap = PermissionTool.getInstance().scaleBitmap(imageBitmap,(float)0.5);
+                        Uri newUri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(),
+                                newImageBitmap,
+                                "IMG"+ Calendar.getInstance(TimeZone.getTimeZone("GMT+8")).getTimeInMillis(),
+                                null));
+                        //uri 转 file
+                        selectImagePath = PermissionTool.getInstance().UriToFile(newUri,this);
+                        Log.i("imgPath",selectImagePath);
+                        upLoadImg(selectImagePath,true);//上传图片
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
+    }
+
+    /**
+     * todo handler 上传图片成功后的处理
+     */
+    @SuppressLint("HandlerLeak")
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 1:
+                    try{
+                        JSONObject resObj = (JSONObject) msg.obj;
+                        Log.i("uploadImageToQiNiu--JSONObject-->",resObj.toString());
+                        //七牛不会返回状态
+                        if(resObj !=null && resObj.getInt("status")==1000){
+                            //String imgUrl = Helper.fixImgUrl(resObj.getString("data"));
+                            String imgUrl = resObj.getString("url");
+                            //上传成功插入返回的URL
+                            InternetImageModel model = new InternetImageModel(imgUrl);
+                            List<InternetImageModel> dataList = Arrays.asList(model);
+                            Log.i("internetImageURL--->",model.getUrl());
+                            insertDataBase(dataList);
+                            refreshModelList(true,modelList.size());//刷新
+                        }
+                    }catch (JSONException je){
+                        je.printStackTrace();
+                    }
+                    break;
+                case 2:
+                    break;
+
+            }
+        }
+    };
+
     /**
      * todo 上传图片(api)
      */
@@ -740,7 +780,6 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
                             msg.what = 1;
                             msg.obj = retObj;
                             handler.sendMessage(msg);
-                            Log.i("uploadImageToQiNiu","CallBackURL");
                             return null;
                         }
                     });
@@ -750,41 +789,4 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
-    /**
-     * todo handler 上传图片成功后的处理
-     */
-    @SuppressLint("HandlerLeak")
-    Handler handler = new Handler(){
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what){
-                case 1:
-                    Log.i("uploadImageToQiNiu","CallBackURL2222");
-                    try{
-                        JSONObject resObj = (JSONObject) msg.obj;
-                        Log.i("uploadImageToQiNiu","CallBackURL333----->"+resObj.toString());
-                        //七牛不会返回状态
-                        if(resObj !=null && resObj.getInt("status")==1000){
-                            Log.i("uploadImageToQiNiu","CallBackURL444");
-                            //String imgUrl = Helper.fixImgUrl(resObj.getString("data"));
-                            String imgUrl = resObj.getString("url");
-                            //上传成功插入返回的URL
-                            InternetImageModel model = new InternetImageModel(imgUrl);
-                            List<InternetImageModel> dataList = Arrays.asList(model);
-                            Log.i("internetImageURL--->",model.getUrl());
-                            insertDataBase(dataList);
-                            refreshModelList(true,modelList.size());//刷新
-                        }
-                    }catch (JSONException je){
-                        je.printStackTrace();
-                    }
-                    break;
-                case 2:
-                    break;
-
-            }
-        }
-    };
 }
