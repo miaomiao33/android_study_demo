@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@drawable/shape_10dp_top_corners"
-    android:layout_gravity="bottom"
+    android:layout_gravity="center"
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp"
-    android:paddingBottom="15dp"
     >
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,8 +17,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:gravity="center"
-            android:text="请选择方式"
-            android:textSize="18sp"/>
+            android:text="请选择方式"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -31,7 +29,6 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:text="拍摄"
-            android:layout_marginHorizontal="8dp"
             />
     </LinearLayout>
     <LinearLayout
@@ -44,7 +41,6 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:text="从相册选择"
-            android:layout_marginHorizontal="8dp"
             />
     </LinearLayout>
     <LinearLayout
@@ -57,7 +53,6 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:text="取消"
-        android:layout_marginHorizontal="8dp"
         />
     </LinearLayout>
 </LinearLayout>
