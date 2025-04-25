@@ -16,7 +16,9 @@
             android:id="@+id/rv_internet_image_usage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="4dp"/>
+            android:padding="4dp"
+            tools:ignore="SpeakableTextPresentCheck"
+            />
 
     </LinearLayout>
 
