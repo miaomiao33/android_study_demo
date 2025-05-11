@@ -27,10 +27,15 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     public void bindService(View view) {
-        bindService(new Intent(this,MyService.class),connection, Context.BIND_AUTO_CREATE);
+        //绑定服务
+        //构建绑定服务的Intent对象
+        Intent intent = new Intent(this,MyService.class);
+        //绑定服务
+        bindService(intent,connection, Context.BIND_AUTO_CREATE);
     }
 
     public void unBindService(View view) {
+        //解绑服务
         unbindService(connection);
     }
 
@@ -38,12 +43,15 @@ public class MainActivity2 extends AppCompatActivity {
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-
+            //Activity与Service关联时
+            MyService.MyBinder myBinder = (MyService.MyBinder) iBinder;
+            //在Activity中调用Service中的方法
+            myBinder.service_connect_activity();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-
+            //失去关联时
         }
     };
 

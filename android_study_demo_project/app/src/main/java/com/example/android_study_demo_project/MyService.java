@@ -3,6 +3,7 @@ package com.example.android_study_demo_project;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -51,4 +52,10 @@ public class MyService extends Service {
     }
 
 
+    class MyBinder extends Binder{
+        //用于在Activity调用Service的方法
+        public void service_connect_activity(){
+            System.out.println("Service关联了Activity，并在Activity执行了Service的方法");
+        }
+    }
 }
