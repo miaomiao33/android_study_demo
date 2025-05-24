@@ -98,6 +98,10 @@
         <meta-data
             android:name="QiNiu_bucket"
             android:value="internet-image-android" />
+        <!--  用于测试的元素据-->
+        <meta-data
+            android:name="com.example.android_study_demo_project.TEST"
+            android:value="\1234567890" />
     </application>
 
 </manifest>

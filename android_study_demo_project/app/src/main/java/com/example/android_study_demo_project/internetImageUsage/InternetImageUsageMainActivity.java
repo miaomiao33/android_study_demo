@@ -756,6 +756,8 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
 
     /**
      * todo 上传图片(api)
+     * @param imagePath 图片地址
+     * @param deleteOriginalImage 是否删除原片
      */
     private void upLoadImg(String imagePath,boolean deleteOriginalImage) {
         try{
