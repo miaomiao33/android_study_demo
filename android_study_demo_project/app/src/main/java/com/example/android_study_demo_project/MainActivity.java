@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.android_study_demo_project.espressoUsage.EspressoUsageActivity;
 import com.example.android_study_demo_project.fragmentUsage.FragmentUsageActivity;
 import com.example.android_study_demo_project.intent.IntentMainActivity;
 import com.example.android_study_demo_project.internetImageUsage.InternetImageUsageMainActivity;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private Button fragmentWithBroadcastButton;
     private Button mediaUsageButton;
     private Button internetImageUsageButton;
+    private Button espressoButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentWithBroadcastButton = (Button)findViewById(R.id.bt_fragment_with_Broadcast);
         mediaUsageButton = (Button)findViewById(R.id.bt_media_usage);
         internetImageUsageButton = (Button)findViewById(R.id.bt_internet_image_usage);
+        espressoButton = (Button) findViewById(R.id.bt_espresso_usage);
 
 
         storageButton.setOnClickListener(new myClick());
@@ -99,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentWithBroadcastButton.setOnClickListener(new myClick());
         mediaUsageButton.setOnClickListener(new myClick());
         internetImageUsageButton.setOnClickListener(new myClick());
+        espressoButton.setOnClickListener(new myClick());
     }
 
 
@@ -211,6 +215,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //跳转到espresso测试框架使用
+    public void gotoEspressoUsage()
+    {
+        Intent intent = new Intent(MainActivity.this, EspressoUsageActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -232,6 +243,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_internet_image_usage:
                     gotoInternetImageUsage();
+                    break;
+                case R.id.bt_espresso_usage:
+                    gotoEspressoUsage();
                     break;
                 default:
                     break;

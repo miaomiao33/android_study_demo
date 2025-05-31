@@ -11,36 +11,33 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- 声明后台定位权限 -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/><!-- 音频权限 -->
-    <uses-permission android:name="android.permission.CAMERA"/><!-- 摄像头权限 -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /><!-- 允许程序设置内置sd卡的读权限 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" /> <!-- 音频权限 -->
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- 摄像头权限 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 允许程序设置内置sd卡的读权限 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNA" />
-
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true"
-        android:requestLegacyExternalStorage="true"
-        >
-
+        android:usesCleartextTraffic="true">
         <activity android:name=".RXJavaMainActivity" />
         <activity android:name=".OkHttpMainActivity" />
         <activity android:name=".GlideMainActivity" />
         <activity android:name=".SearchActivity" />
         <activity android:name=".MainActivity_map" />
         <activity android:name=".MainActivityForService" />
-        <activity android:name=".storage.StorageActivity"/>
-        <activity android:name=".intent.IntentMainActivity"/>
+        <activity android:name=".storage.StorageActivity" />
+        <activity android:name=".intent.IntentMainActivity" />
         <activity android:name=".storage.FileUsageActivity">
             <intent-filter>
-                <action android:name="com.example.android_study_demo_project.ACTION_START"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="com.example.android_study_demo_project.ACTION_START" />
+
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="com.example.android_study_demo_project.MY_CATEGORY" />
             </intent-filter>
         </activity>
@@ -63,12 +60,16 @@
         </receiver>
         <activity android:name=".storage.ROOM.RoomUsageActivity"/>
         <activity android:name=".internetImageUsage.InternetImageUsageMainActivity"/>
+        <activity android:name=".espressoUsage.EspressoUsageActivity" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".MainActivity2" />
         <activity
             android:name="com.amap.api.navi.AmapRouteActivity"
@@ -81,7 +82,9 @@
             <intent-filter>
                 <action android:name="com.derry.receiver_flag_" />
             </intent-filter>
-        </receiver> <!-- //开发者申请的key -->
+        </receiver>
+
+        <!-- //开发者申请的key -->
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="b36ba9e21b825d2d09e1cfe0bd2c0867" />
