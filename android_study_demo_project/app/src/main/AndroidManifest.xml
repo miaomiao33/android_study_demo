@@ -25,6 +25,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+        <activity
+            android:name=".androidCleanArchitecture.CompositionRoot.CleanArchitectureActivity"
+            android:exported="false" />
         <activity android:name=".RXJavaMainActivity" />
         <activity android:name=".OkHttpMainActivity" />
         <activity android:name=".GlideMainActivity" />
@@ -41,27 +44,30 @@
                 <category android:name="com.example.android_study_demo_project.MY_CATEGORY" />
             </intent-filter>
         </activity>
-        <activity android:name=".storage.SharePreferenceLoginActivity"/>
-        <activity android:name=".storage.SharePreferenceActivity"/>
-        <activity android:name=".storage.SQLiteUsageActivity"
-            android:windowSoftInputMode="adjustPan"/>
-        <activity android:name=".fragmentUsage.FragmentUsageActivity"/>
-        <activity android:name=".media.MediaMainActivity"/>
-        <activity android:name=".media.MediaRecorderActivity"/>
-        <activity android:name=".media.MediaPlayerActivity"/>
-        <activity android:name=".media.MediaVideoViewActivity"/>
-        <activity android:name=".media.MediaSoundPoolActivity"/>
-        <receiver android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
+        <activity android:name=".storage.SharePreferenceLoginActivity" />
+        <activity android:name=".storage.SharePreferenceActivity" />
+        <activity
+            android:name=".storage.SQLiteUsageActivity"
+            android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".fragmentUsage.FragmentUsageActivity" />
+        <activity android:name=".media.MediaMainActivity" />
+        <activity android:name=".media.MediaRecorderActivity" />
+        <activity android:name=".media.MediaPlayerActivity" />
+        <activity android:name=".media.MediaVideoViewActivity" />
+        <activity android:name=".media.MediaSoundPoolActivity" />
+
+        <receiver
+            android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.example.broadcast.TEST"/>
+                <action android:name="com.example.broadcast.TEST" />
             </intent-filter>
         </receiver>
-        <activity android:name=".storage.ROOM.RoomUsageActivity"/>
-        <activity android:name=".internetImageUsage.InternetImageUsageMainActivity"/>
-        <activity android:name=".espressoUsage.EspressoUsageActivity" />
 
+        <activity android:name=".storage.ROOM.RoomUsageActivity" />
+        <activity android:name=".internetImageUsage.InternetImageUsageMainActivity" />
+        <activity android:name=".espressoUsage.EspressoUsageActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -69,7 +75,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".MainActivity2" />
         <activity
             android:name="com.amap.api.navi.AmapRouteActivity"
@@ -82,16 +87,12 @@
             <intent-filter>
                 <action android:name="com.derry.receiver_flag_" />
             </intent-filter>
-        </receiver>
-
-        <!-- //开发者申请的key -->
+        </receiver> <!-- //开发者申请的key -->
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="b36ba9e21b825d2d09e1cfe0bd2c0867" />
 
-        <service android:name="com.amap.api.location.APSService" />
-
-        <!--  七牛的key-->
+        <service android:name="com.amap.api.location.APSService" /> <!-- 七牛的key -->
         <meta-data
             android:name="QiNiu_accessKey"
             android:value="oN0Ptelzy0jJzSONtPxvY-khvFy7AGx5b2z9NB4b" />
@@ -100,8 +101,7 @@
             android:value="Chq8u6oJ0NUycGgrvFLoT8FfvzXQE69TZ3iHQhUV" />
         <meta-data
             android:name="QiNiu_bucket"
-            android:value="internet-image-android" />
-        <!--  用于测试的元素据-->
+            android:value="internet-image-android" /> <!-- 用于测试的元素据 -->
         <meta-data
             android:name="com.example.android_study_demo_project.TEST"
             android:value="\1234567890" />

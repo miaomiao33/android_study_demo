@@ -105,5 +105,12 @@
         android:text="跳转到espresso使用"
         android:textAllCaps="false"
         />
+    <Button
+        android:id="@+id/bt_clean_architecture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="跳转到clean框架的使用"
+        android:textAllCaps="false"
+        />
 
 </LinearLayout>
