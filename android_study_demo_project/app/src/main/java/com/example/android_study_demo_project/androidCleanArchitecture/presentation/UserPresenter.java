@@ -2,16 +2,12 @@ package com.example.android_study_demo_project.androidCleanArchitecture.presenta
 
 
 import android.content.Context;
-import android.widget.Button;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.android_study_demo_project.androidCleanArchitecture.CompositionRoot.UserListViewAdapter;
 import com.example.android_study_demo_project.androidCleanArchitecture.Entities.User;
 import com.example.android_study_demo_project.androidCleanArchitecture.UseCases_Interactor.AddUserCallBack;
 import com.example.android_study_demo_project.androidCleanArchitecture.UseCases_Interactor.GetUserUseCase;
-
-import java.util.List;
 
 //presenter处理UI事件，如单击事件，通常包含内层Interactor的回调方法。
 public class UserPresenter {
