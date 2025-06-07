@@ -30,6 +30,12 @@ android {
         sourceCompatibility = 1.8
     }
 
+    //打开dataBinding和viewBinding
+    buildFeatures{
+        dataBinding = true
+        viewBinding = true
+    }
+
     //布局文件资源来源
     sourceSets {
         main {
@@ -40,6 +46,7 @@ android {
                     'src/main/res/layout/fragmentUsageLayout',
                     'src/main/res/layout/mediaLayout',
                     'src/main/res/layout/imageUsageLayout',
+                    'src/main/res/layout/dataBindingLayout',
             ]
         }
     }
@@ -51,6 +58,8 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    //MutableLiveData依赖
+    implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0"
     //测试依赖
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'

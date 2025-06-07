@@ -15,6 +15,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.android_study_demo_project.androidCleanArchitecture.CompositionRoot.CleanArchitectureActivity;
+import com.example.android_study_demo_project.dataBindingUsage.DataBindingActivity;
 import com.example.android_study_demo_project.espressoUsage.EspressoUsageActivity;
 import com.example.android_study_demo_project.fragmentUsage.FragmentUsageActivity;
 import com.example.android_study_demo_project.intent.IntentMainActivity;
@@ -84,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
     private Button espressoButton;
     private Button cleanArchitectureButton;
 
+    private Button dataBindingButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         internetImageUsageButton = (Button)findViewById(R.id.bt_internet_image_usage);
         espressoButton = (Button) findViewById(R.id.bt_espresso_usage);
         cleanArchitectureButton = (Button) findViewById(R.id.bt_clean_architecture);
+        dataBindingButton = (Button) findViewById(R.id.bt_dataBinding_usage);
 
 
         storageButton.setOnClickListener(new myClick());
@@ -107,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         internetImageUsageButton.setOnClickListener(new myClick());
         espressoButton.setOnClickListener(new myClick());
         cleanArchitectureButton.setOnClickListener(new myClick());
+        dataBindingButton.setOnClickListener(new myClick());
     }
 
 
@@ -233,6 +238,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //跳转到DataBinding使用
+    public void gotoDataBindingUsage()
+    {
+        Intent intent = new Intent(MainActivity.this, DataBindingActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -260,6 +272,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_clean_architecture:
                     gotoCleanUsage();
+                    break;
+                case R.id.bt_dataBinding_usage:
+                    gotoDataBindingUsage();
                     break;
                 default:
                     break;

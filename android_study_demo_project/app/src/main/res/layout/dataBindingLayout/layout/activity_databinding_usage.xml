@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="informationText"
+            type="String" />
+        <variable
+            name="hasChanged"
+            type="boolean" />
+        <variable
+            name="includeViewContent"
+            type="String" />
+        <variable
+            name="stubViewContent"
+            type="String" />
+        <variable
+            name="presenter"
+            type="com.example.android_study_demo_project.dataBindingUsage.DataBindingActivity.Presenter" />
+        <variable
+            name="person"
+            type="com.example.android_study_demo_project.dataBindingUsage.Person" />
+        <variable
+            name="person2"
+            type="com.example.android_study_demo_project.dataBindingUsage.ObservablePerson" />
+        <variable
+            name="content"
+            type="androidx.databinding.ObservableField&lt;String&gt;" />
+        <variable
+            name="viewModel"
+            type="com.example.android_study_demo_project.dataBindingUsage.eachOther.CustomViewModel" />
+
+
+    </data>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp">
+            <!--        基本使用-->
+            <TextView
+                android:id="@+id/tv_information_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text='@{informationText??"informationText为空"}'
+                android:textSize="20sp"
+                android:layout_marginBottom="10dp"
+                />
+            <TextView
+                android:id="@+id/tv_hasChange_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text='@{hasChanged ? "改变了":"没有改变"}'
+                android:layout_marginBottom="10dp"
+                android:textSize="20sp"/>
+            <Button
+                android:id="@+id/bt_change_databinding_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="修改标题"
+                android:onClick="@{presenter.clickChangeText}"
+                />
+            <Button
+                android:id="@+id/bt_determine_hasChanged"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="判断是否修改了"
+                android:onClick="@{()->presenter.clickChangeTextWithParameter(hasChanged)}"
+                />
+
+            <!--            使用include和stubView-->
+            <include
+                layout="@layout/view_include"
+                bind:includeViewContent="@{includeViewContent}"/>
+
+            <ViewStub
+                android:id="@+id/view_stub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout="@layout/view_stub"
+                bind:stubViewContent="@{stubViewContent}"
+                />
+
+            <!--        单向绑定-->
+            <!--        继承baseObservable-->
+            <TextView
+                android:id="@+id/tv_baseObservable_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text='@{"name:"+person.name}'
+                android:textSize="20sp"/>
+            <TextView
+                android:id="@+id/tv_baseObservable_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text='@{"age"+String.valueOf(person.age)}'
+                android:textSize="20sp"/>
+            <TextView
+                android:id="@+id/tv_baseObservable_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text='@{"id:"+person.id}'
+                android:textSize="20sp"/>
+            <Button
+                android:id="@+id/bt_baseObservable_change_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BaseObservable:修改name，更新所有字段"
+                android:textAllCaps="false"
+                android:onClick="@{()->presenter.baseObservableChangeName()}"
+                />
+            <Button
+                android:id="@+id/bt_baseObservable_change_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BaseObservable:修改age，只更新age"
+                android:textAllCaps="false"
+                android:onClick="@{()->presenter.baseObservableChangeAge()}"
+                />
+            <Button
+                android:id="@+id/bt_baseObservable_change_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BaseObservable:修改id，不自动更新"
+                android:textAllCaps="false"
+                android:onClick="@{()->presenter.baseObservableChangeId()}"
+                />
+            <!--        使用observableField或observableLong等封装-->
+            <TextView
+                android:id="@+id/tv_observableField_name_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text='@{"name:"+person2.name +"age:"+String.valueOf(person2.age)}'
+                android:textSize="20sp"/>
+            <TextView
+                android:id="@+id/tv_observableLong_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text='@{"id:"+String.valueOf(person2.id)}'
+                android:textSize="20sp"/>
+            <Button
+                android:id="@+id/bt_observableField_name_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="observableField:修改name或者age自动更新"
+                android:textAllCaps="false"
+                android:onClick="@{()->presenter.observableFieldNameAge(person2)}"
+                />
+            <Button
+                android:id="@+id/bt_observableField_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="observableLong:修改id自动更新"
+                android:textAllCaps="false"
+                android:onClick="@{()->presenter.observableLongId(person2)}"
+                />
+<!--            双向数据绑定-->
+            <TextView
+                android:id="@+id/tv_bind_each_other"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text='@{content}'
+                android:textSize="20sp"/>
+            <EditText
+                android:id="@+id/et_bind_each_other"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text='@={content}'
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:textSize="20sp"/>
+
+            <Button
+                android:id="@+id/bt_change_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="双向绑定：改变content的值"
+                android:textAllCaps="false"
+                android:onClick="@{()->presenter.changeContent()}"
+                />
+            <com.example.android_study_demo_project.dataBindingUsage.eachOther.CustomView
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                time="@={viewModel.mutableLiveData}"/>
+
+
+        </LinearLayout>
+    </ScrollView>
+</layout>
