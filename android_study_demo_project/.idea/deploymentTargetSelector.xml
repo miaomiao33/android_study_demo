@@ -14,10 +14,10 @@
       <SelectionState runConfigName="testPickIntent()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="com.example.android_study_demo_project.EspressoUsageActivityTest#listViewMatcher()">
+      <SelectionState runConfigName="testTackPhoto()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testTackPhoto()">
+      <SelectionState runConfigName="testInternetLoading()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

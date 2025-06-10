@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--解决minSdk<18时，UiAutomator编译失败问题-->
+<manifest
+    package="${applicationId}.test"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-sdk tools:overrideLibrary="android.support.test.uiautomator.v18"/>
+</manifest>

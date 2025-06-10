@@ -11,14 +11,14 @@
     <ListView
         android:id="@+id/lv_espresso_listview"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="180dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_espresso_recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="180dp"
         android:background="@color/ivory"
         android:layout_marginTop="10dp"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -69,6 +69,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bt_goto_contacts"/>
     <LinearLayout
+        android:id="@+id/ll_take_photo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -90,6 +91,34 @@
             android:layout_marginStart="10dp"/>
 
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_take_photo"
+        android:gravity="center_vertical">
+        <TextView
+            android:id="@+id/tv_espresso_internet_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="网络信息加载中"
+            android:textColor="@color/blueviolet"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+        <Button
+            android:id="@+id/bt_espresso_test_internet_load"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="模拟网络加载"
+            android:textSize="16sp"
+            android:layout_marginStart="10dp"
+            android:textAllCaps="false"/>
+
+    </LinearLayout>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

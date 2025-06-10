@@ -25,14 +25,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.test.core.app.ActivityScenario;
+import androidx.test.espresso.IdlingRegistry;
 import androidx.test.espresso.contrib.RecyclerViewActions;
-import androidx.test.espresso.intent.matcher.ComponentNameMatchers;
-import androidx.test.espresso.intent.matcher.IntentMatchers;
 import androidx.test.espresso.intent.rule.IntentsTestRule;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.matcher.ViewMatchers;
@@ -41,17 +41,22 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.GrantPermissionRule;
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import androidx.test.runner.lifecycle.Stage;
 
 import com.example.android_study_demo_project.espressoUsage.EspressoUsageActivity;
+import com.example.android_study_demo_project.espressoUsage.IdlingDelayResources;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.Result;
 import org.junit.runner.RunWith;
+
+import java.util.Collection;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -73,6 +78,9 @@ public class EspressoUsageActivityTest {
                     Manifest.permission.CALL_PHONE);//跳过通话权限
 
     EspressoUsageActivity espressoUsageActivity;
+    Activity currentActivity;
+
+    IdlingDelayResources mIdlingResource;//延时测试
 
     @Before
     public void setUp() {
@@ -86,6 +94,14 @@ public class EspressoUsageActivityTest {
             assertNotNull("Activity should not be null", activity);
             this.espressoUsageActivity = activity;
         });
+        //延时测试网络加载情况
+        mIdlingResource= (IdlingDelayResources) espressoUsageActivity.getIdlingResource();
+        IdlingRegistry.getInstance().register(mIdlingResource);
+    }
+
+    @After
+    public void tearDown() {
+        IdlingRegistry.getInstance().unregister(mIdlingResource);
     }
 
     @Test
@@ -232,5 +248,36 @@ public class EspressoUsageActivityTest {
                 return item.getDrawable() != null;
             }
         };
+    }
+
+    //Espresso获取当前的Activity
+    public Activity getActivityInstance(){
+        try {
+            intentsTestRule.runOnUiThread(new Runnable() {
+                public void run() {
+                    Collection<Activity> resumedActivities =
+                            ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED);
+                    for (Activity act: resumedActivities){
+                        Log.d("Your current activity: ", act.getClass().getName());
+                        currentActivity = act;
+                        break;
+                    }
+                }
+            });
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+
+        return currentActivity;
+    }
+
+    //测试网络加载
+    @Test
+    public void testInternetLoading()
+    {
+        //执行点击事件，进入耗时操作
+        onView(withId(R.id.bt_espresso_test_internet_load)).perform(click());
+        //3秒后自动进行验证
+        onView(withId(R.id.tv_espresso_internet_text)).check(matches(withText("网络信息加载成功")));
     }
 }

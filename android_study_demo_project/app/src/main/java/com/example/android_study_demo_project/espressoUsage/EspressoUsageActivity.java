@@ -18,9 +18,12 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.test.espresso.IdlingRegistry;
+import androidx.test.espresso.IdlingResource;
 
 import com.example.android_study_demo_project.MainActivity;
 import com.example.android_study_demo_project.R;
@@ -55,6 +58,10 @@ public class EspressoUsageActivity extends AppCompatActivity {
     final int ACTION_IMAGE_CAPTURE_CODE = 2;//打开摄像机请求码
     private String cameraImageFilePath;//存储的拍照路径
 
+    private IdlingDelayResources mIdlingResource;//用于测试网络加载延时操作
+    private Button loadInternetTextButton;
+    private TextView internetTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +81,8 @@ public class EspressoUsageActivity extends AppCompatActivity {
         callButton = (Button) findViewById(R.id.bt_call);
         imageView = (ImageView) findViewById(R.id.iv_espresso_take_photo);
         takePhotoButton = (Button) findViewById(R.id.bt_espresso_take_photo);
+        loadInternetTextButton = (Button) findViewById(R.id.bt_espresso_test_internet_load);
+        internetTextView = (TextView) findViewById(R.id.tv_espresso_internet_text);
 
         EspressoListViewAdapter adapter = new EspressoListViewAdapter(
                 listViewDataList, EspressoUsageActivity.this, new EspressoListViewClickCallBack() {
@@ -89,6 +98,7 @@ public class EspressoUsageActivity extends AppCompatActivity {
         gotoContactsButton.setOnClickListener(click);
         callButton.setOnClickListener(click);
         takePhotoButton.setOnClickListener(click);
+        loadInternetTextButton.setOnClickListener(click);
 
         EspressoRecyclerViewAdapter recyclerViewAdapter = new EspressoRecyclerViewAdapter(
                 recyclerViewDataList,
@@ -161,6 +171,24 @@ public class EspressoUsageActivity extends AppCompatActivity {
                     startActivityForResult(openCameraIntent,ACTION_IMAGE_CAPTURE_CODE);
                     break;
                 }
+                case R.id.bt_espresso_test_internet_load:
+                {
+                    //模拟加载网络数据
+                    //最好采用手动设置检查，而不是自动检测
+//                    //耗时操作开始，设置空闲状态为false，阻塞测试线程
+//                    mIdlingResource.setIdleState(false);
+                    internetTextView.setText("网络信息加载中");
+                    try {
+                        //模拟网络加载了2秒
+                        Thread.sleep(1500);
+                        internetTextView.setText("网络信息加载成功");
+//                        //耗时操作结束，设置空闲状态为true，放开测试线程
+//                        mIdlingResource.setIdleState(true);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                }
             }
         }
     }
@@ -213,5 +241,16 @@ public class EspressoUsageActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    //试了一下，去除@VisibleForTesting这个注解，不妨碍Test调用，就把他当成测试标志吧
+    @VisibleForTesting
+    public IdlingResource getIdlingResource() {
+
+        if(mIdlingResource == null)
+            //模拟测试网络加载数据（3秒后自动验证）
+            mIdlingResource = new IdlingDelayResources(3000);
+
+        return mIdlingResource;
     }
 }
