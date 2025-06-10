@@ -88,7 +88,3 @@ public class EspressoListViewAdapter extends BaseAdapter {
     }
 }
 
-interface EspressoListViewClickCallBack{
-    void CallBack(View view,String text);
-}
-

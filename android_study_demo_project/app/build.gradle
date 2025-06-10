@@ -47,6 +47,7 @@ android {
                     'src/main/res/layout/mediaLayout',
                     'src/main/res/layout/imageUsageLayout',
                     'src/main/res/layout/dataBindingLayout',
+                    'src/main/res/layout/espressoUsageLayout',
             ]
         }
     }
@@ -69,6 +70,7 @@ dependencies {
     //Espresso：Android UI测试框架
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.5.1'
 
     //MockK测试框架
     testImplementation "io.mockk:mockk:1.13.8"        // 基础库
