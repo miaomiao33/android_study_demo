@@ -1,5 +1,6 @@
 package com.example.android_study_demo_project.dataBindingUsage;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewStub;
@@ -14,6 +15,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.android_study_demo_project.R;
 import com.example.android_study_demo_project.dataBindingUsage.eachOther.CustomViewModel;
+import com.example.android_study_demo_project.dataBindingUsage.fragmentDataBinding.FragmentDataBindingActivity;
+import com.example.android_study_demo_project.dataBindingUsage.recyclerViewDataBinding.RecyclerViewDataBindingUsageActivity;
 import com.example.android_study_demo_project.databinding.ActivityDatabindingUsageBinding;
 
 public class DataBindingActivity extends AppCompatActivity {
@@ -106,6 +109,22 @@ public class DataBindingActivity extends AppCompatActivity {
                 text = "修改text值失败";
             }
             Toast.makeText(DataBindingActivity.this,text,Toast.LENGTH_SHORT).show();
+        }
+
+        //跳转到RecyclerView DataBinding使用
+        public void gotoRecyclerViewDataBinding()
+        {
+            Intent intent = new Intent(DataBindingActivity.this,
+                    RecyclerViewDataBindingUsageActivity.class);
+            startActivity(intent);
+        }
+
+        //跳转到Fragment DataBinding使用
+        public void gotoFragmentDataBinding()
+        {
+            Intent intent = new Intent(DataBindingActivity.this,
+                    FragmentDataBindingActivity.class);
+            startActivity(intent);
         }
 
 

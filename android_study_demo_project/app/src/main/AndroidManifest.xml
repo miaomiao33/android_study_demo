@@ -71,6 +71,8 @@
             android:name=".androidCleanArchitecture.CompositionRoot.CleanArchitectureActivity"
             android:exported="false" />
         <activity android:name=".dataBindingUsage.DataBindingActivity"/>
+        <activity android:name=".dataBindingUsage.recyclerViewDataBinding.RecyclerViewDataBindingUsageActivity"/>
+        <activity android:name=".dataBindingUsage.fragmentDataBinding.FragmentDataBindingActivity"/>
         <activity android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
