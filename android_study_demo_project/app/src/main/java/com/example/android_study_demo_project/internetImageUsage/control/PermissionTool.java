@@ -44,17 +44,21 @@ public class PermissionTool {
     //使用相机拍摄功能的权限检查并设置
     public void checkPermission(Activity activity, Context context,
                                 PermissionResultCallBackController permissionResultCallBackController) {
+        //未获得的权限
         List<String> permissionList = new ArrayList<>();
+        //检查权限数组permissions中没有的权限
         for (int i = 0; i < permissions.length; i++) {
             if (ContextCompat.checkSelfPermission(context, permissions[i]) != PackageManager.PERMISSION_GRANTED) {
                 permissionList.add(permissions[i]);
             }
         }
+
         if (permissionList.size() <= 0) {
             //说明权限都已经通过
             permissionResultCallBackController.checkPermissionCallBack();
         } else {
             //对存在的未允许的权限进行申请
+            //TAKE_PHOTO_PERMISSION_REQUEST_CODE: 拍照的权限处理返回码
             ActivityCompat.requestPermissions(activity, permissions, TAKE_PHOTO_PERMISSION_REQUEST_CODE);
         }
     }

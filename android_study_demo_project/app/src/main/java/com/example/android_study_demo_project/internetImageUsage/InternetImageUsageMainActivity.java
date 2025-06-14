@@ -60,6 +60,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.Permission;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -638,9 +639,10 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode){
             case TAKE_PHOTO_PERMISSION_REQUEST_CODE://拍照权限请求
-                boolean hasPermission = true;
+            {
+                boolean hasPermission = true;//是否全都授予了权限
                 for(int i=0;i<grantResults.length;i++){
-                    if (grantResults[i] == -1){
+                    if (grantResults[i] == PackageManager.PERMISSION_DENIED){
                         hasPermission = false;
                         break;
                     }
@@ -652,13 +654,16 @@ public class InternetImageUsageMainActivity extends AppCompatActivity {
                     //跳转到系统设置权限页面（或者直接关闭页面，不让他继续访问）
                     permissionDialog();
                 }
+            }
                 break;
             case WRITE_SDCARD_PERMISSION_REQUEST_CODE://内存读取权限请求
+            {
                 if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 }else{
                     Toast.makeText(InternetImageUsageMainActivity.this,"读内存卡内容权限被拒绝",Toast.LENGTH_SHORT);
 //                    ToolUtils.midToast(this,"读内存卡内容权限被拒绝",1000);
                 }
+            }
                 break;
         }
     }
