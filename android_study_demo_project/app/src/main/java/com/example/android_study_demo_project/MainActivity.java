@@ -1,6 +1,7 @@
 package com.example.android_study_demo_project;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -22,6 +23,10 @@ import com.example.android_study_demo_project.intent.IntentMainActivity;
 import com.example.android_study_demo_project.internetImageUsage.InternetImageUsageMainActivity;
 import com.example.android_study_demo_project.media.MediaMainActivity;
 import com.example.android_study_demo_project.storage.StorageActivity;
+
+import cn.jiguang.api.utils.JCollectionAuth;
+import cn.jiguang.joperate.api.JOperateInterface;
+import cn.jpush.android.api.JPushInterface;
 
 //default activity
 public class MainActivity extends AppCompatActivity {
@@ -97,6 +102,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //极光初始化信息
+    void jiguangInit(){
+        JPushInterface.setDebugMode(true);//设置为debug模式，正式环境需要删除
+        Context context = getApplicationContext();
+
+        // 调整点一：初始化代码前增加setAuth调用
+        boolean isPrivacyReady = true; // app根据是否已弹窗获取隐私授权来赋值
+        if(!isPrivacyReady){
+            JCollectionAuth.setAuth(context, false); // 后续的初始化与启用推送服务过程将被拦截，即不会开启推送业务
+        }
+        JPushInterface.init(context);
+
+
+        // 调整点二：App用户同意了隐私政策授权，并且开发者确定要开启推送服务后调用
+        JCollectionAuth.setAuth(context, true); //如初始化被拦截过，将重试初始化过程
+        //打印出来用于发送到特定设备
+        String registrationID = JPushInterface.getRegistrationID(context);
+        Log.i("JPushInterface","jiguang Registration ID:   "+registrationID);
+    }
+
     private Button storageButton;
     private Button intentButton;
     private Button fragmentWithBroadcastButton;
@@ -132,6 +157,9 @@ public class MainActivity extends AppCompatActivity {
         espressoButton.setOnClickListener(new myClick());
         cleanArchitectureButton.setOnClickListener(new myClick());
         dataBindingButton.setOnClickListener(new myClick());
+
+        //极光配置信息初始化
+        jiguangInit();
     }
 
 

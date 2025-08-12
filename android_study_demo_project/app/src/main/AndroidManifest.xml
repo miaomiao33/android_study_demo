@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.android_study_demo_project">
     <uses-feature
         android:name="android.hardware.camera"
@@ -25,6 +26,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNA" />
     <uses-permission android:name="android.permission.READ_CONTACTS" /><!-- 联系人权限 -->
     <uses-permission android:name="android.permission.CALL_PHONE" /><!-- 通话权限 -->
+<!--    极光需要的权限-->
+    <permission android:name="${applicationId}.permission.JOPERATE_MESSAGE" android:protectionLevel="signature"/>
+    <uses-permission android:name="${applicationId}.permission.JOPERATE_MESSAGE" />
 
     <application
         android:allowBackup="true"
@@ -85,8 +89,16 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!--极光的协议配置信息-->
+            <intent-filter>
+                <!--协议部分，随便设置-->
+                <data android:scheme="http" />
+                <!--下面这几行也必须得设置-->
+                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity2" />
@@ -125,6 +137,50 @@
         <meta-data
             android:name="com.example.android_study_demo_project.TEST"
             android:value="\1234567890" />
+
+        <!-- 极光配置信息-->
+<!--        SDK回调方式说明-->
+<!--        SDK版本：3.0.7<= x < 5.2.0 和 5.4.0及以上 使用receiver 方式-->
+<!--        SDK版本：5.2.0<= x <=5.3.1 使用service 方式-->
+        <!-- Since JCore2.0.0 Required SDK核心功能-->
+        <!-- 可配置android:process参数将Service放在其他进程中；android:enabled属性不能是false -->
+        <!-- 这个是自定义Service，要继承极光JCommonService，可以在更多手机平台上使得推送通道保持的更稳定 -->
+        <service android:name="com.example.android_study_demo_project.JiGuangUsage.JGCommonService"
+            android:process=":pushcore"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="cn.jiguang.user.service.action" />
+            </intent-filter>
+        </service>
+        <!-- Required since 3.0.7 -->
+        <!-- 新的 tag/alias 接口结果返回需要开发者配置一个自定的广播 -->
+        <!-- 3.3.0开始所有事件将通过该类回调 -->
+        <!-- 该广播需要继承 JPush 提供的 JPushMessageReceiver 类, 并如下新增一个 Intent-Filter -->
+        <receiver
+            android:name="com.example.android_study_demo_project.JiGuangUsage.JGPushMessageReceiver"
+            android:enabled="true"
+            android:exported="false" >
+            <intent-filter>
+                <!-- 从 JPush v5.4.0 版本开始，请特别注意 RECEIVER_MESSAGE 写法, 如配置错误则无法找到回调类 -->
+                <action android:name="cn.jpush.android.intent.RECEIVER_MESSAGE" />
+                <category android:name="${applicationId}" />
+            </intent-filter>
+        </receiver>
+<!--        JPush ≥ 5.0.0 且 JCore < 4.2.0-->
+        <provider tools:node="remove"
+            android:exported="false"
+            android:authorities="${applicationId}.jiguang.InitProvider"
+            android:name="cn.jpush.android.service.InitProvider"/>
+        <!-- Required -->
+        <!-- </>值来自开发者平台取得的AppKey -->
+        <meta-data
+            android:name="JPUSH_APPKEY"
+            android:value="2ca7c93834e9e8dc85958064" />
+        <!-- </>方便开发者统计APK分发渠道，GooglePlay为google-play，其他市场为xxx-market，目前暂未开放 -->
+        <meta-data
+            android:name="JPUSH_CHANNEL"
+            android:value="developer-default" />
     </application>
 
 </manifest>

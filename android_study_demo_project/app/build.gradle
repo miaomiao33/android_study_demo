@@ -1,44 +1,87 @@
 apply plugin: 'com.android.application'
+//极光华为配置需要，启用 华为gradle 插件
+apply plugin: 'com.huawei.agconnect'
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    //配置签名证书
+    //自动化打包设置
+    signingConfigs {
+        debug {//开发环境
+            storeFile file('../androidStudyDemo.jks')//文件所在路径
+            storePassword 'feng,123,456'
+            keyAlias 'androidStudyDemo'
+            keyPassword 'feng,123,456'
+        }
+        release {//线上模式
+            //将密码等放在gradle.properties文件下
+            storeFile file(RELEASE_STORE_FILE)
+            storePassword RELEASE_STORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_PASSWORD
+        }
+    }
 
+    compileSdkVersion 30//编译时用的Android版本
+    buildToolsVersion "30.0.2"//编译时使用的构建工具的版本（Android Studio3.0后去除此项配置）
 
-    defaultConfig {
+    defaultConfig {//设置编译时用的Android版本
         applicationId "com.example.android_study_demo_project"
         minSdkVersion 28
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode 1//版本号
+        versionName "1.0"//版本名称，展示在应用市场
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"//使用AndroidJUnitRunner进行单元测试
         ndk {
             //设置支持的SO库架构（开发者可以根据需要，选择一个或多个平台的so）
             abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
+        //数据的个性化配置
+        //极光得数据个性化配置
+        manifestPlaceholders = [
+                JPUSH_PKGNAME : applicationId,
+                JPUSH_APPKEY : "2ca7c93834e9e8dc85958064", //JPush 上注册的包名对应的 Appkey.
+                JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
+//                HUAWEI_APPKEY : "MZ-魅族的APPKEY",
+//                HUAWEI_APPID : "MZ-魅族的APPID",
+//                MEIZU_APPKEY : "MZ-魅族的APPKEY",
+//                MEIZU_APPID : "MZ-魅族的APPID",
+//                XIAOMI_APPID : "小米的APPID",//JPush5.5.3开始，可以不添加MI-前缀.
+//                XIAOMI_APPKEY : "小米的APPKEY",//JPush5.5.3开始，可以不添加MI-前缀.
+//                OPPO_APPKEY : "OP-oppo的APPKEY",
+//                OPPO_APPID : "OP-oppo的APPID",
+//                OPPO_APPSECRET : "OP-oppo的APPSECRET",
+//                VIVO_APPKEY : "vivo的APPKEY",
+//                VIVO_APPID : "vivo的APPID"
+        ]
     }
 
-    buildTypes {
+    buildTypes {//生成、测试环境配置
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true//是否对代码进行混淆
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'//指定混淆的规则文件
+            signingConfig signingConfigs.release//设置签名信息
+        }
+        debug {
+            minifyEnabled false//是否对代码进行混淆
+            signingConfig signingConfigs.release
         }
     }
-    compileOptions {
-        targetCompatibility = 1.8
-        sourceCompatibility = 1.8
+    compileOptions {//指定 Java 编译器在编译项目源代码时所使用的语言级别和编码格式等选项
+        targetCompatibility = 1.8//源代码的兼容性级别
+        sourceCompatibility = 1.8//目标字节码的兼容性级别
     }
 
     //打开dataBinding和viewBinding
-    buildFeatures{
+    buildFeatures{//控制项目中特定构建功能启用或禁用的 DSL（Domain Specific Language）元素
         dataBinding = true
         viewBinding = true
     }
 
     //布局文件资源来源
-    sourceSets {
+    sourceSets {//目录指向配置
         main {
+            //指定lib库目录
             res.srcDirs = [
                     'src/main/res',
                     'src/main/res/layout',
@@ -123,9 +166,30 @@ dependencies {
 
     //Material Design引用
     implementation 'com.google.android.material:material:1.0.0'
+
     //七牛云SDK
     implementation ('com.qiniu:qiniu-android-sdk:8.5.0'){
         exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
     }
     implementation 'com.qiniu:qiniu-java-sdk:7.2.+'
+
+    //极光厂商通道
+    // 必选，此处以JPush 5.6.0 版本为例，注意：5.0.0 版本开始可以自动拉取 JCore 包，无需另外配置
+//    implementation 'cn.jiguang.sdk:jpush:5.6.0'
+    //不再使用自动拉取的最新版 JCore
+    implementation ('cn.jiguang.sdk:jpush:5.6.0'){
+        exclude group: 'cn.jiguang.sdk', module: 'jcore'
+    }
+    //使用指定的 JCore 版本
+    implementation 'cn.jiguang.sdk:jcore:4.5.3'
+    // 可选，集成极光分析SDK后，即可支持行为触发推送消息、推送转化率统计，用户行为分析和用户标签等功能
+    implementation 'cn.jiguang.sdk:joperate:2.0.2'
+
+    //厂商通道
+    //JPush Android SDK 4.6.0 以上版本更新华为 HMS SDK 版本为:6.3.0.304 及
+    // 以上版本,接入要求：Android Studio 3.6.1 或更高版本、Android Gradle 插件 3.5.4 或更高版本。
+    implementation 'com.huawei.hms:push:6.12.0.300'
+
+    //厂商版本和 JPush SDK 版本保持一致
+    implementation 'cn.jiguang.sdk.plugin:huawei:5.6.0'
 }
