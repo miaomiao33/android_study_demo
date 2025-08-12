@@ -1,3 +1,4 @@
+#忽略 IDE 配置文件
 *.iml
 .gradle
 /local.properties
@@ -12,3 +13,17 @@
 /captures
 .externalNativeBuild
 .cxx
+
+#忽略构建输出和编译文件
+# Built application files
+*.apk
+*.ap_
+# Files for the dex VM
+*.dex
+# Java class files
+*.class
+# Build output directories
+bin/
+gen/
+out/
+build/
