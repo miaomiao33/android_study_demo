@@ -19,6 +19,7 @@ import com.example.android_study_demo_project.androidCleanArchitecture.Compositi
 import com.example.android_study_demo_project.dataBindingUsage.DataBindingActivity;
 import com.example.android_study_demo_project.espressoUsage.EspressoUsageActivity;
 import com.example.android_study_demo_project.fragmentUsage.FragmentUsageActivity;
+import com.example.android_study_demo_project.frameLayoutUsage.FrameLayoutMainActivity;
 import com.example.android_study_demo_project.intent.IntentMainActivity;
 import com.example.android_study_demo_project.internetImageUsage.InternetImageUsageMainActivity;
 import com.example.android_study_demo_project.media.MediaMainActivity;
@@ -132,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button dataBindingButton;
 
+    private Button trackingViewUsageButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -147,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         espressoButton = (Button) findViewById(R.id.bt_espresso_usage);
         cleanArchitectureButton = (Button) findViewById(R.id.bt_clean_architecture);
         dataBindingButton = (Button) findViewById(R.id.bt_dataBinding_usage);
+        trackingViewUsageButton = (Button) findViewById(R.id.bt_tracking_view_usage);
 
 
         storageButton.setOnClickListener(new myClick());
@@ -157,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         espressoButton.setOnClickListener(new myClick());
         cleanArchitectureButton.setOnClickListener(new myClick());
         dataBindingButton.setOnClickListener(new myClick());
+        trackingViewUsageButton.setOnClickListener(new myClick());
 
         //极光配置信息初始化
         jiguangInit();
@@ -293,6 +298,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //跳转到自定义跟踪视图使用
+    public void gotoTrackingViewUsage()
+    {
+        Intent intent = new Intent(MainActivity.this, FrameLayoutMainActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -323,6 +335,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_dataBinding_usage:
                     gotoDataBindingUsage();
+                    break;
+                case R.id.bt_tracking_view_usage:
+                    gotoTrackingViewUsage();
                     break;
                 default:
                     break;

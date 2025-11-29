@@ -91,6 +91,7 @@ android {
                     'src/main/res/layout/imageUsageLayout',
                     'src/main/res/layout/dataBindingLayout',
                     'src/main/res/layout/espressoUsageLayout',
+                    'src/main/res/layout/frameLayoutUsageLayout',
             ]
         }
     }

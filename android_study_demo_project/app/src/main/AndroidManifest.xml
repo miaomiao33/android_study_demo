@@ -39,6 +39,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+        <activity
+            android:name=".frameLayoutUsage.FrameLayoutMainActivity"
+            android:exported="false" />
         <activity android:name=".RXJavaMainActivity" />
         <activity android:name=".OkHttpMainActivity" />
         <activity android:name=".GlideMainActivity" />
