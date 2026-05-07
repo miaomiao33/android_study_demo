@@ -1,6 +1,7 @@
 #忽略 IDE 配置文件
 *.iml
 .gradle
+.idea
 /local.properties
 /.idea/caches
 /.idea/libraries
