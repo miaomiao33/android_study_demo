@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.android_study_demo_project.JNI.JNIJavaCallC;
+import com.example.android_study_demo_project.JNI.NDKUsageMainActivity;
 import com.example.android_study_demo_project.androidCleanArchitecture.CompositionRoot.CleanArchitectureActivity;
 import com.example.android_study_demo_project.dataBindingUsage.DataBindingActivity;
 import com.example.android_study_demo_project.espressoUsage.EspressoUsageActivity;
@@ -28,10 +30,10 @@ import com.example.android_study_demo_project.storage.StorageActivity;
 import cn.jiguang.api.utils.JCollectionAuth;
 import cn.jiguang.joperate.api.JOperateInterface;
 import cn.jpush.android.api.JPushInterface;
+import com.example.android_study_demo_project.R;
 
 //default activity
 public class MainActivity extends AppCompatActivity {
-
     private  final String TAG = MainActivity.class.getSimpleName();
 
     //需要的权限数组（申请定位）
@@ -135,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button trackingViewUsageButton;
 
+    private Button NDKTextChangeButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -151,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
         cleanArchitectureButton = (Button) findViewById(R.id.bt_clean_architecture);
         dataBindingButton = (Button) findViewById(R.id.bt_dataBinding_usage);
         trackingViewUsageButton = (Button) findViewById(R.id.bt_tracking_view_usage);
+        NDKTextChangeButton = (Button) findViewById(R.id.bt_NDK);
 
 
         storageButton.setOnClickListener(new myClick());
@@ -162,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
         cleanArchitectureButton.setOnClickListener(new myClick());
         dataBindingButton.setOnClickListener(new myClick());
         trackingViewUsageButton.setOnClickListener(new myClick());
+        NDKTextChangeButton.setOnClickListener(new myClick());
 
         //极光配置信息初始化
         jiguangInit();
@@ -305,6 +311,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //NDK调用JNI
+    public void goToNDKUsage()
+    {
+        Intent intent = new Intent(this, NDKUsageMainActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -338,6 +351,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_tracking_view_usage:
                     gotoTrackingViewUsage();
+                    break;
+                case R.id.bt_NDK:
+                    goToNDKUsage();
                     break;
                 default:
                     break;
