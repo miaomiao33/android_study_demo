@@ -33,8 +33,10 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"//使用AndroidJUnitRunner进行单元测试
         ndk {
-            //设置支持的SO库架构（开发者可以根据需要，选择一个或多个平台的so）
-            abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            // 当前使用的NDK版本
+            ndkVersion "21.1.6352462"
+            //设置支持的ABI框架 (SO库架构)
+            abiFilters  "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
         //数据的个性化配置
         //极光得数据个性化配置
@@ -93,6 +95,14 @@ android {
                     'src/main/res/layout/espressoUsageLayout',
                     'src/main/res/layout/frameLayoutUsageLayout',
             ]
+        }
+    }
+    externalNativeBuild {
+        // Encapsulates your CMake build configurations.
+        cmake {
+            // Provides a relative path to your CMake build script.
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
         }
     }
 }
