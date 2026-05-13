@@ -24,7 +24,8 @@ android {
     compileSdkVersion 30//编译时用的Android版本
     buildToolsVersion "30.0.2"//编译时使用的构建工具的版本（Android Studio3.0后去除此项配置）
 
-    defaultConfig {//设置编译时用的Android版本
+    //默认配置
+    defaultConfig {
         applicationId "com.example.android_study_demo_project"
         minSdkVersion 28
         targetSdkVersion 30

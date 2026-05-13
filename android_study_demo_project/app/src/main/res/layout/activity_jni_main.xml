@@ -23,8 +23,56 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="获取来自C++的String"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_NDK_text" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_NDK_text"
+        app:layout_constraintBottom_toTopOf="@+id/tv_change_name_and_age"/>
+
+
+    <TextView
+        android:id="@+id/tv_change_name_and_age"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="name and age"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_get_JNI_string"
+        app:layout_constraintBottom_toTopOf="@+id/bt_change_name_and_age"/>
+
+
+    <Button
+        android:id="@+id/bt_change_name_and_age"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++改变Java的name和age"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_change_name_and_age"
+        app:layout_constraintBottom_toTopOf="@+id/tv_c_call_java_method"/>
+
+    <TextView
+        android:id="@+id/tv_c_call_java_method"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="当前在Java"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_change_name_and_age"
+        app:layout_constraintBottom_toTopOf="@+id/bt_c_call_java_method"/>
+
+
+    <Button
+        android:id="@+id/bt_c_call_java_method"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++调用Java函数"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_c_call_java_method" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
