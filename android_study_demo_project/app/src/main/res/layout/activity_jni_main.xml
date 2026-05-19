@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".JNI.NDKUsageMainActivity"
-    >
+    android:layout_width="match_parent">
 
     <TextView
         android:id="@+id/tv_NDK_text"
@@ -24,10 +22,10 @@
         android:layout_height="wrap_content"
         android:text="获取来自C++的String"
         android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@+id/tv_change_name_and_age"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_NDK_text"
-        app:layout_constraintBottom_toTopOf="@+id/tv_change_name_and_age"/>
+        app:layout_constraintTop_toBottomOf="@+id/tv_NDK_text" />
 
 
     <TextView
@@ -35,10 +33,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="name and age"
+        app:layout_constraintBottom_toTopOf="@+id/bt_change_name_and_age"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bt_get_JNI_string"
-        app:layout_constraintBottom_toTopOf="@+id/bt_change_name_and_age"/>
+        app:layout_constraintTop_toBottomOf="@+id/bt_get_JNI_string" />
 
 
     <Button
@@ -47,21 +45,21 @@
         android:layout_height="wrap_content"
         android:text="C++改变Java的name和age"
         android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/tv_c_call_java_method"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_change_name_and_age"
-        app:layout_constraintBottom_toTopOf="@+id/tv_c_call_java_method"/>
+        app:layout_constraintTop_toBottomOf="@+id/tv_change_name_and_age" />
 
     <TextView
         android:id="@+id/tv_c_call_java_method"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="当前在Java"
+        app:layout_constraintBottom_toTopOf="@+id/bt_c_call_java_method"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bt_change_name_and_age"
-        app:layout_constraintBottom_toTopOf="@+id/bt_c_call_java_method"/>
+        app:layout_constraintTop_toBottomOf="@+id/bt_change_name_and_age" />
 
 
     <Button
@@ -70,9 +68,109 @@
         android:layout_height="wrap_content"
         android:text="C++调用Java函数"
         android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_jni_file_write_time"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_c_call_java_method" />
+
+    <TextView
+        android:id="@+id/tv_jni_file_write_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="JNI写入文件耗费的时间"
+        app:layout_constraintBottom_toTopOf="@+id/bt_jni_file_write_time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_c_call_java_method" />
+
+
+    <Button
+        android:id="@+id/bt_jni_file_write_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++写入文件耗时"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_c_folder_traversal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_jni_file_write_time" />
+
+    <TextView
+        android:id="@+id/tv_c_folder_traversal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++文件夹遍历"
+        app:layout_constraintBottom_toTopOf="@+id/bt_c_folder_traversal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_jni_file_write_time" />
+
+
+    <Button
+        android:id="@+id/bt_c_folder_traversal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++文件夹遍历"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_java_pass_bitmap_to_c"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_c_folder_traversal" />
+
+    <TextView
+        android:id="@+id/tv_java_pass_bitmap_to_c"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Java传递一个Bitmap给C++"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_c_folder_traversal"
+        app:layout_constraintBottom_toTopOf="@+id/bt_java_pass_bitmap_to_c"/>
+
+    <Button
+        android:id="@+id/bt_java_pass_bitmap_to_c"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Java传递一个Bitmap给C"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_java_pass_bitmap_to_c"
+        app:layout_constraintBottom_toTopOf="@+id/tv_c_struct_usage"/>
+
+    <TextView
+        android:id="@+id/tv_c_struct_usage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++和Java的model互换"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_java_pass_bitmap_to_c"
+        app:layout_constraintBottom_toTopOf="@+id/bt_c_to_java"/>
+
+
+    <Button
+        android:id="@+id/bt_c_to_java"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++ 转 Java"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_c_struct_usage"
+        app:layout_constraintBottom_toBottomOf="@+id/bt_java_to_c"/>
+
+    <Button
+        android:id="@+id/bt_java_to_c"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Java 转 C++"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_c_to_java"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

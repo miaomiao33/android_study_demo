@@ -9,15 +9,30 @@ project("androidStudyNDKLib")
 add_library(${CMAKE_PROJECT_NAME}
         SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
-        native-lib.cpp)
+        native-lib.cpp utils_usage_lib.cpp register_class_and_variables.cpp bitmap_usage.cpp)
 #log输出库
 find_library(
         log-lib
         log )
+# 在ndk中查找jnigraphics库 取别名jnigraphics-lib
+# jnigraphics包含图形操作的库
+find_library(
+        jnigraphics-lib
+        jnigraphics
+)
 target_link_libraries(
         ${CMAKE_PROJECT_NAME}
         ${log-lib}
+        ${jnigraphics-lib}
 )
+#添加预编译选项，为LogUtils使用
+#添加两个宏：Windows，Linux
+IF (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
+    ADD_DEFINITIONS(-DWindows)
+ELSE (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
+    ADD_DEFINITIONS(-DLinux)
+ENDIF ()
+
 #target_link_libraries(${CMAKE_PROJECT_NAME}
 #        # List libraries link to the target library
 #        android

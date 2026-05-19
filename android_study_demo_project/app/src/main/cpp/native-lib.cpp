@@ -1,15 +1,16 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
+#include "headerFile/LogUtils.h"
 
-//JNI打印
+//JNI打印，系统自带
 #define TAG "native-lib-jni" // 这个是自定义的LOG的标识
 //__VA_ARGS__：宏遍量，接收LOGD(...) 中...代表的数据
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG ,__VA_ARGS__) // 定义LOGD类型，
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,TAG ,__VA_ARGS__) // 定义LOGI类型
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN,TAG ,__VA_ARGS__) // 定义LOGW类型
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,TAG ,__VA_ARGS__) // 定义LOGE类型
-#define LOGF(...) __android_log_print(ANDROID_LOG_FATAL,TAG ,__VA_ARGS__) // 定义LOGF类型
+#define LOGSystemD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG ,__VA_ARGS__) // 定义LOGD类型，
+#define LOGSystemI(...) __android_log_print(ANDROID_LOG_INFO,TAG ,__VA_ARGS__) // 定义LOGI类型
+#define LOGSystemW(...) __android_log_print(ANDROID_LOG_WARN,TAG ,__VA_ARGS__) // 定义LOGW类型
+#define LOGSystemE(...) __android_log_print(ANDROID_LOG_ERROR,TAG ,__VA_ARGS__) // 定义LOGE类型
+#define LOGSystemF(...) __android_log_print(ANDROID_LOG_FATAL,TAG ,__VA_ARGS__) // 定义LOGF类型
 
 //C++传输String给Java
 extern "C" JNIEXPORT jstring JNICALL
@@ -53,7 +54,7 @@ Java_com_example_android_1study_1demo_1project_JNI_JNIJavaCallC_changeAge(
 
     //jint实际是int，可以直接按照int使用
     jint newAge  = env->GetStaticIntField(jniJavaCallCClass,ageFieldID) + 1;
-    LOGD("newAge:%d",newAge);
+    LOGSystemD("newAge:%d",newAge);
     env->SetStaticIntField(jniJavaCallCClass,ageFieldID,newAge);
 }
 
@@ -64,15 +65,21 @@ Java_com_example_android_1study_1demo_1project_JNI_JNIJavaCallC_cCallJavaMethod(
     jclass cCallJavaMethodCLass = env->GetObjectClass(jniJavaCallCThis);
 
     //jmethodID GetMethodID(jclass clazz, const char* name, const char* sig)
-    jmethodID cCallJavaMethodMID = env->GetMethodID(cCallJavaMethodCLass,"javaMethod","(Ljava/lang/String;I)Ljava/lang/String;");
+    jmethodID cCallJavaMethodMID = env->GetMethodID(cCallJavaMethodCLass,
+                                                    "javaMethod",
+                                                    "(Ljava/lang/String;I)Ljava/lang/String;");
 
     //jobject     (*CallObjectMethod)(JNIEnv*, jobject, jmethodID, ...);
     jstring str = env->NewStringUTF("C++ parameters");
     jint value = 18;
     //调用Java方法，无论方法定义为final或者private都可以调用
     //注意方法要定义在native方法定义的同一个类
-    jstring resultStr = (jstring)env->CallObjectMethod(jniJavaCallCThis,cCallJavaMethodMID,str,value);
+    jstring resultStr = (jstring)env->CallObjectMethod(jniJavaCallCThis,
+                                                       cCallJavaMethodMID,
+                                                       str,value);
     //C++进行显示需要把JNI的jstring转为char*才行
     char * result = (char *) env->GetStringUTFChars(resultStr, NULL);
-    LOGD("result from java : %s\n",result);
+    LOGSystemD("result from java : %s\n",result);
+    //自定义的输出工具
+    LOGD("result2 from java : %s\n",result);
 }
