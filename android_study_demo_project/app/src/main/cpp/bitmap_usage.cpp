@@ -102,3 +102,42 @@ Java_com_example_android_1study_1demo_1project_JNI_JNIJavaCallC_passBitmap(
         LOGE("AndroidBitmap_unlockPixels failed, result: %d", resultCode);
     }
 }
+
+/***
+ * C++创建一个bitmap对象
+ * @param env
+ * @param width
+ * @param height
+ * @return
+ */
+jobject createBitmap(JNIEnv *env, int width, int height) ;
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_example_android_1study_1demo_1project_JNI_JNIJavaCallC_createBitmap(
+        JNIEnv *env,jobject jniJavaCallCThis,jint width,jint height) {
+    jobject bitmap = createBitmap(env,width,height);
+    if(bitmap == NULL)
+    {
+        LOGE("bitmap object is NULL")
+    }
+    return bitmap;
+}
+//C++端创建Bitmap对象
+jobject createBitmap(JNIEnv *env, int width, int height) {
+    jclass bitmapClazz = env->FindClass("android/graphics/Bitmap");
+    // Bitmap createBitmap(int width, int height, @NonNull Config config)
+    jmethodID createBitmapMethod = env->GetStaticMethodID(bitmapClazz,"createBitmap",
+                                                          "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+    jstring configName = env->NewStringUTF("ARGB_8888");
+    jclass bitmapConfigClazz = env->FindClass("android/graphics/Bitmap$Config");
+    jmethodID valueOfBitmapConfigMethod = env->GetStaticMethodID(bitmapConfigClazz, "valueOf",
+                                                                 "(Ljava/lang/String;)Landroid/graphics/Bitmap$Config;");
+    jobject bitmapConfig = env->CallStaticObjectMethod(bitmapConfigClazz,
+                                                       valueOfBitmapConfigMethod,
+                                                       configName);
+    jobject newBitmap = env->CallStaticObjectMethod(bitmapClazz,
+                                                    createBitmapMethod,
+                                                    width, height, bitmapConfig);
+    return newBitmap;
+}

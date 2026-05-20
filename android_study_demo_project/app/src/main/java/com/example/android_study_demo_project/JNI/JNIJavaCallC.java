@@ -62,6 +62,12 @@ public class JNIJavaCallC {
     public native void passBitmap(Bitmap bitmap);
 
     /***
+     * Java 传递一个 Bitmap 给 JNI
+     *
+     */
+    public native Bitmap createBitmap(int width,int height);
+
+    /***
      * 将C结构体转为Java类(C++中会初始化数据)
      * @return
      */

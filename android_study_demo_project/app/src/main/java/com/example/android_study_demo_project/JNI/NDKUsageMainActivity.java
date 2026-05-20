@@ -27,6 +27,7 @@ public class NDKUsageMainActivity extends AppCompatActivity {
     private Button cModelToJavaButton;
     private Button javaModelToCButton;
     private Button javaPassBitmapToCButton;
+    private Button cCreateBitmapButton;
     private TextView changeNameAndAgeTV;
     private final NDKUsageClick click = new NDKUsageClick();
     //JNI：Java调用C
@@ -45,6 +46,7 @@ public class NDKUsageMainActivity extends AppCompatActivity {
         cModelToJavaButton = (Button) findViewById(R.id.bt_c_to_java);
         javaModelToCButton = (Button) findViewById(R.id.bt_java_to_c);
         javaPassBitmapToCButton = (Button) findViewById(R.id.bt_java_pass_bitmap_to_c);
+        cCreateBitmapButton = (Button) findViewById(R.id.bt_c_create_bitmap);
 
         getJNIStringButton.setOnClickListener(click);
         changNameAndAgeButton.setOnClickListener(click);
@@ -54,6 +56,7 @@ public class NDKUsageMainActivity extends AppCompatActivity {
         cModelToJavaButton.setOnClickListener(click);
         javaModelToCButton.setOnClickListener(click);
         javaPassBitmapToCButton.setOnClickListener(click);
+        cCreateBitmapButton.setOnClickListener(click);
 
         changeNameAndAgeTV = (TextView) findViewById(R.id.tv_change_name_and_age);
         changeNameAndAgeTV.setText(jniJavaCallC.name + jniJavaCallC.age);
@@ -130,6 +133,22 @@ public class NDKUsageMainActivity extends AppCompatActivity {
         jniJavaCallC.passBitmap(bitmap);
     }
 
+    /***
+     * C++ 创建一个 Bitmap
+     */
+    public void cCreateBitmap()
+    {
+        Bitmap bitmap = jniJavaCallC.createBitmap(2,2);
+        if(bitmap == null)
+        {
+            Log.d(TAG,"bitmap is null");
+        }else
+        {
+
+            Log.d(TAG, "width: "+bitmap.getWidth()+", height: "+bitmap.getHeight());
+        }
+    }
+
 
     /***
      * C++的model转Java
@@ -191,6 +210,9 @@ public class NDKUsageMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_java_pass_bitmap_to_c:
                     javaPassBitmapToC();
+                    break;
+                case R.id.bt_c_create_bitmap:
+                    cCreateBitmap();
                     break;
                 case R.id.bt_c_to_java:
                     cModelToJava();

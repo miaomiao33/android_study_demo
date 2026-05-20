@@ -137,7 +137,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_java_pass_bitmap_to_c"
-        app:layout_constraintBottom_toTopOf="@+id/tv_c_struct_usage"/>
+        app:layout_constraintBottom_toTopOf="@+id/bt_c_create_bitmap"/>
+
+    <Button
+        android:id="@+id/bt_c_create_bitmap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="C++创建Bitmap对象"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_java_pass_bitmap_to_c"
+        app:layout_constraintBottom_toTopOf="@+id/tv_c_struct_usage" />
 
     <TextView
         android:id="@+id/tv_c_struct_usage"
@@ -147,7 +158,7 @@
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bt_java_pass_bitmap_to_c"
+        app:layout_constraintTop_toBottomOf="@+id/bt_c_create_bitmap"
         app:layout_constraintBottom_toTopOf="@+id/bt_c_to_java"/>
 
 
