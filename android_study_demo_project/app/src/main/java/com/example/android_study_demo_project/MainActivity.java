@@ -25,6 +25,7 @@ import com.example.android_study_demo_project.frameLayoutUsage.FrameLayoutMainAc
 import com.example.android_study_demo_project.intent.IntentMainActivity;
 import com.example.android_study_demo_project.internetImageUsage.InternetImageUsageMainActivity;
 import com.example.android_study_demo_project.media.MediaMainActivity;
+import com.example.android_study_demo_project.opencv.OpenCVMainActivity;
 import com.example.android_study_demo_project.storage.StorageActivity;
 
 import cn.jiguang.api.utils.JCollectionAuth;
@@ -137,7 +138,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button trackingViewUsageButton;
 
-    private Button NDKTextChangeButton;
+    private Button NDKUsageButton;
+    private Button openCVUsageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,7 +157,8 @@ public class MainActivity extends AppCompatActivity {
         cleanArchitectureButton = (Button) findViewById(R.id.bt_clean_architecture);
         dataBindingButton = (Button) findViewById(R.id.bt_dataBinding_usage);
         trackingViewUsageButton = (Button) findViewById(R.id.bt_tracking_view_usage);
-        NDKTextChangeButton = (Button) findViewById(R.id.bt_NDK);
+        NDKUsageButton = (Button) findViewById(R.id.bt_NDK);
+        openCVUsageButton = (Button) findViewById(R.id.bt_OpenCV);
 
 
         storageButton.setOnClickListener(new myClick());
@@ -167,7 +170,8 @@ public class MainActivity extends AppCompatActivity {
         cleanArchitectureButton.setOnClickListener(new myClick());
         dataBindingButton.setOnClickListener(new myClick());
         trackingViewUsageButton.setOnClickListener(new myClick());
-        NDKTextChangeButton.setOnClickListener(new myClick());
+        NDKUsageButton.setOnClickListener(new myClick());
+        openCVUsageButton.setOnClickListener(new myClick());
 
         //极光配置信息初始化
         jiguangInit();
@@ -318,6 +322,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //OpenCV开发
+    public void goToOpenCVUsage()
+    {
+        Intent intent = new Intent(this, OpenCVMainActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -354,6 +365,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_NDK:
                     goToNDKUsage();
+                    break;
+                case R.id.bt_OpenCV:
+                    goToOpenCVUsage();
                     break;
                 default:
                     break;

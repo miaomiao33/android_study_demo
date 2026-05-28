@@ -1,2 +1,3 @@
 rootProject.name='android_study_demo_project'
 include ':app'
+include ':opencv_sdk_4.7.0'

@@ -110,7 +110,10 @@ android {
 
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])//本地jar包依赖
+    //本地jar包依赖
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    //opencv model依赖
+    implementation project(':opencv_sdk_4.7.0')
 
     //testImplementation：单元测试、androidTestImplementation：仪器化测试
     //测试依赖

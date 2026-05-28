@@ -9,7 +9,7 @@ project("androidStudyNDKLib")
 add_library(${CMAKE_PROJECT_NAME}
         SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
-        native-lib.cpp utils_usage_lib.cpp register_class_and_variables.cpp bitmap_usage.cpp)
+        native-lib.cpp utils_usage_lib.cpp register_class_and_variables.cpp bitmap_usage.cpp opencv/opencv_lib.cpp)
 #log输出库
 find_library(
         log-lib
@@ -20,10 +20,24 @@ find_library(
         jnigraphics-lib
         jnigraphics
 )
+
+#设置OpenCV 的路径
+set(OpenCV_DIR F:/OpenCV/OpenCV-android-sdk-4.7.0/sdk/native/jni)
+#寻找 包名（OpenCV）+Config.cmake文件是否存在，即 OpenCVConfig.cmake
+#寻找OpenCV库，REQUIRED：没找到就报错
+#找到会有两个变量：OpenCV_INCLUDE_DIRS、OpenCV_LIBS
+find_package(
+        OpenCV
+        REQUIRED
+)
+LINK_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+
+#链接找到的库
 target_link_libraries(
         ${CMAKE_PROJECT_NAME}
         ${log-lib}
         ${jnigraphics-lib}
+        ${OpenCV_LIBS}
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux
