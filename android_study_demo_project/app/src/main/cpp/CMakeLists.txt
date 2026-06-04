@@ -9,7 +9,12 @@ project("androidStudyNDKLib")
 add_library(${CMAKE_PROJECT_NAME}
         SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
-        native-lib.cpp utils_usage_lib.cpp register_class_and_variables.cpp bitmap_usage.cpp opencv/opencv_lib.cpp)
+        native-lib.cpp
+        utils_usage_lib.cpp
+        register_class_and_variables.cpp
+        bitmap_usage.cpp
+        opencv/opencv_lib.cpp
+        opencv/opencv_utils.cpp)
 #log输出库
 find_library(
         log-lib

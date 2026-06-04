@@ -27,9 +27,56 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_opencv_version"
+        app:layout_constraintBottom_toTopOf="@+id/tv_get_info_from_img"/>
+
+    <TextView
+        android:id="@+id/tv_get_info_from_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="图片获取到的信息"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_get_opencv_version_from_native"
+        app:layout_constraintBottom_toTopOf="@+id/bt_get_img_from_photo_album"/>
+
+    <Button
+        android:id="@+id/bt_get_img_from_photo_album"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="从相册查找"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_get_info_from_img"
+        app:layout_constraintBottom_toTopOf="@id/bt_get_id_card_id_from_img"/>
+    <Button
+        android:id="@+id/bt_get_id_card_id_from_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="获取身份证号"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_get_img_from_photo_album"
+        app:layout_constraintBottom_toTopOf="@+id/bt_recognize_text_from_img"/>
+    <Button
+        android:id="@+id/bt_recognize_text_from_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="识别文字"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_get_id_card_id_from_img"
+        app:layout_constraintBottom_toTopOf="@+id/iv_opencv_Id_card"/>
+
+    <ImageView
+        android:id="@+id/iv_opencv_Id_card"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_recognize_text_from_img"
         app:layout_constraintBottom_toBottomOf="parent"/>
-
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

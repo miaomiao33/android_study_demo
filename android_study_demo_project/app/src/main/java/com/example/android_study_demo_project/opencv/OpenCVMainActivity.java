@@ -1,11 +1,21 @@
 package com.example.android_study_demo_project.opencv;
 
+import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -15,20 +25,43 @@ import com.example.android_study_demo_project.R;
 
 import org.opencv.android.OpenCVLoader;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.Objects;
+
 public class OpenCVMainActivity extends AppCompatActivity {
     private  final String TAG = OpenCVMainActivity.class.getSimpleName();
+    private final int DEFAULT_ID_CARD_WIDTH = 640;
+    private final int DEFAULT_ID_CARD_HEIGHT = 480;
     private Button getVersionButton;
+    private Button getImgFromPhotoAlbumButton;
+    private Button searchImgIdButton;
+    private Button recognizeTextFromImgButton;
+    private TextView getInfoFromImgTextView;//显示图片获取的信息
+    private ImageView idCardimageView;
+
 
     private OpenCVJNIJavaCallC openCVJNIJavaCallC = new OpenCVJNIJavaCallC();
+    private final int REQUEST_CODE_GET_IMG_FROM_PHOTO_ALBUM = 100;
+    private Bitmap idCardCodeImg;//获取到的身份证号码截图
+    private Bitmap fullIDCardImage;//身份证全图
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_cv_main);
+        getInfoFromImgTextView = (TextView) findViewById(R.id.tv_get_info_from_img);
+        idCardimageView = (ImageView) findViewById(R.id.iv_opencv_Id_card);
         getVersionButton = (Button) findViewById(R.id.bt_get_opencv_version_from_native);
+        getImgFromPhotoAlbumButton = (Button) findViewById(R.id.bt_get_img_from_photo_album);
+        searchImgIdButton = (Button) findViewById(R.id.bt_get_id_card_id_from_img);
+        recognizeTextFromImgButton = (Button) findViewById(R.id.bt_recognize_text_from_img);
 
         OpenCVClick click = new OpenCVClick();
         getVersionButton.setOnClickListener(click);
+        getImgFromPhotoAlbumButton.setOnClickListener(click);
+        searchImgIdButton.setOnClickListener(click);
+        recognizeTextFromImgButton.setOnClickListener(click);
 
         //OpenCV验证
         if(OpenCVLoader.initDebug())
@@ -40,6 +73,98 @@ public class OpenCVMainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch(requestCode)
+        {
+            case REQUEST_CODE_GET_IMG_FROM_PHOTO_ALBUM:
+                if(data != null)
+                {
+                    getPhotoAlbumResult(data.getData());
+                }
+                break;
+        }
+
+    }
+
+    //获得图片选择结果
+    private void getPhotoAlbumResult(Uri uri)
+    {
+        String imagePath = null;
+        if(uri != null)
+        {
+            if(Objects.equals(uri.getScheme(), "file"))
+            {
+                imagePath = uri.getPath();
+                Log.i(TAG,"uri path:"+imagePath);
+            }else if(Objects.equals(uri.getScheme(), "content"))
+            {
+                Log.i(TAG,"content uri 获得图片");
+                String[] filePathColumns = {MediaStore.Images.Media.DATA};
+                Cursor cursor = getContentResolver().query(uri, filePathColumns,
+                        null, null, null);
+                if(cursor != null)
+                {
+                    if(cursor.moveToFirst())
+                    {
+                        int columnIndex = cursor.getColumnIndex(filePathColumns[0]);
+                        imagePath = cursor.getString(columnIndex);
+                    }
+                    cursor.close();
+                }
+            }
+        }
+        if(!TextUtils.isEmpty(imagePath))
+        {
+            //Bitmap资源回收
+            if(fullIDCardImage != null && !fullIDCardImage.isRecycled())
+            {
+                fullIDCardImage.recycle();
+                fullIDCardImage = null;
+                System.gc();
+            }
+            fullIDCardImage = toBitmap(imagePath,DEFAULT_ID_CARD_WIDTH,DEFAULT_ID_CARD_HEIGHT);
+            if(fullIDCardImage == null)
+            {
+                getInfoFromImgTextView.setText("选择图片错误");
+            }else {
+                getInfoFromImgTextView.setText(String.format("选择了图片：%s",imagePath));
+
+                idCardimageView.setImageBitmap(fullIDCardImage);
+            }
+        }
+    }
+    //文件路径转bitmap，并按照比例缩小
+    public Bitmap toBitmap(String filePath, int width, int height)
+    {
+        if(TextUtils.isEmpty(filePath))
+            return null;
+        Bitmap bitmap;
+        //只解码图像的尺寸（宽高）
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;// 只解码图像的边界，不加载图像到内存
+        BitmapFactory.decodeFile(filePath,options);
+        int srcWidth = options.outWidth, srcHeight = options.outHeight;
+        //获取采样率,小于等于1时，图像高、宽不变，大于1时，图像高、宽分别以2的inSampleSize次方分之一缩小
+        int scale = 1;
+
+        if (srcWidth > height && srcWidth > width) {
+            scale  = srcWidth / width;
+        } else if(srcWidth <height  && srcHeight >height  ){
+            scale  = srcHeight / height ;
+        }
+
+        if(scale <= 0){
+            scale = 1;
+        }
+
+        options.inJustDecodeBounds = false;
+        options.inSampleSize = scale;
+
+        return BitmapFactory.decodeFile(filePath, options);
+    }
+
     /**
      * 获取 OpenCV的版本
      */
@@ -47,7 +172,55 @@ public class OpenCVMainActivity extends AppCompatActivity {
     {
         String version = openCVJNIJavaCallC.getOpenCVInfoFromJNI();
         TextView textView = (TextView) findViewById(R.id.tv_opencv_version);
-        textView.setText("opencv version:"+version);
+        textView.setText("opencv version:" + version);
+    }
+    /**
+     * 从相册获取图片
+     */
+    void getImgFromPhotoAlbum()
+    {
+        Intent intent;
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+        {
+            intent = new Intent();
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+        } else {
+            intent = new Intent(Intent.ACTION_PICK,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        }
+        intent.setType("image/*");
+        //使用选取器并自定义标题
+        startActivityForResult(
+                Intent.createChooser(intent,"选择身份证图片"),
+                REQUEST_CODE_GET_IMG_FROM_PHOTO_ALBUM);
+    }
+
+    /**
+     * 从身份证全图中获取身份证号码截图
+     */
+    void getIdCardIDFromImg()
+    {
+        getInfoFromImgTextView.setText("获取到的身份证号码截图");
+        idCardCodeImg = null;
+        //NDK 获取图片(身份证号码截图)
+        Bitmap bitmapResult = OpenCVJNIJavaCallC.getIDCardImage(fullIDCardImage,Bitmap.Config.ARGB_8888);
+        //Bitmap资源回收
+        if(fullIDCardImage != null && !fullIDCardImage.isRecycled())
+        {
+            fullIDCardImage.recycle();
+            fullIDCardImage= null;
+            System.gc();
+        }
+        idCardCodeImg = bitmapResult;
+        idCardimageView.setImageBitmap(idCardCodeImg);
+    }
+    /**
+     * 识别身份证号码截图获取到身份证号码
+     */
+    void recognizeTextFromImg()
+    {
+        getInfoFromImgTextView.setText("身份证号码：");
+//        baseApi
     }
 
     class OpenCVClick implements View.OnClickListener
@@ -59,6 +232,15 @@ public class OpenCVMainActivity extends AppCompatActivity {
             {
                 case R.id.bt_get_opencv_version_from_native:
                     getOpenCVVersion();
+                    break;
+                case R.id.bt_get_img_from_photo_album:
+                    getImgFromPhotoAlbum();
+                    break;
+                case R.id.bt_get_id_card_id_from_img:
+                    getIdCardIDFromImg();
+                    break;
+                case R.id.bt_recognize_text_from_img:
+                    recognizeTextFromImg();
                     break;
             }
         }
