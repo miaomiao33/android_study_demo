@@ -1,5 +1,7 @@
 #include <jni.h>
 #include "opencv2/opencv.hpp"
+#include "../headerFile/LogUtils.h"
+
 using namespace std;
 using namespace cv;
 
@@ -21,14 +23,14 @@ extern "C"
 extern JNIEXPORT void JNICALL Java_org_opencv_android_Utils_nBitmapToMat2
         (JNIEnv *env, jclass, jobject bitmap, jlong m_addr, jboolean needUnPremultiplyAlpha);
 extern JNIEXPORT void JNICALL Java_org_opencv_android_Utils_nMatToBitmap2
-        (JNIEnv * env, jclass, jlong m_addr, jobject bitmap, jboolean needPremultiplyAlpha);
+        (JNIEnv *env, jclass, jlong m_addr, jobject bitmap, jboolean needPremultiplyAlpha);
 }
 
 /***
  * 自定义函数
  */
- //根据srcData创建bitmap
-jobject createBitmap(JNIEnv *env,  jclass clazz, Mat srcData, jobject config);
+//根据srcData创建bitmap
+jobject createBitmap(JNIEnv *env, jclass clazz, Mat srcData, jobject config);
 
 
 /**
@@ -51,18 +53,18 @@ JNIEXPORT jobject JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_OpenCVJNIJavaCallC_getIDCardImage(
         JNIEnv *env, jclass OpenCVJNIJavaCallCClazz,
         jobject src, jobject config) {
-    
-    Mat src_img ;//源图
+
+    Mat src_img;//源图
     Mat dst_img;
     Mat dst;//灰度化、二值化图片
     //将传过来的源bitmap转为Mat
-    Java_org_opencv_android_Utils_nBitmapToMat2(env,OpenCVJNIJavaCallCClazz,
+    Java_org_opencv_android_Utils_nBitmapToMat2(env, OpenCVJNIJavaCallCClazz,
                                                 src,
-                                                (jlong)&src_img,
+                                                (jlong) &src_img,
                                                 false);
 
     /**无损压缩，640*480*/
-    resize(src_img, src_img,FIX_ID_CARD_SIZE);
+    resize(src_img, src_img, FIX_ID_CARD_SIZE);
 
     /**灰度化*/
     cvtColor(src_img, dst, COLOR_BGR2GRAY);
@@ -76,26 +78,24 @@ Java_com_example_android_1study_1demo_1project_opencv_OpenCVJNIJavaCallC_getIDCa
     /**膨胀和腐蚀*/
     //膨胀，便于后续轮廓检测，像素点存在则放大为（20，10）
     //卷积核
-    Mat erodeElement = getStructuringElement(MORPH_RECT, Size(20,10));
+    Mat erodeElement = getStructuringElement(MORPH_RECT, Size(20, 10));
     //腐蚀，将白色区域“蚕食”变小，黑色区域扩大
     erode(dst, dst, erodeElement);
 
     /** 轮廓检测 */
-    vector< vector<Point>> contours;//存储图片找到的所有矩形轮廓
+    vector<vector<Point>> contours;//存储图片找到的所有矩形轮廓
     vector<Rect> rects;//Rect ：矩形框，用向量表示，左上点到右下点
 
     //检测图像中轮廓
     findContours(dst, contours, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
-    for(vector<int>::size_type i = 0; i < contours.size(); i++)
-    {
+    for (vector<int>::size_type i = 0; i < contours.size(); i++) {
         //boundingRect 计算并返回一个点集的最小包围边界矩形
         Rect rect = boundingRect(contours.at(i));
         //在dst膨胀腐蚀后的图上画上矩形
         rectangle(dst, rect, Scalar(0, 0, 255));
-        //对符合条件的图片筛选收集,宽高比大于9:1的
-        if(rect.width > rect.height * 9)
-        {
+        //对符合条件的图片筛选收集,宽高比大于9:1的(正常应该是13:1，尽量小一点，不然可能会一个都识别不到)
+        if (rect.width > rect.height * 8) {
             rects.push_back(rect);
             //在dst图片上显示 rect 矩形(便于查看)
             rectangle(dst, rect, Scalar(0, 0, 255));
@@ -105,12 +105,12 @@ Java_com_example_android_1study_1demo_1project_opencv_OpenCVJNIJavaCallC_getIDCa
     }
 
     //如果只找到一个矩形，那么这个就是目标图片
-    if(rects.size() == 1)
-    {
+    if (rects.size() == 1) {
+        LOGD("rects为空，未收集到截图")
+    } else if (rects.size() == 1) {
         Rect rect = rects.at(0);
         dst_img = src_img(rect);
-    }else
-    {
+    } else {
         //不止一个矩形
         int lowPoint = 0;
         Rect finalRect;
@@ -118,12 +118,10 @@ Java_com_example_android_1study_1demo_1project_opencv_OpenCVJNIJavaCallC_getIDCa
         Point p;
         //身份证号在最右下的边框
         //遍历所有轮廓，选择纵坐标最低的
-        for(vector<int>::size_type i = 0; i < rects.size(); i++)
-        {
+        for (vector<int>::size_type i = 0; i < rects.size(); i++) {
             tempRect = rects.at(i);
             p = tempRect.tl();
-            if(tempRect.tl().y > lowPoint)
-            {
+            if (tempRect.tl().y > lowPoint) {
                 lowPoint = tempRect.tl().y;
                 finalRect = tempRect;
             }
@@ -133,7 +131,7 @@ Java_com_example_android_1study_1demo_1project_opencv_OpenCVJNIJavaCallC_getIDCa
         dst_img = src_img(finalRect);
     }
 
-    jobject bitmap = createBitmap(env, OpenCVJNIJavaCallCClazz,dst_img,config);
+    jobject bitmap = createBitmap(env, OpenCVJNIJavaCallCClazz, dst_img, config);
 
     src_img.release();
     dst_img.release();
@@ -142,20 +140,19 @@ Java_com_example_android_1study_1demo_1project_opencv_OpenCVJNIJavaCallC_getIDCa
     return bitmap;
 }
 
-jobject createBitmap(JNIEnv *env,  jclass clazz, Mat srcData, jobject config)
-{
+jobject createBitmap(JNIEnv *env, jclass clazz, Mat srcData, jobject config) {
     int imgWidth = srcData.cols;
     int imgHeight = srcData.rows;
     int numPix = imgWidth * imgHeight;
     //创建bitmap对象
     jclass bitmapClazz = env->FindClass("android/graphics/Bitmap");
-    jmethodID createBitmapID = env->GetStaticMethodID(bitmapClazz,"createBitmap",
+    jmethodID createBitmapID = env->GetStaticMethodID(bitmapClazz, "createBitmap",
                                                       "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
     jobject jBitmapObj = env->CallStaticObjectMethod(bitmapClazz,
                                                      createBitmapID,
-                                                     imgWidth,imgHeight,config);
+                                                     imgWidth, imgHeight, config);
     //Mat转bitmap
-    Java_org_opencv_android_Utils_nMatToBitmap2(env,clazz,(jlong)&srcData,
+    Java_org_opencv_android_Utils_nMatToBitmap2(env, clazz, (jlong) &srcData,
                                                 jBitmapObj, false);
     return jBitmapObj;
 }
