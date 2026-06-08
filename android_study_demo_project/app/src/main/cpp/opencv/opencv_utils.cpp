@@ -19,15 +19,15 @@ using namespace cv;
 extern "C" {
 
 /*
- * Class:     org_opencv_android_Utils
+ * 实现 Native 端 Bitmap 转 Mat
  * Method:    void nBitmapToMat2(Bitmap b, long m_addr, boolean unPremultiplyAlpha)
  */
-
+//声明方法
 JNIEXPORT void JNICALL Java_org_opencv_android_Utils_nBitmapToMat2
-        (JNIEnv * env, jclass, jobject bitmap, jlong m_addr, jboolean needUnPremultiplyAlpha);
-
+        (JNIEnv *env, jclass, jobject bitmap, jlong m_addr, jboolean needUnPremultiplyAlpha);
+//实现方法
 JNIEXPORT void JNICALL Java_org_opencv_android_Utils_nBitmapToMat2
-        (JNIEnv * env, jclass, jobject bitmap, jlong m_addr, jboolean needUnPremultiplyAlpha)
+        (JNIEnv *env, jclass, jobject bitmap, jlong m_addr, jboolean needUnPremultiplyAlpha)
 {
     AndroidBitmapInfo  info;
     void*              pixels = 0;
@@ -82,7 +82,7 @@ JNIEXPORT void JNICALL Java_org_opencv_android_Utils_nBitmapToMat
 }
 
 /*
- * Class:     org_opencv_android_Utils
+ * 实现 Mat 转 Bitmap
  * Method:    void nMatToBitmap2(long m_addr, Bitmap b, boolean premultiplyAlpha)
  */
 

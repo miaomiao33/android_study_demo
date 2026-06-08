@@ -210,4 +210,7 @@ dependencies {
 
     //厂商版本和 JPush SDK 版本保持一致
     implementation 'cn.jiguang.sdk.plugin:huawei:5.6.0'
+
+    //Tesseract OCR集成，用于图片识别
+    implementation 'com.rmtheis:tess-two:9.1.0'
 }

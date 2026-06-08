@@ -1,12 +1,16 @@
 package com.example.android_study_demo_project.opencv;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -22,10 +26,16 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.android_study_demo_project.MainActivity;
 import com.example.android_study_demo_project.R;
+import com.googlecode.tesseract.android.TessBaseAPI;
 
 import org.opencv.android.OpenCVLoader;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.Objects;
 
@@ -45,11 +55,32 @@ public class OpenCVMainActivity extends AppCompatActivity {
     private final int REQUEST_CODE_GET_IMG_FROM_PHOTO_ALBUM = 100;
     private Bitmap idCardCodeImg;//获取到的身份证号码截图
     private Bitmap fullIDCardImage;//身份证全图
+    private static TessBaseAPI tessBaseAPI;//图片识别
+    private static final String LANGUAGE = "num";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_cv_main);
+        //初始化组件信息
+        initView();
+
+        //OpenCV验证
+        if(OpenCVLoader.initDebug())
+        {
+            Log.i(TAG,"OpenCV 加载成功"+OpenCVLoader.OPENCV_VERSION);
+        }else
+        {
+            Log.i(TAG,"OpenCV 加载失败");
+        }
+
+        //初始化ORC识别信息
+        initTess();
+    }
+
+    //初始化组件信息
+    void initView()
+    {
         getInfoFromImgTextView = (TextView) findViewById(R.id.tv_get_info_from_img);
         idCardimageView = (ImageView) findViewById(R.id.iv_opencv_Id_card);
         getVersionButton = (Button) findViewById(R.id.bt_get_opencv_version_from_native);
@@ -62,15 +93,12 @@ public class OpenCVMainActivity extends AppCompatActivity {
         getImgFromPhotoAlbumButton.setOnClickListener(click);
         searchImgIdButton.setOnClickListener(click);
         recognizeTextFromImgButton.setOnClickListener(click);
+    }
 
-        //OpenCV验证
-        if(OpenCVLoader.initDebug())
-        {
-            Log.i(TAG,"OpenCV 加载成功"+OpenCVLoader.OPENCV_VERSION);
-        }else
-        {
-            Log.i(TAG,"OpenCV 加载失败");
-        }
+    //初始化 OCR 识别， Tess-two
+    private void initTess() {
+        tessBaseAPI= new TessBaseAPI();
+        new InitTessTask(this).execute();
     }
 
     @Override
@@ -215,12 +243,13 @@ public class OpenCVMainActivity extends AppCompatActivity {
         idCardimageView.setImageBitmap(idCardCodeImg);
     }
     /**
-     * 识别身份证号码截图获取到身份证号码
+     *  OCR 识别身份证号码截图获取到身份证号码
      */
     void recognizeTextFromImg()
     {
-        getInfoFromImgTextView.setText("身份证号码：");
-//        baseApi
+        tessBaseAPI.setImage(idCardCodeImg);
+        getInfoFromImgTextView.setText("身份证号码：" + tessBaseAPI.getUTF8Text());
+        tessBaseAPI.clear();
     }
 
     class OpenCVClick implements View.OnClickListener
@@ -242,6 +271,47 @@ public class OpenCVMainActivity extends AppCompatActivity {
                 case R.id.bt_recognize_text_from_img:
                     recognizeTextFromImg();
                     break;
+            }
+        }
+    }
+
+    private static class InitTessTask extends AsyncTask<Void,Void,Boolean>{
+        private WeakReference<OpenCVMainActivity> activityReference;
+
+        InitTessTask(OpenCVMainActivity context){
+            this.activityReference = new WeakReference<>(context);
+        }
+        @Override
+        protected Boolean doInBackground(Void... parameters) {
+            OpenCVMainActivity openCVMainActivity = activityReference.get();
+            if(openCVMainActivity == null || openCVMainActivity.isFinishing())
+            {
+                return false;
+            }
+            try {
+                //直接就是从main下开始的，使用getAssets，故前面不用加/assets/
+                InputStream inputStream = openCVMainActivity.getAssets().open("tessdata/"+LANGUAGE+".traineddata");
+                String assetFilePath = Environment.
+                        getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getPath()
+                        + "/tessdata/"+LANGUAGE+".traineddata";
+                File assetFile = new File(assetFilePath);
+                if(!assetFile.exists())
+                {
+                    assetFile.getParentFile().mkdirs();
+                    FileOutputStream fos = new FileOutputStream(assetFile);
+                    byte[] buffer = new byte[2048];
+                    int len;
+                    while ((len = inputStream.read(buffer)) != -1){
+                        fos.write(buffer,0,len);
+                    }
+                    fos.close();
+                }
+                inputStream.close();
+                // init 传入的 datapath 必须是包含 tessdata 的目录
+                return tessBaseAPI.init(Environment.
+                        getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getPath(),LANGUAGE);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
     }
