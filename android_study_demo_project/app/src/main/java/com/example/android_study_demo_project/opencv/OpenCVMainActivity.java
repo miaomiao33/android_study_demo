@@ -26,6 +26,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.android_study_demo_project.MainActivity;
 import com.example.android_study_demo_project.R;
+import com.example.android_study_demo_project.opencv.liveStreaming.LivingStreamMainActivity;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
 import org.opencv.android.OpenCVLoader;
@@ -47,6 +48,7 @@ public class OpenCVMainActivity extends AppCompatActivity {
     private Button getImgFromPhotoAlbumButton;
     private Button searchImgIdButton;
     private Button recognizeTextFromImgButton;
+    private Button gotoLivingStreamButton;
     private TextView getInfoFromImgTextView;//显示图片获取的信息
     private ImageView idCardimageView;
 
@@ -87,12 +89,14 @@ public class OpenCVMainActivity extends AppCompatActivity {
         getImgFromPhotoAlbumButton = (Button) findViewById(R.id.bt_get_img_from_photo_album);
         searchImgIdButton = (Button) findViewById(R.id.bt_get_id_card_id_from_img);
         recognizeTextFromImgButton = (Button) findViewById(R.id.bt_recognize_text_from_img);
+        gotoLivingStreamButton = (Button) findViewById(R.id.bt_goto_living_stream);
 
         OpenCVClick click = new OpenCVClick();
         getVersionButton.setOnClickListener(click);
         getImgFromPhotoAlbumButton.setOnClickListener(click);
         searchImgIdButton.setOnClickListener(click);
         recognizeTextFromImgButton.setOnClickListener(click);
+        gotoLivingStreamButton.setOnClickListener(click);
     }
 
     //初始化 OCR 识别， Tess-two
@@ -251,6 +255,14 @@ public class OpenCVMainActivity extends AppCompatActivity {
         getInfoFromImgTextView.setText("身份证号码：" + tessBaseAPI.getUTF8Text());
         tessBaseAPI.clear();
     }
+    /**
+     *  进入直播页面
+     */
+    void gotoLivingStream()
+    {
+        Intent intent = new Intent(this, LivingStreamMainActivity.class);
+        startActivity(intent);
+    }
 
     class OpenCVClick implements View.OnClickListener
     {
@@ -270,6 +282,9 @@ public class OpenCVMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_recognize_text_from_img:
                     recognizeTextFromImg();
+                    break;
+                case R.id.bt_goto_living_stream:
+                    gotoLivingStream();
                     break;
             }
         }
