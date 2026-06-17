@@ -63,6 +63,9 @@ public class CameraHelper implements Camera.PreviewCallback {
             //数据缓存区
             buffer = new byte[width * height * 3 / 2];
             i420 = new byte[width * height * 3 / 2];
+            //优化相机预览（Camera Preview）过程中图像数据的内存复用与回调性能
+            //预分配缓冲区池”，即开发者主动向 Camera 对象注册一组预先创建好的 `byte[]` 缓冲区（buffer），
+            // 使系统在每次预览帧（Preview Frame）生成后，不再动态分配新内存，而是循环复用这些已分配的 buffer
             mCamera.addCallbackBuffer(buffer);
             mCamera.setPreviewCallbackWithBuffer(this);
             //设置预览画面
@@ -110,6 +113,7 @@ public class CameraHelper implements Camera.PreviewCallback {
 //            nv21ToI420(bytes);
             mPreviewCallback.onPreviewFrame(bytes,camera);
         }
+        //优化相机预览（Camera Preview）过程中图像数据的内存复用与回调性能
         camera.addCallbackBuffer(buffer);
     }
 

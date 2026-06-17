@@ -2,10 +2,8 @@ package com.example.android_study_demo_project.opencv.liveStreaming;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
-import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -13,7 +11,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import android.media.MediaCodecList;
-import android.view.Surface;
 
 public class VideoCodec {
     private MediaCodec mediaCodec;
@@ -43,7 +40,7 @@ public class VideoCodec {
         try {
             // 1. 创建并配置MediaCodec
             mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
-            //记录编码参数，AVC是H264，HEVC是H265
+            //记录编码参数，输出AVC，AVC是H264，HEVC是H265
             MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE,width,height);
             //色彩空间 YUV
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
@@ -75,16 +72,19 @@ public class VideoCodec {
 
     public void stopRecording()
     {
-        isRecording = false;
-        if(mediaCodec != null)
+        if(isRecording)
         {
-            mediaCodec.stop();
-            mediaCodec.release();
-        }
-        if(mMuxer != null)
-        {
-            mMuxer.stop();
-            mMuxer.release();
+            isRecording = false;
+            if(mediaCodec != null)
+            {
+                mediaCodec.stop();
+                mediaCodec.release();
+            }
+            if(mMuxer != null)
+            {
+                mMuxer.stop();
+                mMuxer.release();
+            }
         }
     }
 
@@ -102,7 +102,7 @@ public class VideoCodec {
 //                bytesData = nv21Bytes;
                 bytesData = mCameraHelper.nv21ToNv12(nv21Bytes);
             } else if (colorFormat == MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar) {
-                //设备支持I420和YV12，需要把NV21转为I420
+                //设备支持I420和YU12，需要把NV21转为I420
                 Log.i(TAG,"format: 420P");
                 //bytes是I420
                 bytesData = mCameraHelper.nv21ToI420(nv21Bytes);
@@ -110,20 +110,23 @@ public class VideoCodec {
                 Log.i(TAG,"获取设备色彩模式失败");
                 return;
             }
-
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    //先放数据，然后取数据
-                    inputData(bytesData, new GetDataCallBack() {
-                        @Override
-                        public void onCallback() {
-                            //取数据
-                            getData();
-                        }
-                    });
-                }
-            });
+            if(colorFormat == MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar
+                    || colorFormat == MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar)
+            {
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        //先放数据，然后取数据
+                        inputData(bytesData, new GetDataCallBack() {
+                            @Override
+                            public void onCallback() {
+                                //取数据
+                                getData();
+                            }
+                        });
+                    }
+                });
+            }
         }
     }
     private void inputData(byte[] bytesData,GetDataCallBack onCallBack)
@@ -135,7 +138,6 @@ public class VideoCodec {
         if(inputBufferIndex < 0)
         {
             Log.w(TAG, "No available input buffer, skipping frame");
-            return;
         }else
         {
             //通过下标拿到输入队列中的容器
