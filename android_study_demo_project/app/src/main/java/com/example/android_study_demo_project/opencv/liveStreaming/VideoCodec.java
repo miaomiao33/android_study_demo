@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import android.media.MediaCodecList;
 
+/***
+ * 使用MediaCodec+MediaMuxer录制MP4视频
+ * 这里使用的是420SP和420P
+ */
 public class VideoCodec {
     private MediaCodec mediaCodec;
     private MediaMuxer mMuxer;
@@ -74,17 +78,23 @@ public class VideoCodec {
     {
         if(isRecording)
         {
-            isRecording = false;
             if(mediaCodec != null)
             {
                 mediaCodec.stop();
                 mediaCodec.release();
+                mediaCodec = null;
             }
             if(mMuxer != null)
             {
-                mMuxer.stop();
+                try {
+                    mMuxer.stop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 mMuxer.release();
+                mMuxer = null;
             }
+            isRecording = false;
         }
     }
 

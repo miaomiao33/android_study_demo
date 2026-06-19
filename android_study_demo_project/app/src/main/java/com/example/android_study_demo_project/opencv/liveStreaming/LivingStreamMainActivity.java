@@ -2,19 +2,15 @@ package com.example.android_study_demo_project.opencv.liveStreaming;
 
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.media.MediaCodecInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.android_study_demo_project.R;
 
@@ -29,7 +25,7 @@ public class LivingStreamMainActivity extends AppCompatActivity implements Camer
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_living_stream_main);
-        mCameraHelper = new CameraHelper(640,480);
+        mCameraHelper = new CameraHelper();
         mCameraHelper.setPreviewCallback(this);
 
         textureView = findViewById(R.id.texture_view_living_stream);
@@ -80,8 +76,8 @@ public class LivingStreamMainActivity extends AppCompatActivity implements Camer
             button.setText("停止录制");
             videoCodec.startRecording(
                             getExternalFilesDir(Environment.DIRECTORY_MOVIES).getPath()+"/a.mp4",
-                    mCameraHelper.getWidth(),
-                    mCameraHelper.getHeight(),
+                    mCameraHelper.getYWidth(),
+                    mCameraHelper.getYHeight(),
                     90);
         }
     }
