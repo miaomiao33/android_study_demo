@@ -6,7 +6,7 @@
     android:id="@+id/living_stream_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".opencv.liveStreaming.LivingStreamMainActivity">
+    tools:context=".opencv.recordVideo.RecordVideoMainActivity">
     <TextureView
         android:id="@+id/texture_view_living_stream"
         android:layout_width="match_parent"

@@ -76,7 +76,7 @@
         <activity android:name=".media.MediaSoundPoolActivity" />
         <activity android:name=".JNI.NDKUsageMainActivity" />
         <activity android:name=".opencv.OpenCVMainActivity" />
-        <activity android:name=".opencv.liveStreaming.LivingStreamMainActivity" />
+        <activity android:name=".opencv.recordVideo.RecordVideoMainActivity" />
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"

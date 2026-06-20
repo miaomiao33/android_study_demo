@@ -1,4 +1,4 @@
-package com.example.android_study_demo_project.opencv.liveStreaming;
+package com.example.android_study_demo_project.opencv.recordVideo;
 
 import android.media.Image;
 import android.media.MediaCodec;

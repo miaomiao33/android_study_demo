@@ -1,4 +1,4 @@
-package com.example.android_study_demo_project.opencv.liveStreaming;
+package com.example.android_study_demo_project.opencv.recordVideo;
 
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -14,17 +14,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.android_study_demo_project.R;
 
-public class LivingStreamMainActivity extends AppCompatActivity implements Camera.PreviewCallback, View.OnClickListener {
+public class RecordVideoMainActivity extends AppCompatActivity implements Camera.PreviewCallback, View.OnClickListener {
     private CameraHelper mCameraHelper;
     private VideoCodec videoCodec;
     private Button startButton;
-    private String TAG = LivingStreamMainActivity.class.getSimpleName();
+    private String TAG = RecordVideoMainActivity.class.getSimpleName();
     private TextureView textureView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_living_stream_main);
+        setContentView(R.layout.activity_record_video_main);
         mCameraHelper = new CameraHelper();
         mCameraHelper.setPreviewCallback(this);
 

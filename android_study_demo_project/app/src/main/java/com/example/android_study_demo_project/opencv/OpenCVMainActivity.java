@@ -1,8 +1,6 @@
 package com.example.android_study_demo_project.opencv;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -21,23 +19,18 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.example.android_study_demo_project.MainActivity;
 import com.example.android_study_demo_project.R;
-import com.example.android_study_demo_project.opencv.liveStreaming.LivingStreamMainActivity;
+import com.example.android_study_demo_project.opencv.recordVideo.RecordVideoMainActivity;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
 import org.opencv.android.OpenCVLoader;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.URI;
 import java.util.Objects;
 
 public class OpenCVMainActivity extends AppCompatActivity {
@@ -260,7 +253,7 @@ public class OpenCVMainActivity extends AppCompatActivity {
      */
     void gotoLivingStream()
     {
-        Intent intent = new Intent(this, LivingStreamMainActivity.class);
+        Intent intent = new Intent(this, RecordVideoMainActivity.class);
         startActivity(intent);
     }
 
