@@ -59,7 +59,7 @@ public class VideoCodec {
             mediaCodec.start();
 
             // 2. 创建MediaMuxer
-            //混合器 音频 + 视频 mp4
+            //混合器 音频 + 视频，输出为mp4
             mMuxer = new MediaMuxer(outputPath,
                     MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             mMuxer.setOrientationHint(degrees);
@@ -144,7 +144,7 @@ public class VideoCodec {
         //送数据
         //立即得到有效输入缓冲区
         //先拿到输入队列下标
-        int inputBufferIndex = mediaCodec.dequeueInputBuffer(1000*10);//1秒后超时
+        int inputBufferIndex = mediaCodec.dequeueInputBuffer(1000*10);//10秒后超时
         if(inputBufferIndex < 0)
         {
             Log.w(TAG, "No available input buffer, skipping frame");
@@ -247,7 +247,6 @@ public class VideoCodec {
                 }
             }
         }
-
         return -1;
     }
 
