@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.android_study_demo_project.R;
+import com.example.android_study_demo_project.opencv.liveStreamingPush.LiveStreamingMainActivity;
 import com.example.android_study_demo_project.opencv.recordVideo.RecordVideoMainActivity;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
@@ -41,6 +42,8 @@ public class OpenCVMainActivity extends AppCompatActivity {
     private Button getImgFromPhotoAlbumButton;
     private Button searchImgIdButton;
     private Button recognizeTextFromImgButton;
+
+    private Button gotoRecordVideoButton;
     private Button gotoLivingStreamButton;
     private TextView getInfoFromImgTextView;//显示图片获取的信息
     private ImageView idCardimageView;
@@ -82,6 +85,7 @@ public class OpenCVMainActivity extends AppCompatActivity {
         getImgFromPhotoAlbumButton = (Button) findViewById(R.id.bt_get_img_from_photo_album);
         searchImgIdButton = (Button) findViewById(R.id.bt_get_id_card_id_from_img);
         recognizeTextFromImgButton = (Button) findViewById(R.id.bt_recognize_text_from_img);
+        gotoRecordVideoButton = (Button) findViewById(R.id.bt_goto_record_video);
         gotoLivingStreamButton = (Button) findViewById(R.id.bt_goto_living_stream);
 
         OpenCVClick click = new OpenCVClick();
@@ -90,6 +94,7 @@ public class OpenCVMainActivity extends AppCompatActivity {
         searchImgIdButton.setOnClickListener(click);
         recognizeTextFromImgButton.setOnClickListener(click);
         gotoLivingStreamButton.setOnClickListener(click);
+        gotoRecordVideoButton.setOnClickListener(click);
     }
 
     //初始化 OCR 识别， Tess-two
@@ -249,11 +254,19 @@ public class OpenCVMainActivity extends AppCompatActivity {
         tessBaseAPI.clear();
     }
     /**
-     *  进入直播页面
+     *  进入录制视频页面
+     */
+    void gotoRecordVideo()
+    {
+        Intent intent = new Intent(this, RecordVideoMainActivity.class);
+        startActivity(intent);
+    }
+    /**
+     *  进入直播推送页面
      */
     void gotoLivingStream()
     {
-        Intent intent = new Intent(this, RecordVideoMainActivity.class);
+        Intent intent = new Intent(this, LiveStreamingMainActivity.class);
         startActivity(intent);
     }
 
@@ -276,6 +289,8 @@ public class OpenCVMainActivity extends AppCompatActivity {
                 case R.id.bt_recognize_text_from_img:
                     recognizeTextFromImg();
                     break;
+                case R.id.bt_goto_record_video:
+                    gotoRecordVideo();
                 case R.id.bt_goto_living_stream:
                     gotoLivingStream();
                     break;

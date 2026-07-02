@@ -33,6 +33,9 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="${applicationId}.permission.JOPERATE_MESSAGE" />
+    <!-- 前台录屏服务权限 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
 
     <application
         android:allowBackup="true"
@@ -77,6 +80,11 @@
         <activity android:name=".JNI.NDKUsageMainActivity" />
         <activity android:name=".opencv.OpenCVMainActivity" />
         <activity android:name=".opencv.recordVideo.RecordVideoMainActivity" />
+        <activity android:name=".opencv.liveStreamingPush.LiveStreamingMainActivity" />
+        <service
+            android:name=".opencv.liveStreamingPush.LiveTaskManager"
+            android:exported="true"
+            android:foregroundServiceType="mediaProjection"/>
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"

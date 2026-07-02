@@ -14,7 +14,23 @@ add_library(${CMAKE_PROJECT_NAME}
         register_class_and_variables.cpp
         bitmap_usage.cpp
         opencv/opencv_lib.cpp
-        opencv/opencv_utils.cpp)
+        opencv/opencv_utils.cpp
+)
+
+#免去openssl的编译
+#给所有 C 文件的编译命令追加宏定义 NO_CRYPTO，编译 librtmp 时开启无加密模式
+#源码中所有 #ifdef NO_CRYPTO 包裹的加密相关代码（OpenSSL 加密、AES、加密握手逻辑）都会被跳过编译，不链接 OpenSSL 库
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNO_CRYPTO")
+add_library( "librtmpLib"
+        SHARED
+        librtmp/amf.c
+        librtmp/hashswf.c
+        librtmp/log.c
+        librtmp/parseurl.c
+        librtmp/rtmp.c
+        liveStreaming/livestreaming_lib.cpp
+)
+
 #log输出库
 find_library(
         log-lib
@@ -37,12 +53,32 @@ find_package(
 )
 LINK_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 
+## 引入头文件路径（关键，找不到ssl.h就是这里没配）
+#include_directories(openssl/include)
+#
+## 导入静态库
+#add_library(local_openssl STATIC IMPORTED)
+#set_target_properties(local_openssl PROPERTIES
+#        IMPORTED_LOCATION openssl/lib/${ANDROID_ABI}/libssl.a)
+#
+#add_library(local_crypto STATIC IMPORTED)
+#set_target_properties(local_crypto PROPERTIES
+#        IMPORTED_LOCATION openssl/lib/${ANDROID_ABI}/libcrypto.a)
+
+
 #链接找到的库
 target_link_libraries(
         ${CMAKE_PROJECT_NAME}
         ${log-lib}
         ${jnigraphics-lib}
         ${OpenCV_LIBS}
+
+#        ${local_openssl}
+#        ${local_crypto}
+)
+target_link_libraries(
+        "librtmpLib"
+        ${log-lib}
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux
