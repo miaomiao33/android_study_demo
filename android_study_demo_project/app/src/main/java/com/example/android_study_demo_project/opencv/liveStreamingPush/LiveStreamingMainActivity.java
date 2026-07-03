@@ -1,14 +1,10 @@
 package com.example.android_study_demo_project.opencv.liveStreamingPush;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.projection.MediaProjectionManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -17,9 +13,6 @@ import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.android_study_demo_project.R;
 
@@ -32,7 +25,7 @@ public class LiveStreamingMainActivity extends AppCompatActivity {
     private LiveTaskManager liveTaskManager;
 
     private ServiceConnection connection;
-    private String TAG = LiveStreamingMainActivity.class.getSimpleName();
+    private final String TAG = LiveStreamingMainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

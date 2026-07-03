@@ -19,6 +19,7 @@ Java_com_example_android_1study_1demo_1project_opencv_liveStreamingPush_ScreenLi
     int ret = 0;
     do{
         live = (Live *)(malloc(sizeof(Live)));
+        //memset：用于初始化结构体所有数据
         memset(live,0, sizeof(Live));
 
         //申请内存
@@ -55,6 +56,8 @@ Java_com_example_android_1study_1demo_1project_opencv_liveStreamingPush_ScreenLi
     env->ReleaseStringUTFChars(url_,url);
     return ret;
 }
+
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_liveStreamingPush_ScreenLive_disConnect(

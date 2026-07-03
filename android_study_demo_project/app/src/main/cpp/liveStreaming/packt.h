@@ -65,7 +65,7 @@ RTMPPacket *createVideoPackage(Live *live)
     return packet;
 }
 
-//video其他帧的封包
+//video I帧和其他帧的封包
 RTMPPacket *createVideoPackage(int8_t *buf,int len, const long tms,Live *live)
 {
     buf += 4;

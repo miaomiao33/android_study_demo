@@ -34,7 +34,7 @@ public class VideoCodecLiveStream extends Thread{
 
     @Override
     public void run() {
-        //开始录制
+        //开始编码
         isLiving = true;
         mediaCodec.start();
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();

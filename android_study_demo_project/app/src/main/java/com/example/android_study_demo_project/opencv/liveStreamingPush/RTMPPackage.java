@@ -1,9 +1,9 @@
 package com.example.android_study_demo_project.opencv.liveStreamingPush;
 
 public class RTMPPackage {
-    public static final int RTMP_PACKET_TYPE_VIDEO = 0;
-    public static final int RTMP_PACKET_TYPE_AUDIO_HEAD = 1;
-    public static final int RTMP_PACKET_TYPE_AUDIO_DATA = 2;
+    public static final int RTMP_PACKET_TYPE_VIDEO = 0;//视频数据
+    public static final int RTMP_PACKET_TYPE_AUDIO_HEAD = 1;//音频头数据（在创建音频包时和音频数据区分）
+    public static final int RTMP_PACKET_TYPE_AUDIO_DATA = 2;//音频数据
 
     private byte[] buffer;
     private int type;//视频包、音频包
