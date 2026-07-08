@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.android_study_demo_project">
+    <uses-feature
+        android:name="android.hardware.opengles2"
+        android:required="true" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -32,10 +35,9 @@
         android:name="${applicationId}.permission.JOPERATE_MESSAGE"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="${applicationId}.permission.JOPERATE_MESSAGE" />
-    <!-- 前台录屏服务权限 -->
+    <uses-permission android:name="${applicationId}.permission.JOPERATE_MESSAGE" /> <!-- 前台录屏服务权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
     <application
         android:allowBackup="true"
@@ -57,7 +59,8 @@
         <activity android:name=".MainActivityForService" />
         <activity android:name=".storage.StorageActivity" />
         <activity android:name=".intent.IntentMainActivity" />
-        <activity android:name=".storage.FileUsageActivity"
+        <activity
+            android:name=".storage.FileUsageActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.example.android_study_demo_project.ACTION_START" />
@@ -81,10 +84,12 @@
         <activity android:name=".opencv.OpenCVMainActivity" />
         <activity android:name=".opencv.recordVideo.RecordVideoMainActivity" />
         <activity android:name=".opencv.liveStreamingPush.LiveStreamingMainActivity" />
+
         <service
             android:name=".opencv.liveStreamingPush.LiveTaskManager"
             android:exported="true"
-            android:foregroundServiceType="mediaProjection"/>
+            android:foregroundServiceType="mediaProjection" />
+        <activity android:name=".opencv.OpenGLUsage.OpenGLUsageMainActivity"/>
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
