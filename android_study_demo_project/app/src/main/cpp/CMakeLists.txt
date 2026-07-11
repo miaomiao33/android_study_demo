@@ -31,6 +31,11 @@ add_library( "librtmpLib"
         liveStreaming/livestreaming_lib.cpp
 )
 
+add_library( "eyeLib"
+        SHARED
+        openGLES/opencv_eye_lib.cpp
+)
+
 #log输出库
 find_library(
         log-lib
@@ -69,6 +74,7 @@ LINK_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 #链接找到的库
 target_link_libraries(
         ${CMAKE_PROJECT_NAME}
+
         ${log-lib}
         ${jnigraphics-lib}
         ${OpenCV_LIBS}
@@ -79,6 +85,13 @@ target_link_libraries(
 target_link_libraries(
         "librtmpLib"
         ${log-lib}
+)
+
+target_link_libraries(
+        "eyeLib"
+        ${log-lib}
+        ${jnigraphics-lib}
+        ${OpenCV_LIBS}
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux

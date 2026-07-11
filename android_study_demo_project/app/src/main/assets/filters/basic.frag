@@ -8,6 +8,6 @@ uniform sampler2D vTexture;
 
 void main()
 {
-    //采集vTexture（画布/图片）的aCoord位置的像素
+    //采集vTexture（画布/图片）的aCoord位置的像素并赋值给gl_FragColor
     gl_FragColor = texture2D(vTexture, aCoord);
 }
