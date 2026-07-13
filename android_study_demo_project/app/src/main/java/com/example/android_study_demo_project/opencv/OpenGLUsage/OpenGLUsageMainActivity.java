@@ -8,6 +8,9 @@ import android.widget.SeekBar;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.android_study_demo_project.R;
 
+/***
+ * OpenGL ES 显示人脸图片以及眼睛部分放大，并使用OpenCV识别眼睛中心
+ */
 public class OpenGLUsageMainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
     private MyGLView myGLView;
 

@@ -4,19 +4,19 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 
+/***
+ * 获取眼睛中心点坐标
+ */
 public class EyeDectorManager {
     private static volatile EyeDectorManager instance;
-    private Context mContext;
-    private static long nativePtr; // native检测器句柄
+//    private Context mContext;
+    private WeakReference<Context> mContextWeakReference;//防止Context泄露
+    private static long nativePtr; // native端检测器句柄地址
     private final String TAG = EyeDectorManager.class.getSimpleName();
 
     static {
@@ -39,41 +39,42 @@ public class EyeDectorManager {
     }
 
     public void init(Context context) {
-        mContext = context;
+        mContextWeakReference = new WeakReference<>(context);
         nativePtr = nativeCreateDetector();
     }
 
 
+    //获取左右眼睛的中心坐标（像素化坐标）
     public Eye[] getEyes(Bitmap mBitmap) {
         //初始化级联检测器（人脸+眼睛）
         initCascade();
-        //float[4] {leftX,leftY,rightX,rightY} 无检测返回null
-//        float[] result = detectPupil(bitmapToBgrBytes(mBitmap),mBitmap.getWidth(),mBitmap.getHeight());
         int texWidth = mBitmap.getWidth();
         int texHeight = mBitmap.getHeight();
-        float[] result = detectPupil2(mBitmap,texWidth,texHeight);
+        //获取到眼睛中心坐标（像素坐标）
+        //float[4] {leftX,leftY,rightX,rightY} 无检测返回null
+        float[] result = detectPupil(mBitmap,texWidth,texHeight);
         if(result == null)
         {
             Log.e(TAG,"get eye error,result is null");
             return null;
         }
-        Eye leftEye = new Eye();
-        Eye rightEye = new Eye();
+
         // 1. 像素坐标转 0~1 纹理UV（和aCoord坐标系匹配）
-        Log.e(TAG,"_eyes1: leftXY:"+result[0]+"-"+result[1]+"rightXY:"+result[2]+"-"+ result[3]);
+        Log.e(TAG,"_eyes: leftXY:"+result[0]+"-"+result[1]+"rightXY:"+result[2]+"-"+ result[3]);
+//        //归一化坐标
 //        float leftX = result[0] / texWidth;
 //        float leftY = result[1] / texHeight;
-//
 //        float rightX = result[2] / texWidth;
 //        float rightY = result[3] / texWidth;
 
+        //像素坐标
         float leftX = result[0] ;
         float leftY = result[1] ;
-
         float rightX = result[2] ;
         float rightY = result[3] ;
 
-        Log.e(TAG,"_eyes: leftXY:"+leftX+"-"+leftY+"rightXY:"+rightX+"-"+rightY);
+        Eye leftEye = new Eye();
+        Eye rightEye = new Eye();
         leftEye.pos = new float[]{leftX,leftY};
         rightEye.pos = new float[]{rightX,rightY};
 
@@ -94,11 +95,8 @@ public class EyeDectorManager {
      * @param h 高
      * @return float[4] {leftX,leftY,rightX,rightY} 无检测返回null
      */
-    public float[] detectPupil(byte[] bgrData, int w, int h) {
+    public float[] detectPupil(Bitmap bgrData, int w, int h) {
         return nativeDetectFrame(nativePtr, bgrData, w, h);
-    }
-    public float[] detectPupil2(Bitmap bgrData, int w, int h) {
-        return nativeDetectFrame2(nativePtr, bgrData, w, h);
     }
 
     // 释放native资源
@@ -107,11 +105,17 @@ public class EyeDectorManager {
         nativePtr = 0;
     }
 
-    // 拷贝assets分类器到本地
+    // 拷贝assets分类器到手机本地
     private String copyAsset(String name) {
+        Context mContext = mContextWeakReference.get();
+        if(mContext == null)
+        {
+            Log.e(TAG,"Context 已被回收");
+            return null;
+        }
         File dir = new File(mContext.getCacheDir(), "cascade");
 
-        if (!dir.exists()){
+        if (!dir.exists() && dir.getParentFile() != null){
             dir.getParentFile().mkdirs();
         }
 
@@ -133,8 +137,7 @@ public class EyeDectorManager {
     // native方法声明
     private native long nativeCreateDetector();
     private native void nativeLoadCascade(long ptr, String faceXml, String eyeXml);
-    private native float[] nativeDetectFrame(long ptr, byte[] bgr, int w, int h);
-    private native float[] nativeDetectFrame2(long ptr, Bitmap src, int w, int h);
+    private native float[] nativeDetectFrame(long ptr, Bitmap src, int w, int h);
     private native void nativeRelease(long ptr);
     
 }

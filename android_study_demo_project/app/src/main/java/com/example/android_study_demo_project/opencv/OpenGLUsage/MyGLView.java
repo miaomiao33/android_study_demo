@@ -9,14 +9,12 @@ import android.graphics.Paint;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
-import android.opengl.Matrix;
 import android.util.AttributeSet;
 import android.util.Log;
 
 import com.example.android_study_demo_project.R;
 
 import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 
 public class MyGLView extends GLSurfaceView implements GLSurfaceView.Renderer {
@@ -170,22 +168,32 @@ public class MyGLView extends GLSurfaceView implements GLSurfaceView.Renderer {
             mBitmap.recycle();
         }
         mBitmap = bitmap;
+        //获取眼睛中心点
         Eye[] eyes = EyeDectorManager.getInstance().getEyes(mBitmap);
         if(eyes == null)
         {
             return;
         }
+//        //pos[0]存储的归一化坐标
 //        Bitmap temp = drawSimplePoint(mBitmap, eyes[0].pos[0]*mBitmap.getWidth(), eyes[0].pos[1]*mBitmap.getHeight(), Color.RED);
 //        Bitmap finalBmp = drawSimplePoint(temp, eyes[1].pos[0]*mBitmap.getWidth(), eyes[1].pos[1]*mBitmap.getHeight(), Color.GREEN);
+        //pos[0]存储的像素坐标
+        //绘制眼睛中心点，方便观察
         Bitmap temp = drawSimplePoint(mBitmap, eyes[0].pos[0], eyes[0].pos[1], Color.RED);
         Bitmap finalBmp = drawSimplePoint(temp, eyes[1].pos[0], eyes[1].pos[1], Color.GREEN);
         mBitmap = finalBmp;
         requestRender();
     }
 
+
+    //绘制眼睛中心点
     public static Bitmap drawSimplePoint(Bitmap origin, float x, float y, int color) {
+        //把传入的原图复制一份，生成新位图bmp ARGB_8888：带透明通道的 32 位图片格式
+        //第二个参数true：可变位图（允许绘图修改像素）
         Bitmap bmp = origin.copy(Bitmap.Config.ARGB_8888, true);
+        //创建画布 Canvas，绑定到复制出来的图片bmp
         Canvas canvas = new Canvas(bmp);
+        //Paint.ANTI_ALIAS_FLAG：开启抗锯齿，圆点边缘不会有锯齿、更平滑
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(color);
         paint.setStyle(Paint.Style.FILL);

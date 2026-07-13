@@ -11,7 +11,7 @@ uniform float a;//缩放系数，0无缩放，大于0则放大
 uniform vec2 left_eye;//左眼中心点
 uniform vec2 right_eye;//右眼中心点
 
-varying vec2 texSizeFrag; // 纹理宽高像素
+varying vec2 texSizeFrag; // 纹理宽高（像素）
 
 //coord = 当前要采样的点，eye = 眼睛点，rmax = 最大作用半径
 vec2 newCoord(vec2 coord, vec2 eye, float rmax)

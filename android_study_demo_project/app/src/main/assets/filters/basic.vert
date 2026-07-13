@@ -7,10 +7,10 @@ attribute vec2 vCoord;
 //易变变量 通过 vCoord 传递给fragment varying修饰的变量才能传值
 varying vec2 aCoord;
 
-// 新增：纹理宽高，用来把0~1UV转像素坐标
+// 纹理宽高，用来把0~1UV转像素坐标
 uniform vec2 texSize;
 
-varying vec2 texSizeFrag;
+varying vec2 texSizeFrag; // 纹理宽高（像素）
 
 void main()
 {
