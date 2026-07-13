@@ -76,7 +76,7 @@ public class OpenGLUtils {
             return 0;
         }
         //验证opengl对象
-        boolean volidated = volidateProgram(programId);
+        boolean volidated = validateProgram(programId);
         if(!volidated)
         {
             GLES20.glDeleteProgram(programId);
@@ -114,7 +114,7 @@ public class OpenGLUtils {
         return shader;
     }
 
-    public static boolean volidateProgram(int program) {
+    public static boolean validateProgram(int program) {
         GLES20.glValidateProgram(program);
         int[] validateStatus = new int[1];
         GLES20.glGetProgramiv(program, GLES20.GL_VALIDATE_STATUS, validateStatus, 0);
@@ -169,19 +169,6 @@ public class OpenGLUtils {
         textureBuffer.position(0);
         GLES20.glVertexAttribPointer(vCoord,2,GLES20.GL_FLOAT,false,0,textureBuffer);
         GLES20.glEnableVertexAttribArray(vCoord);
-    }
-
-    public static int glTexParameteris() {
-        // 1. 创建纹理ID
-        int[] textureIds = new int[1];
-        GLES20.glGenTextures(1, textureIds, 0);
-        if (textureIds[0] == 0) {
-            Log.d("mmm", "纹理加载失败");
-            return 0;
-        }
-        int texture = textureIds[0];
-
-        return texture;
     }
 
     // 创建纹理，加载Bitmap
