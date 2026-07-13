@@ -68,6 +68,7 @@ Java_com_example_android_1study_1demo_1project_opencv_OpenGLUsage_EyeDectorManag
 
     if(det) delete det;
 }
+
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_OpenGLUsage_EyeDectorManager_nativeDetectFrame(

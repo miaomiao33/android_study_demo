@@ -38,7 +38,7 @@ public class OpenGLUtils {
         }
     }
 
-    public static int glUseProgram(String vertex_code, String fragment_code)
+    public static int glCompileAndUseProgram(String vertex_code, String fragment_code)
     {
         /***
          * 编译着色器
@@ -139,13 +139,15 @@ public class OpenGLUtils {
             1.0f,0.0f,
     };
 
+    //设置顶点与纹理坐标数据
     public static void initCoord(int vPosition, int vCoord)
     {
-        //位置
+        //OpenGL ES 顶点缓冲区
+        //allocateDirect分配堆外直接内存（不归 Java GC 堆管理，Native 层可直接访问）,一个 float 占 4 字节
         FloatBuffer vertexBuffer = ByteBuffer.allocateDirect(VERTEX.length * 4)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(VERTEX);
+                .order(ByteOrder.nativeOrder())//设置字节序为当前设备 CPU 原生字节序（大小端），防止浮点解析错乱
+                .asFloatBuffer()//把底层字节缓冲区，包装成 FloatBuffer，方便按 float 读写，不用手动转字节
+                .put(VERTEX);//把 float 数组 VERTEX 里所有顶点数据写入缓冲区
         vertexBuffer.position(0);
         /**
          * index，顶点属性位置编号
@@ -171,15 +173,21 @@ public class OpenGLUtils {
         GLES20.glEnableVertexAttribArray(vCoord);
     }
 
-    // 创建纹理，加载Bitmap
-    public static int createTexture(Bitmap bitmap) {
+    // 创建纹理，配置纹理参数
+    public static int createTexture() {
         int[] texId = new int[1];
+        //GPU 分配一块纹理资源,生成1 个纹理对象，唯一纹理编号存入 texId[0]
         GLES20.glGenTextures(1, texId,0);
+        //绑定纹理，把它设为当前激活的 2D 纹理
+        //绑定之后：后面所有纹理配置接口（glTexParameter 设置过滤 / 环绕、glTexImage2D 上传图片像素），都会自动作用到这个 texId[0] 纹理上，不用每次都传 ID。
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId[0]);
 
-        // 纹理参数
+        // 纹理参数(修改当前绑定的 2D 纹理规则)
+        //WRAP_S / WRAP_T 纹理环绕模式（UV 超出 0~1 区间怎么渲染） S = U：横向 X，T = V：纵向 Y，GL_CLAMP_TO_EDGE = 夹紧到边缘，UV 超过 0 或 1 时，一直重复纹理最边缘那一排像素
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        //MAG / MIN 纹理过滤（放大、缩小时像素怎么插值），MAG_FILTER：纹理放大（画面尺寸 > 纹理原图），MIN_FILTER：纹理缩小（画面尺寸 < 纹理原图）
+        // GL_LINEAR 线性插值（平滑），取周围 4 个像素加权混合，画面柔和、模糊过渡，视频、图片渲染首选，无锯齿马赛克
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 

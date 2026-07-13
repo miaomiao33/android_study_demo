@@ -67,7 +67,7 @@ public class MyGLView extends GLSurfaceView implements GLSurfaceView.Renderer {
         String fragment_code = OpenGLUtils.loadStringFromAssetFile(getContext(),"filters/bigeye.frag");
 
         //编译单个着色器并生成program
-        int program = OpenGLUtils.glUseProgram(vertex_code,fragment_code);
+        int program = OpenGLUtils.glCompileAndUseProgram(vertex_code,fragment_code);
 
         /***2、找到着色器的各个变量索引*/
         //获取属性的位置
@@ -84,8 +84,8 @@ public class MyGLView extends GLSurfaceView implements GLSurfaceView.Renderer {
         //顶点坐标数据
         OpenGLUtils.initCoord(vPosition,vCoord);
 
-        // 加载图片生成纹理（res/drawable下test图片）
-        mTextureId = OpenGLUtils.createTexture(BitmapFactory.decodeResource(getResources(), R.drawable.small_eyes));
+        // 配置纹理参数（res/drawable下test图片）
+        mTextureId = OpenGLUtils.createTexture();
     }
 
     //GL子线程：画布改变
@@ -110,15 +110,14 @@ public class MyGLView extends GLSurfaceView implements GLSurfaceView.Renderer {
             return;
         }
 
+        // 清屏颜色
         GLES20.glClearColor(0,0,0,0);
         //清空帧缓存中指定类型的缓冲区
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-
+        //传入数据
         // 传入纹理宽高，供顶点着色器UV转像素
         GLES20.glUniform2f(texSize, mBitmap.getWidth(), mBitmap.getHeight());
-
-        //传入数据
         GLES20.glUniform2fv(left_eye, 1, eyes[0].pos, 0);
         GLES20.glUniform2fv(right_eye, 1, eyes[1].pos, 0);
         GLES20.glUniform1f(a, mScale);
