@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.android_study_demo_project">
+
     <uses-feature
         android:name="android.hardware.opengles2"
         android:required="true" />
-
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" /> <!-- 允许应用安装到不支持摄像头的硬件设备上 -->
@@ -89,7 +89,9 @@
             android:name=".opencv.liveStreamingPush.LiveTaskManager"
             android:exported="true"
             android:foregroundServiceType="mediaProjection" />
-        <activity android:name=".opencv.OpenGLUsage.OpenGLUsageMainActivity"/>
+
+        <activity android:name=".opencv.OpenGLUsage.OpenGLUsageMainActivity" />
+        <activity android:name=".opencv.buildShell.BuildShellMainActivity" />
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"

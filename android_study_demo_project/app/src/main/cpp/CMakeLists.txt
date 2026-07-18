@@ -36,6 +36,18 @@ add_library( "eyeLib"
         openGLES/opencv_eye_lib.cpp
 )
 
+
+#引入x264包
+add_library( "x264Lib"
+        SHARED
+        x264/x264Lib.cpp
+)
+# CXXFLAGS 指定库搜索路径
+# 保留原来已有的所有 C++ 编译 / 链接参数 -Lxxx = 指定库搜索目录
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_SOURCE_DIR}/x264/${ANDROID_ABI}/lib")
+# 指定头文件目录
+include_directories(${CMAKE_SOURCE_DIR}/x264/${ANDROID_ABI}/include)
+
 #log输出库
 find_library(
         log-lib
@@ -92,6 +104,12 @@ target_link_libraries(
         ${log-lib}
         ${jnigraphics-lib}
         ${OpenCV_LIBS}
+)
+#引入x264包
+target_link_libraries(
+        "x264Lib"
+        ${log-lib}
+        x264
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux

@@ -157,6 +157,13 @@
                 android:text="OpenGL开发"
                 android:textAllCaps="false"
                 />
+            <Button
+                android:id="@+id/bt_goto_build_shell"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="编译库文件"
+                android:textAllCaps="false"
+                />
 
         </LinearLayout>
     </ScrollView>

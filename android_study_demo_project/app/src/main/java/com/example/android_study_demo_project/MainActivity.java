@@ -26,6 +26,7 @@ import com.example.android_study_demo_project.internetImageUsage.InternetImageUs
 import com.example.android_study_demo_project.media.MediaMainActivity;
 import com.example.android_study_demo_project.opencv.OpenCVMainActivity;
 import com.example.android_study_demo_project.opencv.OpenGLUsage.OpenGLUsageMainActivity;
+import com.example.android_study_demo_project.opencv.buildShell.BuildShellMainActivity;
 import com.example.android_study_demo_project.storage.StorageActivity;
 
 import cn.jiguang.api.utils.JCollectionAuth;
@@ -139,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     private Button NDKUsageButton;
     private Button openCVUsageButton;
     private Button openGLUsageButton;
+    private Button gotoBuildShellButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         NDKUsageButton = (Button) findViewById(R.id.bt_NDK);
         openCVUsageButton = (Button) findViewById(R.id.bt_OpenCV);
         openGLUsageButton = (Button) findViewById(R.id.bt_OpenGL);
+        gotoBuildShellButton = (Button) findViewById(R.id.bt_goto_build_shell);
 
 
         storageButton.setOnClickListener(new myClick());
@@ -173,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
         NDKUsageButton.setOnClickListener(new myClick());
         openCVUsageButton.setOnClickListener(new myClick());
         openGLUsageButton.setOnClickListener(new myClick());
+        gotoBuildShellButton.setOnClickListener(new myClick());
 
         //极光配置信息初始化
         jiguangInit();
@@ -337,6 +341,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //进入库文件编译页面
+    void gotoBuildShell()
+    {
+        Intent intent = new Intent(this, BuildShellMainActivity.class);
+        startActivity(intent);
+    }
+
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
 
@@ -379,6 +390,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_OpenGL:
                     goToOpenGLUsage();
+                    break;
+                case R.id.bt_goto_build_shell:
+                    gotoBuildShell();
                     break;
                 default:
                     break;

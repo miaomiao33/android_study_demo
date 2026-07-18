@@ -33,6 +33,7 @@ android {
         versionName "1.0"//版本名称，展示在应用市场
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"//使用AndroidJUnitRunner进行单元测试
+        //打包
         ndk {
             // 当前使用的NDK版本
             ndkVersion "21.1.6352462"
@@ -98,6 +99,7 @@ android {
             ]
         }
     }
+    // cmake 只配置路径、cmake版本
     externalNativeBuild {
         // Encapsulates your CMake build configurations.
         cmake {
