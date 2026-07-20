@@ -37,16 +37,29 @@ add_library( "eyeLib"
 )
 
 
-#引入x264包
+#引入x264和LibreDWG包
 add_library( "x264Lib"
         SHARED
         x264/x264Lib.cpp
+        libreDWG/libreDWG_lib.cpp
 )
+
 # CXXFLAGS 指定库搜索路径
 # 保留原来已有的所有 C++ 编译 / 链接参数 -Lxxx = 指定库搜索目录
+#-L 仅作用于编译链接阶段，不会把 .so 打包进 APK
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_SOURCE_DIR}/x264/${ANDROID_ABI}/lib")
 # 指定头文件目录
 include_directories(${CMAKE_SOURCE_DIR}/x264/${ANDROID_ABI}/include)
+
+# 导入 redwg 静态库(因为.so和.a都有，默认会用.so，所以使用STATIC IMPORTED)
+#（这是导入预编译库，这里的add_library不能搭配源码文件（.cpp），两种模式互斥）
+# IMPORTED导入外部预编译库，必须搭配 set_target_properties 指定文件真实位置
+add_library(redwg STATIC IMPORTED)
+set_target_properties(redwg PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/libreDWG/${ANDROID_ABI}/lib/libredwg.a
+)
+# 指定头文件目录
+include_directories(${CMAKE_SOURCE_DIR}/libreDWG/${ANDROID_ABI}/include)
 
 #log输出库
 find_library(
@@ -106,10 +119,12 @@ target_link_libraries(
         ${OpenCV_LIBS}
 )
 #引入x264包
+#CMake /autotools 链接时自动省略 lib 前缀与 .a 后缀
 target_link_libraries(
         "x264Lib"
         ${log-lib}
         x264
+        redwg
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux

@@ -1,0 +1,12 @@
+# libredwg.pc.  Generated from libredwg.pc.in by configure.
+prefix=/d/Android_NDK_depending_packages/LibreDWG/libredwg/android/arm64-v8a
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libredwg
+Description: Free implementation of the DWG file format
+Version: 0.14.8447
+URL: https://savannah.gnu.org/projects/libredwg/
+Libs: -L${libdir} -lredwg -lm 
+Cflags: -I${includedir}
