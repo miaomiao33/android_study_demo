@@ -42,8 +42,10 @@ add_library( "x264Lib"
         SHARED
         x264/x264Lib.cpp
         libreDWG/libreDWG_lib.cpp
+        FAAC/faac_lib.cpp
 )
 
+# x264
 # CXXFLAGS 指定库搜索路径
 # 保留原来已有的所有 C++ 编译 / 链接参数 -Lxxx = 指定库搜索目录
 #-L 仅作用于编译链接阶段，不会把 .so 打包进 APK
@@ -60,6 +62,12 @@ set_target_properties(redwg PROPERTIES
 )
 # 指定头文件目录
 include_directories(${CMAKE_SOURCE_DIR}/libreDWG/${ANDROID_ABI}/include)
+
+# FAAC
+add_library(faac STATIC IMPORTED)
+set_target_properties(faac PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/FAAC/${ANDROID_ABI}/lib/libfaac.a)
+include_directories(${CMAKE_SOURCE_DIR}/FAAC/${ANDROID_ABI}/include)
 
 #log输出库
 find_library(
@@ -125,6 +133,7 @@ target_link_libraries(
         ${log-lib}
         x264
         redwg
+        faac
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux

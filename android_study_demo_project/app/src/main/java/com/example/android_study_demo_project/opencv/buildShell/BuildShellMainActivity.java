@@ -25,10 +25,14 @@ public class BuildShellMainActivity extends AppCompatActivity {
         String path = Objects.requireNonNull(getExternalFilesDir(Environment.DIRECTORY_MUSIC)).getAbsolutePath()
                 +"/2.dwg";
         testLibreDWG(path);
+        testFAAC();
     }
 
     private native String getString();
 
     //检验LibreDWG包
     private native String testLibreDWG(String path);
+
+    //检验FAAC包
+    private native String testFAAC();
 }
