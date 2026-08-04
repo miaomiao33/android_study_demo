@@ -44,6 +44,12 @@ add_library( "x264Lib"
         libreDWG/libreDWG_lib.cpp
         FAAC/faac_lib.cpp
 )
+# 引入ffmpeg
+add_library( "ffmpegLib"
+        SHARED
+        ffmpeg4-4-4/ffmpeg.cpp
+        ffmpeg4-4-4/ffmpeg_get_frame.cpp
+)
 
 # x264
 # CXXFLAGS 指定库搜索路径
@@ -68,6 +74,44 @@ add_library(faac STATIC IMPORTED)
 set_target_properties(faac PROPERTIES
         IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/FAAC/${ANDROID_ABI}/lib/libfaac.a)
 include_directories(${CMAKE_SOURCE_DIR}/FAAC/${ANDROID_ABI}/include)
+
+# ffmpeg4.4.4
+# FFmpeg 路径
+set(FFMPEG_DIR ${CMAKE_SOURCE_DIR}/ffmpeg4-4-4/${ANDROID_ABI})
+# 头文件
+include_directories(${FFMPEG_DIR}/include)
+# 逐个导入静态库
+add_library(avutil STATIC IMPORTED)
+set_target_properties(avutil PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libavutil.a)
+
+add_library(swresample STATIC IMPORTED)
+set_target_properties(swresample PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libswresample.a)
+
+add_library(swscale STATIC IMPORTED)
+set_target_properties(swscale PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libswscale.a)
+
+add_library(avcodec STATIC IMPORTED)
+set_target_properties(avcodec PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libavcodec.a)
+
+add_library(avformat STATIC IMPORTED)
+set_target_properties(avformat PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libavformat.a)
+
+add_library(avdevice STATIC IMPORTED)
+set_target_properties(avdevice PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libavdevice.a)
+
+add_library(avfilter STATIC IMPORTED)
+set_target_properties(avfilter PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libavfilter.a)
+
+add_library(postproc STATIC IMPORTED)
+set_target_properties(postproc PROPERTIES
+        IMPORTED_LOCATION ${FFMPEG_DIR}/lib/libpostproc.a)
 
 #log输出库
 find_library(
@@ -134,6 +178,21 @@ target_link_libraries(
         x264
         redwg
         faac
+)
+#引入ffmpeg包
+target_link_libraries(
+        "ffmpegLib"
+        ${log-lib}
+        # FFmpeg 顺序固定
+        avfilter
+        avformat
+        avcodec
+        avdevice
+        postproc
+        swscale
+        swresample
+        avutil
+        z   # 新增zlib！必须放在ffmpeg所有库之后
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ffmpeg_usage_page_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".opencv.ffmpegUsage.FFmpegUsageMainActivity"
+    android:layout_gravity="center">
+
+    <Button
+        android:id="@+id/bt_change_mp4_format"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MP4格式改为AVI格式"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bt_get_frame_from_stream"
+        />
+    <Button
+        android:id="@+id/bt_get_frame_from_stream"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="实时流中抓取一帧"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_change_mp4_format"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

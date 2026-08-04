@@ -27,6 +27,7 @@ import com.example.android_study_demo_project.media.MediaMainActivity;
 import com.example.android_study_demo_project.opencv.OpenCVMainActivity;
 import com.example.android_study_demo_project.opencv.OpenGLUsage.OpenGLUsageMainActivity;
 import com.example.android_study_demo_project.opencv.buildShell.BuildShellMainActivity;
+import com.example.android_study_demo_project.opencv.ffmpegUsage.FFmpegUsageMainActivity;
 import com.example.android_study_demo_project.storage.StorageActivity;
 
 import cn.jiguang.api.utils.JCollectionAuth;
@@ -141,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
     private Button openCVUsageButton;
     private Button openGLUsageButton;
     private Button gotoBuildShellButton;
+    private Button gotoFFmpegUsageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         openCVUsageButton = (Button) findViewById(R.id.bt_OpenCV);
         openGLUsageButton = (Button) findViewById(R.id.bt_OpenGL);
         gotoBuildShellButton = (Button) findViewById(R.id.bt_goto_build_shell);
+        gotoFFmpegUsageButton = (Button) findViewById(R.id.bt_ffmpeg_usage);
 
 
         storageButton.setOnClickListener(new myClick());
@@ -177,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
         openCVUsageButton.setOnClickListener(new myClick());
         openGLUsageButton.setOnClickListener(new myClick());
         gotoBuildShellButton.setOnClickListener(new myClick());
+        gotoFFmpegUsageButton.setOnClickListener(new myClick());
 
         //极光配置信息初始化
         jiguangInit();
@@ -347,6 +351,12 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, BuildShellMainActivity.class);
         startActivity(intent);
     }
+    //进入ffmpeg使用页面
+    void gotoFFmpegUsagePage()
+    {
+        Intent intent = new Intent(this, FFmpegUsageMainActivity.class);
+        startActivity(intent);
+    }
 
     //集中处理按钮方法
     private class myClick implements View.OnClickListener{
@@ -393,6 +403,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_goto_build_shell:
                     gotoBuildShell();
+                    break;
+                case R.id.bt_ffmpeg_usage:
+                    gotoFFmpegUsagePage();
                     break;
                 default:
                     break;

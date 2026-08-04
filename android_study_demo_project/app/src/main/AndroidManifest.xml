@@ -92,6 +92,7 @@
 
         <activity android:name=".opencv.OpenGLUsage.OpenGLUsageMainActivity" />
         <activity android:name=".opencv.buildShell.BuildShellMainActivity" />
+        <activity android:name=".opencv.ffmpegUsage.FFmpegUsageMainActivity"/>
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
