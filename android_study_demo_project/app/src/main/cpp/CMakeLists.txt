@@ -49,6 +49,9 @@ add_library( "ffmpegLib"
         SHARED
         ffmpeg4-4-4/ffmpeg.cpp
         ffmpeg4-4-4/ffmpeg_get_frame.cpp
+        ffmpeg4-4-4/ffmpeg_native_player.cpp
+        ffmpeg4-4-4/FFmpegCore.cpp
+        ffmpeg4-4-4/OpenSL_ES_Core.cpp
 )
 
 # x264
@@ -179,20 +182,33 @@ target_link_libraries(
         redwg
         faac
 )
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections")
 #引入ffmpeg包
 target_link_libraries(
         "ffmpegLib"
         ${log-lib}
         # FFmpeg 顺序固定
-        avfilter
+        -Wl,--whole-archive
         avformat
+        avfilter
         avcodec
         avdevice
         postproc
         swscale
         swresample
         avutil
-        z   # 新增zlib！必须放在ffmpeg所有库之后
+        -Wl,--no-whole-archive
+
+        # 系统依赖库，全部放在ffmpeg静态库之后
+        z  # 新增zlib！必须放在ffmpeg所有库之后
+        m
+        atomic
+        android
+        OpenSLES
+
+        camera2ndk
+        mediandk
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_ffmpeg_coder_usage_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".opencv.ffmpegUsage.FFmpegCoderUsageMainActivity">
+
+    <TextView
+        android:id="@+id/tv_ffmpeg_coder_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginTop="30dp"
+        android:text="播放链接："
+        android:textAllCaps="false"
+        android:textSize="20sp"/>
+    <EditText
+        android:id="@+id/et_ffmpeg_coder_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:layout_toRightOf="@+id/tv_ffmpeg_coder_input"
+        android:padding="10dp"
+        android:layout_marginTop="30dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/et_ffmpeg_coder_input"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/bt_ffmpeg_coder_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="60dp"
+            android:text="播放"
+            android:textColor="@color/black"
+            />
+        <Button
+            android:id="@+id/bt_ffmpeg_coder_pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="80dp"
+            android:text="暂停"
+            android:textColor="@color/black"
+            />
+    </LinearLayout>
+</RelativeLayout>

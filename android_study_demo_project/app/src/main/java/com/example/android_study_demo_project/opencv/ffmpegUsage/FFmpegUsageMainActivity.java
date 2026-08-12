@@ -1,5 +1,6 @@
 package com.example.android_study_demo_project.opencv.ffmpegUsage;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -19,6 +20,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
 
     private Button changeFormatButton;
     private Button getFrameButton;
+    private Button gotToFFmpgeUsageButton;
     private final String TAG = FFmpegUsageMainActivity.class.getSimpleName();
 
     @Override
@@ -27,11 +29,12 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ffmpeg_usage_main);
         changeFormatButton = (Button)findViewById(R.id.bt_change_mp4_format);
         getFrameButton = (Button)findViewById(R.id.bt_get_frame_from_stream);
+        gotToFFmpgeUsageButton = (Button)findViewById(R.id.bt_goto_ffmpeg_coder);
 
         FFmpegUsageClick click = new FFmpegUsageClick();
         changeFormatButton.setOnClickListener(click);
         getFrameButton.setOnClickListener(click);
-
+        gotToFFmpgeUsageButton.setOnClickListener(click);
     }
 
     void changeMP4toAVI()
@@ -53,6 +56,11 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
                         .getPath()+"/test/test.jpg";
         getFrameFromStream(outputPath);
     }
+    void gotoFFmpegCoderUsagePage()
+    {
+        Intent intent = new Intent(this, FFmpegCoderUsageMainActivity.class);
+        startActivity(intent);
+    }
 
     private class FFmpegUsageClick implements View.OnClickListener {
 
@@ -64,6 +72,9 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_get_frame_from_stream:
                     getVideoFrameFromStream();
+                    break;
+                case R.id.bt_goto_ffmpeg_coder:
+                    gotoFFmpegCoderUsagePage();
                     break;
             }
         }
