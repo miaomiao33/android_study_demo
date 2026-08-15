@@ -1,6 +1,9 @@
 //
 // Created by Machenike on 2026/8/5.
 //
+/**
+ * OpenSL_ES的初始化、播放、暂停等流程
+ * **/
 #include "OpenSL_ES_Core.h"
 
 #ifdef __cplusplus
@@ -31,6 +34,7 @@ void *buffer;
 size_t bufferSize;
 
 //每当缓冲区结束播放时，调用bqPlayerCallback函数
+//读取 FFmpeg 解码重采样后的 PCM 数据，调用 Enqueue 把新 PCM 送入播放队列
 void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
     LOGD(">> buffere queue callback")
     assert(bq == bqPlayerBufferQueue);

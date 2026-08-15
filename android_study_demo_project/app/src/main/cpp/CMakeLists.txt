@@ -52,6 +52,7 @@ add_library( "ffmpegLib"
         ffmpeg4-4-4/ffmpeg_native_player.cpp
         ffmpeg4-4-4/FFmpegCore.cpp
         ffmpeg4-4-4/OpenSL_ES_Core.cpp
+        ffmpeg4-4-4/videoDecoder/ffmpeg_video_decoder.cpp
 )
 
 # x264

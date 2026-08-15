@@ -39,6 +39,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bt_get_frame_from_stream"
+        app:layout_constraintBottom_toTopOf="@+id/bt_goto_ffmpeg_video_decoder"
+        />
+    <Button
+        android:id="@+id/bt_goto_ffmpeg_video_decoder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FFmpeg视频解码"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_goto_ffmpeg_coder"
         app:layout_constraintBottom_toBottomOf="parent"
         />
 

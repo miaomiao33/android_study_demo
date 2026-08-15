@@ -94,6 +94,7 @@
         <activity android:name=".opencv.buildShell.BuildShellMainActivity" />
         <activity android:name=".opencv.ffmpegUsage.FFmpegUsageMainActivity" />
         <activity android:name=".opencv.ffmpegUsage.FFmpegCoderUsageMainActivity" />
+        <activity android:name=".opencv.ffmpegUsage.videoDecoder.FFmpegVideoDecoderMainActivity" />
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"
