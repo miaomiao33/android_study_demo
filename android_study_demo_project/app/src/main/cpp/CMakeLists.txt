@@ -45,6 +45,7 @@ add_library( "x264Lib"
         FAAC/faac_lib.cpp
 )
 # 引入ffmpeg
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNO_CRYPTO")
 add_library( "ffmpegLib"
         SHARED
         ffmpeg4-4-4/ffmpeg.cpp
@@ -53,6 +54,13 @@ add_library( "ffmpegLib"
         ffmpeg4-4-4/FFmpegCore.cpp
         ffmpeg4-4-4/OpenSL_ES_Core.cpp
         ffmpeg4-4-4/videoDecoder/ffmpeg_video_decoder.cpp
+        ffmpeg4-4-4/livingStream/FFmpegLiveStreamNativePlayer.cpp
+        ffmpeg4-4-4/livingStream/DoubleQueue.cpp
+        librtmp/amf.c
+        librtmp/hashswf.c
+        librtmp/log.c
+        librtmp/parseurl.c
+        librtmp/rtmp.c
 )
 
 # x264
@@ -210,6 +218,9 @@ target_link_libraries(
 
         camera2ndk
         mediandk
+
+        x264
+        faac
 )
 #添加预编译选项，为LogUtils使用
 #添加两个宏：Windows，Linux

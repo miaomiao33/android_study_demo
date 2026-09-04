@@ -9,6 +9,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.android_study_demo_project.R;
+import com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.videoDecoder.FFmpegVideoDecoderMainActivity;
 
 import java.util.Objects;
@@ -23,6 +24,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
     private Button getFrameButton;
     private Button gotToFFmpgeUsageButton;
     private Button gotToFFmpgeVideoDecoderButton;
+    private Button gotToFFmpgeLivingStreamButton;
     private final String TAG = FFmpegUsageMainActivity.class.getSimpleName();
 
     @Override
@@ -33,12 +35,14 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         getFrameButton = (Button)findViewById(R.id.bt_get_frame_from_stream);
         gotToFFmpgeUsageButton = (Button)findViewById(R.id.bt_goto_ffmpeg_coder);
         gotToFFmpgeVideoDecoderButton = (Button)findViewById(R.id.bt_goto_ffmpeg_video_decoder);
+        gotToFFmpgeLivingStreamButton = (Button)findViewById(R.id.bt_goto_ffmpeg_living_stream);
 
         FFmpegUsageClick click = new FFmpegUsageClick();
         changeFormatButton.setOnClickListener(click);
         getFrameButton.setOnClickListener(click);
         gotToFFmpgeUsageButton.setOnClickListener(click);
         gotToFFmpgeVideoDecoderButton.setOnClickListener(click);
+        gotToFFmpgeLivingStreamButton.setOnClickListener(click);
     }
 
     void changeMP4toAVI()
@@ -72,6 +76,12 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    void gotoFFmpegLivingStreamUsagePage()
+    {
+        Intent intent = new Intent(this, FFmpegLiveStreamMainActivity.class);
+        startActivity(intent);
+    }
+
     private class FFmpegUsageClick implements View.OnClickListener {
 
         @Override
@@ -88,6 +98,9 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_goto_ffmpeg_video_decoder:
                     gotoFFmpegVideoDecoderUsagePage();
+                    break;
+                case R.id.bt_goto_ffmpeg_living_stream:
+                    gotoFFmpegLivingStreamUsagePage();
                     break;
             }
         }

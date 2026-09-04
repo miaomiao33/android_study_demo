@@ -1,3 +1,7 @@
+//
+// Created by Machenike on 2026/8/13.
+//
+
 extern "C"{
 #include <jni.h>
 #include "libavcodec/avcodec.h"
@@ -10,10 +14,6 @@ extern "C"{
 #include "libavutil/imgutils.h"
 }
 
-//
-// Created by Machenike on 2026/8/13.
-//
-
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_videoDecoder_FFmpegVideoDecoderNativePlayer_playVideo(
@@ -23,6 +23,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_videoDecoder_F
     LOGD("start play video... url=%s",file_name)
     av_register_all();
 
+    //分配 AVFormatContext 上下文对象
     AVFormatContext *pFormatCtx = avformat_alloc_context();
 
     //打开视频
@@ -88,12 +89,12 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_videoDecoder_F
     ANativeWindow_setBuffersGeometry(nativeWindow,
                                      videoWidth, videoHeight, WINDOW_FORMAT_RGBA_8888);
     ANativeWindow_Buffer windowBuffer;
-    //打开解码器
-    if(avcodec_open2(pCodecCtx, pCodec, NULL) < 0)
-    {
-        LOGE("Could not open codec.")
-        return -1;
-    }
+//    //打开解码器
+//    if(avcodec_open2(pCodecCtx, pCodec, NULL) < 0)
+//    {
+//        LOGE("Could not open codec.")
+//        return -1;
+//    }
 
     //分配视频帧空间内存
     AVFrame *pFrame = av_frame_alloc();
@@ -104,7 +105,6 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_videoDecoder_F
         LOGE("Could not allocate video frame.")
         return -1;
     }
-
     //确定所需缓冲区大小并分配缓冲区内存空间
     //Buffer 中的数据就是用于渲染的，且格式为RGBA
     int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGBA,pCodecCtx->width,
@@ -114,7 +114,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_videoDecoder_F
                          buffer, AV_PIX_FMT_RGBA,
                          pCodecCtx->width, pCodecCtx->height, 1);
 
-    //由于解码出来的帧格式不是
+    //由于解码出来的帧格式不是 RGBA 的，故在渲染之前需要进行格式转换
     struct SwsContext *sws_ctx = sws_getContext(pCodecCtx->width,
             pCodecCtx->height,
             pCodecCtx->pix_fmt,
