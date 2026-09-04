@@ -456,13 +456,11 @@ void add_264_sequence_header(unsigned char* pps, unsigned char* sps, int pps_len
     body[i++] = sps[1];//AVCProfileIndication
     body[i++] = sps[2];//profile_compatibility
     body[i++] = sps[3];//AVCLevelIndication
-//    body[i++] = 0xFF;//lengthSizeMinusOne，H264视频中 NALU 的长度，计算方法是
-    body[i++] = 0xFF & 0xFC | 0x03; // lengthSizeMinusOne =3，4字节NALU长度
+    body[i++] = 0xFF;//lengthSizeMinusOne，H264视频中 NALU 的长度，计算方法是
     // 1 + (lengthSizeMinusOne & 3)，实际测试时发现值总为FF，计算结果为 4
 
     /*SPS*/
-//    body[i++] = 0xE1;//numOfSequenceParametersSets 表示 SPS 的个数，计算方法是
-    body[i++] = 0x01 | 0xE0; // SPS count =1
+    body[i++] = 0xE1;//numOfSequenceParametersSets 表示 SPS 的个数，计算方法是
     // numOfSequenceParametersSets & 0x1F，实际测试时发现值总为 E1，计算结果为1
     body[i++] = (sps_len >> 8) & 0xff;
     //sequenceParameterSetLength 表示 SPS 的长度
