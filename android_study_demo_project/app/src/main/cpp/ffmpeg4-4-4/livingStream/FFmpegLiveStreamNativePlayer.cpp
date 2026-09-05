@@ -302,6 +302,11 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
         JNIEnv *env, jobject thiz, jint width, jint height, jint bitrate, jint fps) {
     is_pushing = TRUE;//修改当前状态为pushing
     x264_param_t param;
+    // 关闭已打开的编码器(用于二次设置编码器宽高)
+    if (video_encode_handle!= nullptr)
+    {
+        x264_encoder_close(video_encode_handle);
+    }
     //x264_param_default_preset 设置
     // 给`x264_param_t`编码参数结构体加载预设 (preset) 与调优 (tune) 配置
     //ultrafast：最快编码，压缩效率最差，码率高，CPU 占用极低，适合实时推流、zerolatency 场景

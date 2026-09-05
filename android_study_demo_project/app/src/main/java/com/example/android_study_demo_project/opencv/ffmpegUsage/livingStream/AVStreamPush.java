@@ -1,9 +1,9 @@
 package com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream;
 
 import android.hardware.Camera;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
@@ -14,9 +14,11 @@ public class AVStreamPush implements Callback {
     private AudioPush audioPush;
     private FFmpegLiveStreamNativePlayer nativePlayer;
     private String path;
+    private WindowManager windowManager;
 
-    public AVStreamPush(SurfaceHolder surfaceHolder) {
+    public AVStreamPush(SurfaceHolder surfaceHolder, WindowManager windowManager) {
         this.surfaceHolder = surfaceHolder;
+        this.windowManager = windowManager;
         surfaceHolder.addCallback(this);
         prepare();
     }
@@ -29,8 +31,8 @@ public class AVStreamPush implements Callback {
         nativePlayer = new FFmpegLiveStreamNativePlayer();
 
         //实例化视频推流器
-        VideoInfo videoParam = new VideoInfo(480, 320, Camera.CameraInfo.CAMERA_FACING_BACK);
-        videoPush = new VideoPush(surfaceHolder, videoParam, nativePlayer,path);
+        VideoInfo videoParam = new VideoInfo(Camera.CameraInfo.CAMERA_FACING_BACK);
+        videoPush = new VideoPush(surfaceHolder, videoParam, nativePlayer,path,windowManager);
 
         //实例化音频推流器
         AudioInfo audioInfo = new AudioInfo();

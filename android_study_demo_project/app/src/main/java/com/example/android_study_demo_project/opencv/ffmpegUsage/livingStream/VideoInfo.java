@@ -4,35 +4,59 @@ package com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream;
  * 视频数据参数
  */
 public class VideoInfo {
-    private int width;
-    private int height;
+    //注意编码器、buffer等以previewWidth、previewHeight为准
+    private int previewWidth = 640;
+    private int previewHeight = 480;
+    private int pictureWidth = 640;
+    private int pictureHeight = 480;
     //码率为 480 kb/s
     private int bitrate = 480_000;
     //帧频默认为 25 fps
     private int fps = 25;
     private int cameraId;
 
-    public VideoInfo(int width, int height, int cameraId) {
+    public VideoInfo(int previewWidth, int previewHeight, int cameraId) {
         super();
-        this.width = width;
-        this.height = height;
+        this.previewWidth = previewWidth;
+        this.previewHeight = previewHeight;
         this.cameraId = cameraId;
     }
 
-    public int getWidth() {
-        return width;
+    public VideoInfo( int cameraId) {
+        super();
+        this.cameraId = cameraId;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
+    public int getPreviewWidth() {
+        return previewWidth;
     }
 
-    public int getHeight() {
-        return height;
+    public void setPreviewWidth(int previewWidth) {
+        this.previewWidth = previewWidth;
     }
 
-    public void setHeight(int height) {
-        this.height = height;
+    public int getPreviewHeight() {
+        return previewHeight;
+    }
+
+    public void setPreviewHeight(int previewHeight) {
+        this.previewHeight = previewHeight;
+    }
+
+    public int getPictureWidth() {
+        return pictureWidth;
+    }
+
+    public void setPictureWidth(int pictureWidth) {
+        this.pictureWidth = pictureWidth;
+    }
+
+    public int getPictureHeight() {
+        return pictureHeight;
+    }
+
+    public void setPictureHeight(int pictureHeight) {
+        this.pictureHeight = pictureHeight;
     }
 
     public int getBitrate() {
@@ -58,4 +82,5 @@ public class VideoInfo {
     public void setCameraId(int cameraId) {
         this.cameraId = cameraId;
     }
+
 }

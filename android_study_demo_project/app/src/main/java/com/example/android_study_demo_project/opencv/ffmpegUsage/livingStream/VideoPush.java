@@ -5,7 +5,9 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
@@ -25,12 +27,14 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
     private boolean isPushing = false;
     private FFmpegLiveStreamNativePlayer nativePlayer;
     private String path;
+    private WindowManager windowManager;
 
-    public VideoPush(SurfaceHolder mSurfaceHolder, VideoInfo mVideoInfo, FFmpegLiveStreamNativePlayer nativePlayer,String path) {
+    public VideoPush(SurfaceHolder mSurfaceHolder, VideoInfo mVideoInfo, FFmpegLiveStreamNativePlayer nativePlayer,String path,WindowManager windowManager) {
         this.mSurfaceHolder = mSurfaceHolder;
         this.mVideoInfo = mVideoInfo;
         this.nativePlayer = nativePlayer;
         this.mSurfaceHolder.addCallback(this);
+        this.windowManager = windowManager;
 
         this.mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         this.path = path;
@@ -56,7 +60,7 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
     @Override
     public void startPush() {
         //设置视频参数
-        nativePlayer.setVideoOptions(mVideoInfo.getWidth(),mVideoInfo.getHeight(),
+        nativePlayer.setVideoOptions(mVideoInfo.getPreviewWidth(),mVideoInfo.getPreviewHeight(),
                 mVideoInfo.getBitrate(), mVideoInfo.getFps());
         isPushing = true;
     }
@@ -108,14 +112,31 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
 
             // 获取所有支持拍照尺寸
             List<Camera.Size> pictureSizes = parameters.getSupportedPictureSizes();
-            Camera.Size bestPicSize = chooseOptimalSize(pictureSizes, 720,1080);
-            parameters.setPictureSize(bestPicSize.width, bestPicSize.height);//拍照的图片尺寸，不等于预览尺寸
+            Camera.Size bestPicSize = chooseOptimalSize(pictureSizes, mVideoInfo.getPictureWidth(), mVideoInfo.getPictureHeight());
+            if (bestPicSize.width != mVideoInfo.getPictureWidth())
+            {
+                //不是最佳拍照格式
+                mVideoInfo.setPictureWidth(bestPicSize.width);
+                mVideoInfo.setPictureHeight(bestPicSize.height);
+            }
+            Log.i("RTMP","final setPictureWidth RTMP width:" + mVideoInfo.getPictureWidth() + "  height:" +  mVideoInfo.getPictureHeight());
+            parameters.setPictureSize(mVideoInfo.getPictureWidth(), mVideoInfo.getPictureHeight());//拍照的图片尺寸，不等于预览尺寸
 
             // 获取设备支持的所有预览尺寸列表
             List<Camera.Size> supportedSizes = parameters.getSupportedPreviewSizes();
-            // 写工具方法：从supportedSizes里选最接近你目标分辨率的Size，不要直接new Size
-            Camera.Size bestPreviewSize = chooseOptimalSize(supportedSizes, 720, 1080);
-            parameters.setPreviewSize(bestPreviewSize.width, bestPreviewSize.height);
+            //写工具方法：从supportedSizes里选最接近你目标分辨率的Size，不要直接new Size
+            Camera.Size bestPreviewSize = chooseOptimalSize(supportedSizes,  mVideoInfo.getPreviewWidth(), mVideoInfo.getPreviewHeight());
+            if(bestPreviewSize.width != mVideoInfo.getPreviewWidth())
+            {
+                //不是最佳预览格式
+                mVideoInfo.setPreviewWidth(bestPreviewSize.width);
+                mVideoInfo.setPreviewHeight(bestPreviewSize.height);
+                //和前面设置的不一致重新设置编码器参数
+                nativePlayer.setVideoOptions(mVideoInfo.getPreviewWidth(),mVideoInfo.getPreviewHeight(),
+                        mVideoInfo.getBitrate(), mVideoInfo.getFps());
+            }
+            Log.i("RTMP","final setPreviewSize RTMP width:" + mVideoInfo.getPreviewWidth() + "  height:" +  mVideoInfo.getPreviewHeight());
+            parameters.setPreviewSize(mVideoInfo.getPreviewWidth(), mVideoInfo.getPreviewHeight());
 
             // 对焦模式安全设置
             List<String> focusModes = parameters.getSupportedFocusModes();
@@ -129,7 +150,8 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
 
             /** 预览 **/
             //预览画面宽高值
-            setDisplay(parameters, mCamera);//设置相机旋转角度
+//            setDisplay(parameters, mCamera);//设置相机旋转角度
+            setDisplay(mCamera); // 传入camera实例即可
             mCamera.setParameters(parameters);
             mCamera.setPreviewDisplay(mSurfaceHolder);//把预览输出绑定到 SurfaceView 的 SurfaceHolder
             //获取预览图像数据
@@ -139,9 +161,10 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
 //            mCamera.setPreviewCallbackWithBuffer(this);
 //            mCamera.startPreview();//开始录制
 
-            int realW = bestPreviewSize.width;
-            int realH = bestPreviewSize.height;
-            int bufferByteCount = realW * realH * 3 / 2;
+//            int realW = bestPreviewSize.width;
+//            int realH = bestPreviewSize.height;
+//            int bufferByteCount = realW * realH * 3 / 2;
+            int bufferByteCount = mVideoInfo.getPreviewWidth() * mVideoInfo.getPreviewHeight() * 3 / 2;
             buffers = new byte[bufferByteCount];
 
             mCamera.addCallbackBuffer(buffers);
@@ -151,6 +174,38 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
             throw new RuntimeException(e);
         }
     }
+
+    private void setDisplay(Camera camera) {
+        // 获取当前摄像头的信息
+        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+        // 假设您使用的是后置摄像头，如果是前置，请传入对应的 cameraId
+        // 通常后置是0，前置是1，但最好通过遍历或传入参数来确定
+        android.hardware.Camera.getCameraInfo(0, info);
+
+        // 获取当前屏幕的旋转角度
+        int rotation = windowManager.getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
+        }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            // 前置摄像头：先加上屏幕角度，再取反以补偿镜像效果
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {
+            // 后置摄像头：传感器角度减去屏幕角度
+            result = (info.orientation - degrees + 360) % 360;
+        }
+
+        // 直接调用公开API设置预览方向
+        camera.setDisplayOrientation(result);
+    }
+
     //设置相机旋转角度
     private void setDisplay(Camera.Parameters parameters, Camera camera)
     {
@@ -225,6 +280,7 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
 
         for (Camera.Size size : sizes) {
             double ratio = (double) size.width / size.height;
+            Log.i("RTMP","RTMP width:" + size.width + "  height:" + size.height);
             double diff = Math.abs(ratio - targetRatio);
             if (diff < minDiff) {
                 minDiff = diff;

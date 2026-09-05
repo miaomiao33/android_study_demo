@@ -27,9 +27,9 @@ public class FFmpegLiveStreamMainActivity extends AppCompatActivity {
 
         //相机图像的预览
         String address = "rtmp://sendhw3.douyu.com/live/";
-        String livingCode = "12865925rWe8mTZH?dyPRI=0&noforward=1&origin=hw&record=flv&roirecognition=0&stemp_id=12898962&tw=0&wm=0&wsSecret=66877ca639c725b1104ad34108b22d80&wsSeek=off&wsTime=6a9a8b53";
+        String livingCode = "12865925rApbb2nH?dyPRI=0&noforward=1&origin=hw&record=flv&roirecognition=0&stemp_id=12898962&tw=0&wm=0&wsSecret=3daf6974e51db82ba27676b7b229d7aa&wsSeek=off&wsTime=6a9bde4b";
         URL = address+livingCode;
-        mAvStreamPush = new AVStreamPush(surfaceView.getHolder());
+        mAvStreamPush = new AVStreamPush(surfaceView.getHolder(),getWindowManager());
         mStartLive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
