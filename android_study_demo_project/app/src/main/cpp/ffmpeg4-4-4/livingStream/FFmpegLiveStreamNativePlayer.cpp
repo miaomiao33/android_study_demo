@@ -314,8 +314,12 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
     x264_param_default_preset(&param, "ultrafast","zerolatency");
     //编码输入的像素格式YUV420P
     param.i_csp = X264_CSP_I420;//给x264_encoder_encode()的原始帧是 I420(YUV420P)
-    param.i_width = width;
-    param.i_height = height;
+//    param.i_width = width;
+//    param.i_height = height;
+// 【关键修改】：因为我们在 sendVideoPacket 中会将画面顺时针旋转 90 度，
+    // 旋转后宽高互换，所以传给 x264 编码器的宽高必须互换！
+    param.i_width = height;
+    param.i_height = width;
 
     //总像素：Y (w×h) + U (w/2 × h/2) + V (w/2 × h/2)
     //获得YUV的数量
@@ -355,6 +359,8 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
     x264_param_apply_profile(&param, "baseline");//根据传入 profile 名字，强制约束编码器参数
 
     //x264_picture_t （输入图像）初始化
+//    x264_picture_alloc(&pic_in, param.i_csp, param.i_width, param.i_height);
+// 【关键修改】：使用旋转后的宽高 (height, width) 来分配 x264 图像内存
     x264_picture_alloc(&pic_in, param.i_csp, param.i_width, param.i_height);
     pic_in.i_pts = 0;//输入帧的 PTS 显示时间戳，这一帧什么时候显示，以 param.i_timebase_num / param.i_timebase_den 为时间单位
     //打开编码器
@@ -585,33 +591,87 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
 //    //nv21 4:2:0 Formats, 12 Bits per Pixel
 //    //nv21 与 yuv420p，y个数一致，uv 位置不同
 //    //nv21 转 yuv420p  y = w*h, u/v = w*h/4
-//    //nv21=yuv  yuv420p=yuv y=y u=y+1+1 v=y+1
 //    //NV21：V0,U0,V1,U1
 //    //      V2,U2,V3,U3
 //    //I420：  U0,U1,U2,U3
 //    //        V0,V1,V2,V3
+
+// ================== 【新增】：在内存中对 NV21 进行顺时针旋转 90 度 ==================
+    int src_w = totalWidth;
+    int src_h = totalHeight;
+    // 分配一个临时 buffer 存放旋转后的 NV21 数据
+    jbyte *rotated_buffer = (jbyte *) malloc(src_w * src_h * 3 / 2);
+    if (rotated_buffer != NULL) {
+        jbyte *src_y = nv21_buffer;
+        jbyte *src_uv = nv21_buffer + src_w * src_h;
+        jbyte *dst_y = rotated_buffer;
+        jbyte *dst_uv = rotated_buffer + src_w * src_h; // 旋转后总宽高互换，但 Y 的总像素数不变
+
+        // 1. 旋转 Y 平面 (顺时针 90 度: new_x = y, new_y = src_w - 1 - x)
+        for (int y = 0; y < src_h; y++) {
+            for (int x = 0; x < src_w; x++) {
+                int new_x = src_h - 1 - y;
+                int new_y = x;
+                dst_y[new_y * src_h + new_x] = src_y[y * src_w + x];
+            }
+        }
+
+        // 2. 旋转 UV 平面 (NV21 是 VUVU 交错排列，宽高减半)
+        int uv_w = src_w / 2;
+        int uv_h = src_h / 2;
+        for (int y = 0; y < uv_h; y++) {
+            for (int x = 0; x < uv_w; x++) {
+                int new_x = uv_h - 1 - y;
+                int new_y = x;
+                // 每个像素占 2 字节 (V, U)
+                int src_idx = (y * uv_w + x) * 2;
+                int dst_idx = (new_y * src_h / 2 + new_x) * 2; // 旋转后 UV 平面的宽度变成了 src_h/2
+                dst_uv[dst_idx] = src_uv[src_idx];         // V
+                dst_uv[dst_idx + 1] = src_uv[src_idx + 1]; // U
+            }
+        }
+
+        // 释放原始 buffer，将指针指向旋转后的 buffer
+        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
+        nv21_buffer = rotated_buffer;
+    }
+    // ================================================================================
+
+
+
     int i;
     // 1. 拷贝 Y 平面，必须考虑 stride
     //    memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
 
     int src_y_stride = totalWidth; // 假设源数据是紧凑的
     int dst_y_stride = pic_in.img.i_stride[0];
-    if (dst_y_stride == src_y_stride) {
-        LOGI("RTMP dst_y_stride == src_y_stride ")
+ // 【关键修改】：旋转后，Y 平面的实际宽度变成了 totalHeight，高度变成了 totalWidth
+    if (dst_y_stride == totalHeight) {
         memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
     } else {
         // 逐行拷贝，防止内存错位
-        for (int h = 0; h < totalHeight; h++) {
+        for (int h = 0; h < totalWidth; h++) { // 旋转后高度为原宽度
             memcpy(pic_in.img.plane[0] + h * dst_y_stride,
-                   nv21_buffer + h * src_y_stride,
-                   src_y_stride);
+                   nv21_buffer + h * totalHeight, // 旋转后行宽为原高度
+                   totalHeight);
         }
     }
+//    if (dst_y_stride == src_y_stride) {
+//        LOGI("RTMP dst_y_stride == src_y_stride ")
+//        memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
+//    } else {
+//        // 逐行拷贝，防止内存错位
+//        for (int h = 0; h < totalHeight; h++) {
+//            memcpy(pic_in.img.plane[0] + h * dst_y_stride,
+//                   nv21_buffer + h * src_y_stride,
+//                   src_y_stride);
+//        }
+//    }
 
 //    //复制UV
 //    int i;
 //    for(i = 0; i < u_len;i++)
-//    {
+//    { -
 //        *(u + i) = *(nv21_buffer + y_len + i * 2 + 1);
 //        *(v + i) = *(nv21_buffer + y_len + i * 2);
 //    }
@@ -622,10 +682,15 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
     jbyte *dst_u = reinterpret_cast<jbyte *>(pic_in.img.plane[1]);
     jbyte *dst_v = reinterpret_cast<jbyte *>(pic_in.img.plane[2]);
 
-    int src_uv_width = totalWidth / 2;
+//    int src_uv_width = totalWidth / 2;
+//    int dst_u_stride = pic_in.img.i_stride[1];
+//    int dst_v_stride = pic_in.img.i_stride[2];
+//    int uv_height = totalHeight / 2;
+// 【关键修改】：旋转后，UV 平面的宽度变成了 totalHeight / 2，高度变成了 totalWidth / 2
+    int src_uv_width = totalHeight / 2;
     int dst_u_stride = pic_in.img.i_stride[1];
     int dst_v_stride = pic_in.img.i_stride[2];
-    int uv_height = totalHeight / 2;
+    int uv_height = totalWidth / 2;
 
     for(int row = 0; row < uv_height; row++)
     {
@@ -712,7 +777,18 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
     }
 
     //释放数组
-    env->ReleaseByteArrayElements(buffer,nv21_buffer,JNI_FALSE);
+//    env->ReleaseByteArrayElements(buffer,nv21_buffer,JNI_FALSE);
+// 【关键修改】：释放内存。如果是 malloc 的 rotated_buffer，用 free；如果是 JNI 的，用 ReleaseByteArrayElements
+    // 这里简单处理：因为上面已经把 nv21_buffer 指向了 rotated_buffer
+    // 为了安全，我们在开头记录原始的 JNI 指针
+    // (为保持代码简洁，这里假设如果使用了 malloc，就在最后 free)
+    // 实际工程中建议在函数开头保存 `jbyte *original_jni_buffer = nv21_buffer;`
+    // 这里为了适配您的原有逻辑，直接释放：
+    if (rotated_buffer != NULL) {
+        free(rotated_buffer);
+    } else {
+        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
+    }
 }
 
 /**
