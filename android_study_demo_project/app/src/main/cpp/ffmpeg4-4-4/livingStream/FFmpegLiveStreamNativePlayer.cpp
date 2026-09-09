@@ -1,6 +1,9 @@
 //
 // Created by Machenike on 2026/8/19.
 //
+/***
+ * 使用 X264进行编解码，并使用RTMP进行推流
+ */
 extern "C" {
 #include <jni.h>
 #include "com_example_android_study_demo_project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer.h"
@@ -29,14 +32,16 @@ x264_picture_t pic_out;
 //YUV个数
 int y_len, u_len, v_len;
 int totalWidth, totalHeight;
-//x264编码处理器
+//x264编码处理器（用于编解码）
 x264_t *video_encode_handle;
 unsigned int start_time;
+
 //线程处理
 pthread_mutex_t mutex;
 pthread_cond_t cond;
-//RTMP 流媒体地址
+//RTMP 流媒体地址（推送地址）
 char *rtmp_path;
+
 //是否直播
 int is_pushing = FALSE;
 //faac 音频编码处理器
@@ -45,226 +50,44 @@ faacEncHandle audio_encode_handle;
 unsigned long nInputSamples;//输入的采样个数
 unsigned long nMaxOutputBytes;//编码输出之后的字节数
 
-RTMPPacket *spsPPSPacket;
-bool isHeaderSent = false; // 推流初始化时置为 false
+bool isHeaderSent = false; // 摄像头的流数据sps/pps是否发送，为了只在第一次发送 Sequence Header
+static x264_param_t g_x264_param;// 用于记录参数配置
+uint32_t current_audio_timestamp_ms = 0;//当前的音频tms
+bool isFirstIDRArrived = FALSE;// 发送packet时，发送了sps/pps后I帧有没有推送
 
-const char *SDKpath;
-uint32_t current_audio_timestamp_ms = 0;
-static x264_param_t g_x264_param;
-bool isFirstIDRArrived = FALSE;
+const char *SDKpath;//获取到的手机SDK path
 
 //jobject jobj_push_native;//Global ref
 //jclass jcls_push_native;
 //jmethodID jmid_throw_native_error;
 //JavaVM *javaVm;
 
+//音频
+void add_aac_sequence_header();
+void add_aac_body(unsigned char *buf, int len, uint32_t audio_timestamp_ms);
+//视频
+void add_264_sequence_header(unsigned char *pps, unsigned char *sps, int pps_len, int sps_len);
+void add_264_body(unsigned char *buf, int len, uint32_t video_timestamp_ms);
+//添加packet到队列中
 void add_rtmp_packet(RTMPPacket *packet);
-void add_264_sequence_header(unsigned char* pps, unsigned char* sps, int pps_len, int sps_len);
-/**
- * 添加AAC头信息
+//推送packet逻辑
+void *push_thread(void *arg);
+
+/***
+ * 创建队列，创建并执行推送线程
  */
- void add_aac_sequence_header()
-{
-     //获取 AAC 头信息的长度
-     unsigned char *buf;
-     unsigned long len;//长度
-     faacEncGetDecoderSpecificInfo(audio_encode_handle, &buf, &len);
-     int body_size = 2 + len;
-     RTMPPacket *packet = static_cast<RTMPPacket *>(malloc(sizeof(RTMPPacket)));
-     //RTMPPacket初始化
-     RTMPPacket_Alloc(packet, body_size);
-     RTMPPacket_Reset(packet);
-     unsigned char *body = reinterpret_cast<unsigned char *>(packet->m_body);
-     //头信息配置
-     /*AF 00 + AAC RAW data*/
-     body[0] = 0xAF;
-     //10 5 SoundFormat(4bits):10 = AAC,SoundRate(2bits):3 = 44kHz,
-     //SoundSize(1bit):1 = 16-bit samples, SoundType(1bit):1 = Stereo sound
-     body[1] = 0x00;//AACPacketType:0 表示 AAC sequence header
-     memcpy(&body[2], buf, len);/*spec_buf 是AAC sequence header 数据 */
-     packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
-     packet->m_nBodySize = body_size;
-     packet->m_nChannel = 0x04;
-     packet->m_hasAbsTimestamp = 0;
-     packet->m_nTimeStamp = 0;
-     packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
-     add_rtmp_packet(packet);
-     free(buf);
-}
-/**
- * 添加 AAC RTMP Packet
- */
- void add_aac_body(unsigned char *buf, int len,uint32_t audio_timestamp_ms)
-{
-     int body_size = 2 + len;
-     RTMPPacket *packet = static_cast<RTMPPacket *>(malloc(sizeof(RTMPPacket)));
-     //RTMPPacket 初始化
-     RTMPPacket_Alloc(packet, body_size);//给 `packet->m_body` 分配内存,大小 `body_size` 字节
-     RTMPPacket_Reset(packet);//重置 RTMPPacket 各个字段，把协议头成员置 0
-     //`reinterpret_cast`：C++ 底层原始指针重解释转换，不做任何类型检查、不做值转换，仅仅改变指针的解析类型
-     //`char*` → `unsigned char*`，内存地址完全不变，只是把字节视为无符号
-     unsigned char *body = reinterpret_cast<unsigned char *>(packet->m_body);
-     //头信息配置
-    /*AF 00 + AAC RAW data*/
-     body[0] = 0xAF;
-     //按 FLV AudioTag 头部定义，拆成 4 个字段：
-    //- 高 4 位 `1010`(0xA)：**SoundFormat =10 → AAC 编码**
-    //- 接下来 2 位 `11`(0x3)：**SoundRate =3 →44100Hz**
-    //- 接下来 1 位 `1`：**SoundSize =1 →16bit 采样**
-    //- 最低 1 位 `1`：**SoundType =1 →Stereo 立体声**
-    //10 5 SoundFormat(4bits):10 = AAC,SoundRate(2bits):3 = 44kHz,
-    //SoundSize(1bit):1 = 16-bit samples, SoundType(1bit):1 = Stereo sound
-    body[1] = 0x01;//AACPacketType:1 表示 AAC raw, AAC 原始帧数据（普通音频帧）
-    memcpy(&body[2], buf, len);/*spec_buf 是AAC raw 数据 */
-    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;//音频包
-    packet->m_nBodySize = body_size;
-    packet->m_nChannel = 0x04;//音频默认channel 4，rtmp规范
-    packet->m_hasAbsTimestamp = 0;//时间戳是相对时间，不是绝对时间
-    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;//完整大rtmp包头
-//    packet->m_nTimeStamp = RTMP_GetTime() - start_time;//相对时间戳，单位ms
-    // 【关键修改】使用外部传入的真实时间戳
-    packet->m_nTimeStamp = audio_timestamp_ms;
-
-    add_rtmp_packet(packet);
-}
-/**
- * 从队列中不断拉取 RTMPPacket 并发送给流媒体服务器
- */
- void *push_thread(void *arg)
- {
-//     JNIEnv *env;//获取当前线程 JNIEnv
-//     (*javaVM)->AttachCurrentThread(javaVM, &env, NULL);
-     //建立RTMP连接
-     RTMP *rtmp = RTMP_Alloc();
-     if(!rtmp)
-     {
-         LOGE("RTMP 初始化失败")
-         goto end;
-     }
-     //初始化
-     RTMP_Init(rtmp);
-     rtmp->Link.timeout = 5;//连接超时的时间
-     //设置流媒体地址
-     RTMP_SetupURL(rtmp, rtmp_path);
-     //发布RTMP 数据流，开启输出模式
-     RTMP_EnableWrite(rtmp);
-     //建立连接，连接服务器
-     if(!RTMP_Connect(rtmp, NULL))
-     {
-         LOGE("RTMP 连接失败")
-         goto end;
-     }
-     //计时
-     start_time = RTMP_GetTime();
-     //连接流
-     if(!RTMP_ConnectStream(rtmp,0))
-     {
-         LOGE("RTMP ConnectStream failed")
-         goto end;
-     }
-     is_pushing = TRUE;
-     //发送AAC头信息
-//     add_aac_sequence_header();
-
-     while (is_pushing)
-     {
-         //发送
-         pthread_mutex_lock(&mutex);
-//         pthread_cond_wait(&cond, &mutex);
-         // 防止虚假唤醒：队列空就继续等待
-         while(queue_is_empty() && is_pushing){
-             pthread_cond_wait(&cond, &mutex);
-         }
-
-         //取出队列中的RTMPPacket
-         RTMPPacket *packet = static_cast<RTMPPacket *>(queue_get_first());
-         if(packet)
-         {
-             queue_delete_first();//移除队头
-             //RTMP协议，stream_id 数据
-             packet->m_nInfoField2 = rtmp->m_stream_id;
-
-             unsigned char *body = (unsigned char *)packet->m_body;
-             if (packet->m_packetType == RTMP_PACKET_TYPE_VIDEO && packet->m_nBodySize > 1) {
-                 if (body[1] == 0x00) {
-                     //SPS和PPS
-//                     spsPPSPacket = packet;
-                     LOGI("RTMP >>> 发送的是 SPS/PPS (AVC Sequence Header), Timestamp: %d", packet->m_nTimeStamp);
-//                     pthread_mutex_unlock(&mutex);
-//                     continue;
-                 } else if (body[1] == 0x01) {
-                     //普通帧
-                     if (body[0] == 0x17) {
-                         //关键帧
-//                         if(spsPPSPacket)
-//                         {
-//                             //先发送一次PPS和SPS
-//                             int i = RTMP_SendPacket(rtmp, spsPPSPacket, FALSE);
-//                             LOGI("RTMP >>> 发送的是 SPS/PPS (AVC Sequence Header), Timestamp: %d", spsPPSPacket->m_nTimeStamp);
-//                             //再继续发送关键帧
-//                         } else{
-//                             LOGI("RTMP SPS和PPS为null")
-//                         }
-                         isFirstIDRArrived = TRUE;
-                         LOGI("RTMP >>> 发送的是 I 视频帧 (AVC NALU), Timestamp: %d", packet->m_nTimeStamp);
-                     } else{
-                         if(!isFirstIDRArrived)
-                         {
-                             //还未收到I帧，丢弃P帧，防止SPS/PPS后先跑出普通帧
-                             LOGW("RTMP drop P frame, waiting first IDR");
-                             RTMPPacket_Free(packet);
-                             pthread_mutex_unlock(&mutex);
-                             continue;
-                         }
-                         //非关键帧
-                         LOGI("RTMP >>> 发送的是普通视频帧 (AVC NALU), Timestamp: %d", packet->m_nTimeStamp);
-                     }
-                 }
-             }
-
-
-             //发送数据包（普通帧和关键帧）
-
-//             int i = RTMP_SendPacket(rtmp, packet, TRUE);
-//             //TRUE 将放入librtmp 队列中，并不立即发送
-             //FALSE：阻塞发送，函数返回代表socket已经发送完成
-             int i = RTMP_SendPacket(rtmp, packet, FALSE);
-             if(!i)
-             {
-                 LOGE("RTMP 断开")
-                 RTMPPacket_Free(packet);
-                 pthread_mutex_unlock(&mutex);
-                 goto end;
-             } else{
-                 LOGI("rtmp send packet")
-                 RTMPPacket_Free(packet);
-             }
-         }
-
-         pthread_mutex_unlock(&mutex);
-     }
-
-     end:
-     LOGI("释放资源")
-     free(rtmp_path);
-     RTMPPacket_Free(spsPPSPacket);
-     RTMP_Close(rtmp);
-     RTMP_Free(rtmp);
-//    (*javaVM)->DetachCurrentThread(javaVM);
-    return 0;
- }
-}
-
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_startPush(
-        JNIEnv *env, jobject thiz, jstring url, jstring path) {
-    const char *url_cstr = env->GetStringUTFChars(url,JNI_FALSE);
-    const char *sdk_cstr = env->GetStringUTFChars(path,JNI_FALSE);
+        JNIEnv *env, jobject thiz, jstring url, jstring sdkPath) {
+    const char *url_cstr = env->GetStringUTFChars(url, JNI_FALSE);
+    const char *sdk_cstr = env->GetStringUTFChars(sdkPath, JNI_FALSE);
     SDKpath = sdk_cstr;
-    //复制 url_cstr 内容到rtmp_path
-    rtmp_path = (char *)malloc(strlen(url_cstr) + 1);//strlen() 返回的是有效字符个数，不包含末尾 C 语言字符串结束符 '\0'
-    memset(rtmp_path, 0, strlen(url_cstr) + 1);//把刚 malloc 出来的`rtmp_path`整块内存全部置 0，rtmp_path[len]等于'\0'
+
+    //复制 url_cstr 内容到 rtmp_path（记录推送地址）
+    rtmp_path = (char *) malloc(strlen(url_cstr) + 1);//strlen() 返回的是有效字符个数，不包含末尾 C 语言字符串结束符 '\0'
+    memset(rtmp_path, 0,
+           strlen(url_cstr) + 1);//把刚 malloc 出来的`rtmp_path`整块内存全部置 0，rtmp_path[len]等于'\0'
     memcpy(rtmp_path, url_cstr, strlen(url_cstr));//只拷贝有效可见字符，不拷贝源字符串末尾的`\0`
 
     //初始化互斥锁与条件变量
@@ -273,26 +96,32 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
 
     //创建队列
     create_queue();
-    //启动消费者线程（从线程中不断拉取 RTMPPacket 并发送给流媒体服务器）
+
+    /** 启动消费者线程（从线程中不断拉取 RTMPPacket 并发送给流媒体服务器） */
     pthread_t push_thread_id;//新线程 ID
     //attr：线程属性，`NULL`使用默认属性,start_routine: 线程入口函数指针, `NULL`：传给线程函数的参数
     //创建成功把新线程加入内核调度队列
     pthread_create(&push_thread_id, NULL, push_thread, NULL);
 
-    env->ReleaseStringUTFChars(url,url_cstr);
+    //释放
+    env->ReleaseStringUTFChars(url, url_cstr);
+    env->ReleaseStringUTFChars(sdkPath, SDKpath);
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_stopPush(
         JNIEnv *env, jobject thiz) {
     is_pushing = FALSE;
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_release(
         JNIEnv *env, jobject thiz) {
     // TODO: implement release()
 }
+
 /**
  * 设置视频参数
  */
@@ -300,24 +129,26 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_setVideoOptions(
         JNIEnv *env, jobject thiz, jint width, jint height, jint bitrate, jint fps) {
-    is_pushing = TRUE;//修改当前状态为pushing
+    //修改当前状态为pushing
+    is_pushing = TRUE;
     x264_param_t param;
     // 关闭已打开的编码器(用于二次设置编码器宽高)
-    if (video_encode_handle!= nullptr)
+    if (video_encode_handle != nullptr)
     {
         x264_encoder_close(video_encode_handle);
     }
-    //x264_param_default_preset 设置
-    // 给`x264_param_t`编码参数结构体加载预设 (preset) 与调优 (tune) 配置
-    //ultrafast：最快编码，压缩效率最差，码率高，CPU 占用极低，适合实时推流、zerolatency 场景
-    // `zerolatency`零延迟
-    x264_param_default_preset(&param, "ultrafast","zerolatency");
-    //编码输入的像素格式YUV420P
+    /***
+     * 设置x264编码器参数，打开x264编码器
+     */
+    //给`x264_param_t`编码参数结构体加载预设 (preset) 与调优 (tune) 配置
+    //ultrafast：最快编码，压缩效率最差，码率高，CPU 占用极低，适合实时推流、zerolatency 场景, `zerolatency`零延迟
+    x264_param_default_preset(&param, "ultrafast", "zerolatency");
+
+    //x264编码器收到的像素格式YUV420P
     param.i_csp = X264_CSP_I420;//给x264_encoder_encode()的原始帧是 I420(YUV420P)
 //    param.i_width = width;
 //    param.i_height = height;
-// 【关键修改】：因为我们在 sendVideoPacket 中会将画面顺时针旋转 90 度，
-    // 旋转后宽高互换，所以传给 x264 编码器的宽高必须互换！
+    // 【关键修改】：因为在 sendVideoPacket 中会将画面顺时针旋转 90 度，旋转后宽高互换，所以传给 x264 编码器的宽高必须互换！
     param.i_width = height;
     param.i_height = width;
 
@@ -334,7 +165,6 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
     param.rc.i_rc_method = X264_RC_CRF;//码率控制算法,对应 FFmpeg `-crf xx`，恒定质量模式（Constant Rate Factor）
     param.rc.i_bitrate = bitrate / 1000;//码率（比特率， 单位kb/s）
     param.rc.i_vbv_max_bitrate = bitrate / 1000 * 1.2;//瞬时最大码率,给画面剧烈运动留一点码率余量，避免帧糊
-//    param.rc.i_vbv_buffer_size = param.rc.i_vbv_max_bitrate;   //zerolatency建议等于max_bitrate
 
     //码率控制不是通过 timebase 和 timestamp，而是通过 fps
     param.b_vfr_input = 0; //可变帧率输入开关, 0：CFR 恒定帧率输入，1：VFR 可变帧率输入
@@ -360,29 +190,32 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
 
     //x264_picture_t （输入图像）初始化
 //    x264_picture_alloc(&pic_in, param.i_csp, param.i_width, param.i_height);
-// 【关键修改】：使用旋转后的宽高 (height, width) 来分配 x264 图像内存
+    // 【关键修改】：使用旋转后的宽高 (height, width) 来分配 x264 图像内存
     x264_picture_alloc(&pic_in, param.i_csp, param.i_width, param.i_height);
     pic_in.i_pts = 0;//输入帧的 PTS 显示时间戳，这一帧什么时候显示，以 param.i_timebase_num / param.i_timebase_den 为时间单位
     //打开编码器
     video_encode_handle = x264_encoder_open(&param);
-    if(video_encode_handle)
-    {
+    if (video_encode_handle) {
         LOGI("成功打开编码器......")
         //回读编码器实际生效参数拷贝到全局
         x264_encoder_parameters(video_encode_handle, &g_x264_param);
-    }else {
+    } else {
         LOGE("x264_encoder_open failed");
     }
 }
+/**
+ * 设置音频参数
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_setAudioOptions(
         JNIEnv *env, jobject thiz, jint sampleRateInHz, jint numChannels) {
+    //修改当前状态为pushing
     is_pushing = TRUE;
+    //打开音频编码器
     audio_encode_handle = faacEncOpen(sampleRateInHz, numChannels,
                                       &nInputSamples, &nMaxOutputBytes);
-    if(!audio_encode_handle)
-    {
+    if (!audio_encode_handle) {
         LOGE("音频编码器打开失败")
         return;
     }
@@ -399,59 +232,396 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
     p_config->bandWidth = 0;//频宽
     p_config->shortctl = SHORTCTL_NORMAL;
 
-    if(!faacEncSetConfiguration(audio_encode_handle, p_config))
-    {
+    if (!faacEncSetConfiguration(audio_encode_handle, p_config)) {
         LOGE("音频编码器配置失败")
         return;
     }
 
     LOGI("音频编码器配置成功")
 }
-
 /**
- * 加入 RTMPPacket 队列，等待发送线程发送
+ * 对采集到的视频数据进行编码
  */
 extern "C"
-void add_rtmp_packet(RTMPPacket *packet)
-{
-    //加互斥锁，保护共享资源
-    pthread_mutex_lock(&mutex);
+JNIEXPORT void JNICALL
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_sendVideoPacket(
+        JNIEnv *env, jobject thiz, jbyteArray buffer, jint fps) {
+    //将视频数据转为 YUV420P
+    /** NV21->YUV420P(I420) **/
+    jbyte *nv21_buffer = env->GetByteArrayElements(buffer, JNI_FALSE);
+//    jbyte *u = reinterpret_cast<jbyte *>(pic_in.img.plane[1]);
+//    jbyte *v = reinterpret_cast<jbyte *>(pic_in.img.plane[2]);
 
-    int size_before = queue_size();
-    int pushed = 0;
+// ================== 【新增】：在内存中对 NV21 进行顺时针旋转 90 度 ==================
+    int src_w = totalWidth;
+    int src_h = totalHeight;
+    // 分配一个临时 buffer 存放旋转后的 NV21 数据
+    jbyte *rotated_buffer = (jbyte *) malloc(src_w * src_h * 3 / 2);
+    if (rotated_buffer != NULL) {
+        jbyte *src_y = nv21_buffer;
+        jbyte *src_uv = nv21_buffer + src_w * src_h;
+        jbyte *dst_y = rotated_buffer;
+        jbyte *dst_uv = rotated_buffer + src_w * src_h; // 旋转后总宽高互换，但 Y 的总像素数不变
 
-    if(is_pushing)
-    {
-        pushed = queue_append_last(packet);
+        // 1. 旋转 Y 平面 (顺时针 90 度: new_x = y, new_y = src_w - 1 - x)
+        for (int y = 0; y < src_h; y++) {
+            for (int x = 0; x < src_w; x++) {
+                int new_x = src_h - 1 - y;
+                int new_y = x;
+                dst_y[new_y * src_h + new_x] = src_y[y * src_w + x];
+            }
+        }
+
+        // 2. 旋转 UV 平面 (NV21 是 VUVU 交错排列，宽高减半)
+        int uv_w = src_w / 2;
+        int uv_h = src_h / 2;
+        for (int y = 0; y < uv_h; y++) {
+            for (int x = 0; x < uv_w; x++) {
+                int new_x = uv_h - 1 - y;
+                int new_y = x;
+                // 每个像素占 2 字节 (V, U)
+                int src_idx = (y * uv_w + x) * 2;
+                int dst_idx = (new_y * src_h / 2 + new_x) * 2; // 旋转后 UV 平面的宽度变成了 src_h/2
+                dst_uv[dst_idx] = src_uv[src_idx];         // V
+                dst_uv[dst_idx + 1] = src_uv[src_idx + 1]; // U
+            }
+        }
+
+        // 释放原始 buffer，将指针指向旋转后的 buffer
+        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
+        nv21_buffer = rotated_buffer;
+    }
+    // ================================================================================
+
+//    //nv21 4:2:0 Formats, 12 Bits per Pixel
+//    //nv21 转 yuv420p  y = w*h, u/v = w*h/4
+//    //nv21 与 yuv420p，y个数一致，uv 位置不同
+//    //NV21：V0,U0,V1,U1
+//    //      V2,U2,V3,U3
+//    //I420：  U0,U1,U2,U3
+//    //        V0,V1,V2,V3
+    // 1. 拷贝 Y 平面，考虑 stride
+    //    memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
+    int i;
+    int dst_y_stride = pic_in.img.i_stride[0];
+    // 【关键修改】：旋转后，Y 平面的实际宽高调换，宽度变成了 totalHeight，高度变成了 totalWidth
+    //dst_y_stride 原本应该是和 totalWidth 比较
+    if (dst_y_stride == totalHeight) {
+        memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
+    } else {
+        // 逐行拷贝，防止内存错位
+        for (int h = 0; h < totalWidth; h++) { // 旋转后高度为原宽度
+            memcpy(pic_in.img.plane[0] + h * dst_y_stride,
+                   nv21_buffer + h * totalHeight, // 旋转后行宽为原高度
+                   totalHeight);
+        }
     }
 
-    int size_after = queue_size();
+//    //复制UV
+//    int i;
+//    for(i = 0; i < u_len;i++)
+//    {
+//        *(u + i) = *(nv21_buffer + y_len + i * 2 + 1);
+//        *(v + i) = *(nv21_buffer + y_len + i * 2);
+//    }
 
-    //打印关键信息：入队前后size，是否push成功，当前包的时间戳和类型
-//    LOGI("RTMP [add_rtmp_packet] size_before=%d pushed=%d size_after=%d ts=%d type=%hhu is_pushing=%d",
-//         size_before, pushed, size_after, packet->m_nTimeStamp, packet->m_packetType,is_pushing);
+    // 2. 转换 UV 平面 (注意 NV21 是 VUVU，NV12 是 UVUV)
+    // 当前是 NV21 (VUVU)
+    jbyte *src_uv = nv21_buffer + y_len;
+    jbyte *dst_u = reinterpret_cast<jbyte *>(pic_in.img.plane[1]);
+    jbyte *dst_v = reinterpret_cast<jbyte *>(pic_in.img.plane[2]);
+
+//    int src_uv_width = totalWidth / 2;
+//    int dst_u_stride = pic_in.img.i_stride[1];
+//    int dst_v_stride = pic_in.img.i_stride[2];
+//    int uv_height = totalHeight / 2;
+// 【关键修改】：旋转后，UV 平面的宽度变成了 totalHeight / 2，高度变成了 totalWidth / 2
+    int src_uv_width = totalHeight / 2;
+    int dst_u_stride = pic_in.img.i_stride[1];
+    int dst_v_stride = pic_in.img.i_stride[2];
+    int uv_height = totalWidth / 2;
+
+    for (int row = 0; row < uv_height; row++) {
+        //源NV21 uv行起始
+        jbyte *src_row = src_uv + row * src_uv_width * 2;
+        //目标U/V行起始
+        jbyte *dst_u_row = dst_u + row * dst_u_stride;
+        jbyte *dst_v_row = dst_v + row * dst_v_stride;
+
+        for (int col = 0; col < src_uv_width; col++) {
+            dst_v_row[col] = src_row[col * 2];
+            dst_u_row[col] = src_row[col * 2 + 1];
+        }
+    }
 
 
-    //唤醒等待在`pthread_cond_wait(&cond, &mutex)`上的推流子线程
-    pthread_cond_signal(&cond);
-    //释放互斥锁
-    pthread_mutex_unlock(&mutex);
+    pic_in.i_pts += g_x264_param.i_fps_den;//根据i_fps_den顺序累加, 显示时间戳, 基于 x264 的 timebase
+
+    //通过 H264 编码得到 NALU 数组
+    x264_nal_t *nal = NULL;//NAL
+    int n_nal = -1; //NALU 的个数
+    //进行 H264 编码（NV21->I420）
+    //pic_in：输入图像，I420
+    //pic_out：输出图片信息，不是 YUV 图像！只存编码后的帧属性
+    if (x264_encoder_encode(video_encode_handle, &nal, &n_nal, &pic_in, &pic_out) < 0) {
+        LOGE("编码失败")
+        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
+        return;
+    }
+
+//    char bufPath[256];   // 预先分配足够可写缓冲区
+//    strcpy(bufPath,SDKpath);   // 先拷贝原始字符串
+//    strcat(bufPath, "/test.h264");       // 拼接后缀
+//    LOGI("RTMP SDKpath %s",bufPath)
+//    ///storage/emulated/0/Android/data/com.example.android_study_demo_project/files/Movies/test.h264
+//    FILE *fp = fopen(bufPath, "ab+");
+//    if(fp) {
+//        fwrite(nal[i].p_payload, 1, nal[i].i_payload, fp);
+//        fclose(fp);
+//    }
+    // 【关键修改】将 x264 的帧序号 (PTS) 转换为毫秒级时间戳
+    // 公式：毫秒时间戳 = PTS * (1000 / 帧率)
+    // 因为 timebase 是 1/fps，所以 pic_out.i_pts 就是帧序号
+    uint32_t video_timestamp_ms = (uint32_t) (pic_out.i_pts * 1000 / fps);
+
+    //使用 RTMP 协议将 H264 编码的视频数据发送给流媒体服务器
+    //帧分为关键帧和普通帧，为了提高画面的纠错率，关键帧应包含 SPS 和 PPS 数据
+    int sps_len, pps_len;
+    unsigned char sps[100];
+    unsigned char pps[100];
+    memset(sps, 0, 100);
+    memset(pps, 0, 100);
+//    pic_in.i_pts += 1;//根据i_fps_den顺序累加, 显示时间戳, 基于 x264 的 timebase
+    //遍历 NALU 数组，根据 NALU 的类型判断
+    for (i = 0; i < n_nal; i++) {
+        if (nal[i].i_type == NAL_SPS) {
+            //复制SPS数据
+            sps_len = nal[i].i_payload - 4;//nal[i].i_payload : NAL单元有效字节长度
+
+            //nal[i].p_payload : NAL单元数据起始指针
+            memcpy(sps, nal[i].p_payload + 4, sps_len);//不复制 4 字节起始码
+        } else if (nal[i].i_type == NAL_PPS) {
+            //复制 PPS 数据
+            pps_len = nal[i].i_payload - 4;
+
+            memcpy(pps, nal[i].p_payload + 4, pps_len);//不复制 4 字节起始码
+            //发送序列信息
+            //H264 关键帧会包含 SPS 和 PPS 数据
+            // 【关键修复】只在第一次发送 Sequence Header
+            if (!isHeaderSent) {
+                add_264_sequence_header(pps, sps, pps_len, sps_len);
+                isHeaderSent = true;
+            }
+        } else {
+            //发送帧信息(I 帧和普通帧)
+            add_264_body(nal[i].p_payload, nal[i].i_payload, video_timestamp_ms);
+        }
+    }
+
+    //释放数组
+//    env->ReleaseByteArrayElements(buffer,nv21_buffer,JNI_FALSE);
+// 【关键修改】：释放内存。如果是 malloc 的 rotated_buffer，用 free；如果是 JNI 的，用 ReleaseByteArrayElements
+    // 实际工程中建议在函数开头保存 `jbyte *original_jni_buffer = nv21_buffer;`
+    if (rotated_buffer != NULL) {
+        free(rotated_buffer);
+    } else {
+        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
+    }
+}
+
+/**
+ * 发送音频packet
+ */
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_sendAudioPacket(
+        JNIEnv *env, jobject thiz, jbyteArray buffer, jint len) {
+    int *pcmbuf;
+    unsigned char *bitbuf;
+    jbyte *b_buffer = env->GetByteArrayElements(buffer, JNI_FALSE);
+    pcmbuf = (int *) malloc(nInputSamples * sizeof(int));
+    bitbuf = (unsigned char *) malloc(nMaxOutputBytes * sizeof(unsigned char));
+    int nByteCount = 0;//已经处理完的采样点计数
+    //- `buffer` 是 Java 层 `byte[]`，存放**16bit PCM 音频数据（short，小端）
+    //- `len` 是 Java 字节数组的长度，`env->GetArrayLength(buffer)`，单位：字节
+    //- 16 位 PCM：每一个音频采样占 2 个字节
+    unsigned int nBufferSize = (unsigned int) len / 2;//总采样点的数量,44100Hz，代表 1 秒有 44100 个采样点
+    unsigned short *buf = (unsigned short *) b_buffer;
+    while (nByteCount < nBufferSize) {
+        //nByteCount: 已经处理完的采样点计数
+        //nInputSamples: 单次希望处理的最大采样数
+        //audioLength: 本次循环实际要处理多少个采样点
+        int audioLength = nInputSamples;
+        if ((nByteCount + nInputSamples) >= nBufferSize) {
+            //已经超过了最大值，则取剩下的采样点
+            audioLength = nBufferSize - nByteCount;
+        }
+        int i;
+        for (i = 0; i < audioLength; i++) {
+            //每次从实时的 PCM 音频队列中读出量化位数为 8 的 PCM 数据
+            int s = ((int16_t *) buf + nByteCount)[i];//+ nByteCount: 指针按采样点偏移（不是字节偏移），跳到这一轮分块的起始位置
+            //把 16bit 采样左移 8 位，提升到 32bit 整数高位,
+            //s << 8: 很多音频库（例如`swr_convert`，部分 aac 编码器）接收 32bit 有符号整数采样 `int32_t`，采样有效位放在高 16 位，低 16 位补 0
+            //- 原始：`int16_t`：`SSSS_SSSS_SSSS_SSSS`（16bit 有效）
+            //- `s <<8` 后存入 int：`SSSS_SSSS_SSSS_SSSS_0000_0000`，有效数据在高 16 位。
+            //`s`是有符号`int16_t`，左移后赋值给 int，会做符号扩展，负数不会错乱。
+            //每次都覆盖旧数据
+            pcmbuf[i] = s << 8;//用 8 个二进制位来表示一个采样量化点（模数转换）
+        }
+        nByteCount += audioLength;
+        //利用 FAAC 进行编码，pcmbuf 为转换后的 PCM 数据流，audioLength 为调用
+        // faacEncOpen 时得到的输入采样数，bitbuf 为编码后的数据 buff，nMaxOutputBytes 为
+        // 调用 faacEncOpen 时得到的最大输出字节数
+        int byteslen = faacEncEncode(audio_encode_handle,
+                                     pcmbuf,   // 当前块起始位置,
+                                     audioLength,
+                                     bitbuf, nMaxOutputBytes);
+        if (byteslen < 1) {
+            continue;
+        }
+        //添加 AAC RTMP Packet
+        add_aac_body(bitbuf, byteslen, current_audio_timestamp_ms);
+
+        // 假设你的采样率是 44100Hz（如果是 48000Hz 请替换）
+        int sample_rate = 44100;
+        // 【关键修改】累加下一帧的时间戳
+        // 公式：(1024个采样点 * 1000ms) / 采样率
+        current_audio_timestamp_ms += (1024 * 1000) / sample_rate;
+        //从 bitbuf 中得到编码后的 AAC 数据流，放到数据队列中
+    }
+    env->ReleaseByteArrayElements(buffer, b_buffer, NULL);
+    if (bitbuf) {
+        free(bitbuf);
+    }
+    if (pcmbuf) {
+        free(pcmbuf);
+    }
+}
+
+/**
+ * 从队列中不断拉取 RTMPPacket 并发送给流媒体服务器
+ */
+void *push_thread(void *arg) {
+//     JNIEnv *env;//获取当前线程 JNIEnv
+//     (*javaVM)->AttachCurrentThread(javaVM, &env, NULL);
+    //建立RTMP连接
+    RTMP *rtmp = RTMP_Alloc();
+    if (!rtmp) {
+        LOGE("RTMP 初始化失败")
+        goto end;
+    }
+    //初始化
+    RTMP_Init(rtmp);
+    rtmp->Link.timeout = 5;//连接超时的时间
+    //设置流媒体地址
+    RTMP_SetupURL(rtmp, rtmp_path);
+    //发布RTMP 数据流，开启输出模式
+    RTMP_EnableWrite(rtmp);
+    //建立连接，连接服务器
+    if (!RTMP_Connect(rtmp, NULL)) {
+        LOGE("RTMP 连接失败")
+        goto end;
+    }
+    //计时
+    start_time = RTMP_GetTime();
+    //连接流
+    if (!RTMP_ConnectStream(rtmp, 0)) {
+        LOGE("RTMP ConnectStream failed")
+        goto end;
+    }
+    //is_pushing应该在setVideoOptions和setAudioOptions时初始化为TRUE
+    is_pushing = TRUE;
+    //发送AAC头信息
+    add_aac_sequence_header();
+
+    while (is_pushing) {
+        //发送Packet
+        //加锁
+        pthread_mutex_lock(&mutex);
+//         pthread_cond_wait(&cond, &mutex);
+        // 防止虚假唤醒：队列空就继续等待
+        while (queue_is_empty() && is_pushing) {
+            pthread_cond_wait(&cond, &mutex);
+        }
+
+        //取出队列中的RTMPPacket
+        RTMPPacket *packet = static_cast<RTMPPacket *>(queue_get_first());
+        if (packet) {
+            queue_delete_first();//移除队头
+            //RTMP协议，stream_id 数据
+            packet->m_nInfoField2 = rtmp->m_stream_id;
+
+            unsigned char *body = (unsigned char *) packet->m_body;
+            if (packet->m_packetType == RTMP_PACKET_TYPE_VIDEO && packet->m_nBodySize > 1) {
+                if (body[1] == 0x00) {
+                    //SPS和PPS packet
+                    LOGI("RTMP >>> 发送的是 SPS/PPS (AVC Sequence Header), Timestamp: %d",
+                         packet->m_nTimeStamp);
+                } else if (body[1] == 0x01) {
+                    //普通帧
+                    if (body[0] == 0x17) {
+                        //关键帧
+                        isFirstIDRArrived = TRUE;
+                        LOGI("RTMP >>> 发送的是 I 视频帧 (AVC NALU), Timestamp: %d",
+                             packet->m_nTimeStamp);
+                    } else {
+                        if (!isFirstIDRArrived) {
+                            //还未收到I帧，丢弃P帧，防止SPS/PPS后先跑出普通帧
+                            LOGW("RTMP drop P frame, waiting first IDR");
+                            RTMPPacket_Free(packet);
+                            pthread_mutex_unlock(&mutex);
+                            continue;
+                        }
+                        //非关键帧
+                        LOGI("RTMP >>> 发送的是普通视频帧 (AVC NALU), Timestamp: %d",
+                             packet->m_nTimeStamp);
+                    }
+                }
+            }
+
+
+            //发送数据包（普通帧和关键帧）
+//             //TRUE 将放入librtmp 队列中，并不立即发送
+//             int i = RTMP_SendPacket(rtmp, packet, TRUE);
+
+            //FALSE：阻塞发送，函数返回代表socket已经发送完成
+            int i = RTMP_SendPacket(rtmp, packet, FALSE);
+            if (!i) {
+                LOGE("RTMP 断开")
+                RTMPPacket_Free(packet);
+                pthread_mutex_unlock(&mutex);
+                goto end;
+            } else {
+                LOGI("rtmp send packet")
+                RTMPPacket_Free(packet);
+            }
+        }
+
+        pthread_mutex_unlock(&mutex);
+    }
+
+    end:
+    LOGI("释放资源")
+    free(rtmp_path);
+    RTMP_Close(rtmp);
+    RTMP_Free(rtmp);
+//    (*javaVM)->DetachCurrentThread(javaVM);
+    return 0;
 }
 
 /**
  * 发送 H.264 SPS 与 PPS 参数集
  */
 extern "C"
-void add_264_sequence_header(unsigned char* pps, unsigned char* sps, int pps_len, int sps_len)
-{
+void add_264_sequence_header(unsigned char *pps, unsigned char *sps, int pps_len, int sps_len) {
     int body_size = 16 + sps_len + pps_len;
     //按照 H264 标准配置 SPS 和 PPS，共使用16字节
-    RTMPPacket *packet = (RTMPPacket *)malloc(sizeof(RTMPPacket));
+    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     //初始化 RTMPPacket
     RTMPPacket_Alloc(packet, body_size);
     RTMPPacket_Reset(packet);
 
-    unsigned char *body = (unsigned char *)packet->m_body;
+    unsigned char *body = (unsigned char *) packet->m_body;
     int i = 0;
     //二进制表示：0001 0111
     body[i++] = 0x17;
@@ -508,29 +678,27 @@ void add_264_sequence_header(unsigned char* pps, unsigned char* sps, int pps_len
  * 发送 H264 帧信息
  */
 extern "C"
-void add_264_body(unsigned char *buf, int len, uint32_t video_timestamp_ms)
-{
+void add_264_body(unsigned char *buf, int len, uint32_t video_timestamp_ms) {
     //去掉起始码（界定符）
-    if(buf[2] == 0x00)//00 00 00 01
+    if (buf[2] == 0x00)//00 00 00 01
     {
         buf += 4;
         len -= 4;
-    } else if(buf[2] == 0x01)//00 00 01
+    } else if (buf[2] == 0x01)//00 00 01
     {
         buf += 3;
         len -= 3;
     }
 
-    if(len <= 0)
-    {
+    if (len <= 0) {
         LOGI("RTMP len <= 0")
     }
 
     int body_size = len + 9;
-    RTMPPacket *packet = (RTMPPacket*)malloc(sizeof(RTMPPacket));
+    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     RTMPPacket_Alloc(packet, body_size);
 
-    unsigned char* body = (unsigned char*)packet->m_body;
+    unsigned char *body = (unsigned char *) packet->m_body;
     //在 NAL 头信息中，type（5位）等于5，说明这是关键帧 NAL 单元
     //buf[0] NAL Header 与运算， 获取type，根据type 判断关键帧和普通帧
     //00000101 & 00011111（0x1f）= 00000101
@@ -539,8 +707,7 @@ void add_264_body(unsigned char *buf, int len, uint32_t video_timestamp_ms)
     body[0] = 0x27;//非关键帧
     //VideoHeaderTag:FrameType(2=Inter Frame)+CodecID(7=AVC)
     //IDR，I 帧图像
-    if(type == NAL_SLICE_IDR)
-    {
+    if (type == NAL_SLICE_IDR) {
         LOGI("RTMP I 帧图像")
         body[0] = 0x17;
         //VideoHeaderTag:FrameType(1=key frame)+CodecID(7=AVC)
@@ -577,291 +744,95 @@ void add_264_body(unsigned char *buf, int len, uint32_t video_timestamp_ms)
 }
 
 /**
- * 对采集到的视频数据进行编码
+ * 添加AAC头信息
  */
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_sendVideoPacket(
-        JNIEnv *env, jobject thiz, jbyteArray buffer,jint fps) {
-    //将视频数据转为 YUV420P
-    /**NV21->YUV420P(I420)**/
-    jbyte *nv21_buffer = env->GetByteArrayElements( buffer, JNI_FALSE);
-//    jbyte *u = reinterpret_cast<jbyte *>(pic_in.img.plane[1]);
-//    jbyte *v = reinterpret_cast<jbyte *>(pic_in.img.plane[2]);
-//    //nv21 4:2:0 Formats, 12 Bits per Pixel
-//    //nv21 与 yuv420p，y个数一致，uv 位置不同
-//    //nv21 转 yuv420p  y = w*h, u/v = w*h/4
-//    //NV21：V0,U0,V1,U1
-//    //      V2,U2,V3,U3
-//    //I420：  U0,U1,U2,U3
-//    //        V0,V1,V2,V3
+void add_aac_sequence_header() {
+    //获取 AAC 头信息的长度
+    unsigned char *buf;
+    unsigned long len;//长度
+    faacEncGetDecoderSpecificInfo(audio_encode_handle, &buf, &len);
+    int body_size = 2 + len;
+    RTMPPacket *packet = static_cast<RTMPPacket *>(malloc(sizeof(RTMPPacket)));
+    //RTMPPacket初始化
+    RTMPPacket_Alloc(packet, body_size);
+    RTMPPacket_Reset(packet);
+    unsigned char *body = reinterpret_cast<unsigned char *>(packet->m_body);
+    //头信息配置
+    /*AF 00 + AAC RAW data*/
+    body[0] = 0xAF;
+    //10 5 SoundFormat(4bits):10 = AAC,SoundRate(2bits):3 = 44kHz,
+    //SoundSize(1bit):1 = 16-bit samples, SoundType(1bit):1 = Stereo sound
+    body[1] = 0x00;//AACPacketType:0 表示 AAC sequence header
+    memcpy(&body[2], buf, len);/*spec_buf 是AAC sequence header 数据 */
+    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+    packet->m_nBodySize = body_size;
+    packet->m_nChannel = 0x04;
+    packet->m_hasAbsTimestamp = 0;
+    packet->m_nTimeStamp = 0;
+    packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
+    add_rtmp_packet(packet);
+    free(buf);
+}
+/**
+ * 添加 AAC RTMP Packet
+ */
+void add_aac_body(unsigned char *buf, int len, uint32_t audio_timestamp_ms) {
+    int body_size = 2 + len;
+    RTMPPacket *packet = static_cast<RTMPPacket *>(malloc(sizeof(RTMPPacket)));
+    //RTMPPacket 初始化
+    RTMPPacket_Alloc(packet, body_size);//给 `packet->m_body` 分配内存,大小 `body_size` 字节
+    RTMPPacket_Reset(packet);//重置 RTMPPacket 各个字段，把协议头成员置 0
+    //`reinterpret_cast`：C++ 底层原始指针重解释转换，不做任何类型检查、不做值转换，仅仅改变指针的解析类型
+    //`char*` → `unsigned char*`，内存地址完全不变，只是把字节视为无符号
+    unsigned char *body = reinterpret_cast<unsigned char *>(packet->m_body);
+    //头信息配置
+    /*AF 00 + AAC RAW data*/
+    body[0] = 0xAF;
+    //按 FLV AudioTag 头部定义，拆成 4 个字段：
+    //- 高 4 位 `1010`(0xA)：**SoundFormat =10 → AAC 编码**
+    //- 接下来 2 位 `11`(0x3)：**SoundRate =3 →44100Hz**
+    //- 接下来 1 位 `1`：**SoundSize =1 →16bit 采样**
+    //- 最低 1 位 `1`：**SoundType =1 →Stereo 立体声**
+    //10 5 SoundFormat(4bits):10 = AAC,SoundRate(2bits):3 = 44kHz,
+    //SoundSize(1bit):1 = 16-bit samples, SoundType(1bit):1 = Stereo sound
+    body[1] = 0x01;//AACPacketType:1 表示 AAC raw, AAC 原始帧数据（普通音频帧）
+    memcpy(&body[2], buf, len);/*spec_buf 是AAC raw 数据 */
+    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;//音频包
+    packet->m_nBodySize = body_size;
+    packet->m_nChannel = 0x04;//音频默认channel 4，rtmp规范
+    packet->m_hasAbsTimestamp = 0;//时间戳是相对时间，不是绝对时间
+    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;//完整大rtmp包头
+//    packet->m_nTimeStamp = RTMP_GetTime() - start_time;//相对时间戳，单位ms
+    // 【关键修改】使用外部传入的真实时间戳
+    packet->m_nTimeStamp = audio_timestamp_ms;
 
-// ================== 【新增】：在内存中对 NV21 进行顺时针旋转 90 度 ==================
-    int src_w = totalWidth;
-    int src_h = totalHeight;
-    // 分配一个临时 buffer 存放旋转后的 NV21 数据
-    jbyte *rotated_buffer = (jbyte *) malloc(src_w * src_h * 3 / 2);
-    if (rotated_buffer != NULL) {
-        jbyte *src_y = nv21_buffer;
-        jbyte *src_uv = nv21_buffer + src_w * src_h;
-        jbyte *dst_y = rotated_buffer;
-        jbyte *dst_uv = rotated_buffer + src_w * src_h; // 旋转后总宽高互换，但 Y 的总像素数不变
-
-        // 1. 旋转 Y 平面 (顺时针 90 度: new_x = y, new_y = src_w - 1 - x)
-        for (int y = 0; y < src_h; y++) {
-            for (int x = 0; x < src_w; x++) {
-                int new_x = src_h - 1 - y;
-                int new_y = x;
-                dst_y[new_y * src_h + new_x] = src_y[y * src_w + x];
-            }
-        }
-
-        // 2. 旋转 UV 平面 (NV21 是 VUVU 交错排列，宽高减半)
-        int uv_w = src_w / 2;
-        int uv_h = src_h / 2;
-        for (int y = 0; y < uv_h; y++) {
-            for (int x = 0; x < uv_w; x++) {
-                int new_x = uv_h - 1 - y;
-                int new_y = x;
-                // 每个像素占 2 字节 (V, U)
-                int src_idx = (y * uv_w + x) * 2;
-                int dst_idx = (new_y * src_h / 2 + new_x) * 2; // 旋转后 UV 平面的宽度变成了 src_h/2
-                dst_uv[dst_idx] = src_uv[src_idx];         // V
-                dst_uv[dst_idx + 1] = src_uv[src_idx + 1]; // U
-            }
-        }
-
-        // 释放原始 buffer，将指针指向旋转后的 buffer
-        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
-        nv21_buffer = rotated_buffer;
-    }
-    // ================================================================================
-
-
-
-    int i;
-    // 1. 拷贝 Y 平面，必须考虑 stride
-    //    memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
-
-    int src_y_stride = totalWidth; // 假设源数据是紧凑的
-    int dst_y_stride = pic_in.img.i_stride[0];
- // 【关键修改】：旋转后，Y 平面的实际宽度变成了 totalHeight，高度变成了 totalWidth
-    if (dst_y_stride == totalHeight) {
-        memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
-    } else {
-        // 逐行拷贝，防止内存错位
-        for (int h = 0; h < totalWidth; h++) { // 旋转后高度为原宽度
-            memcpy(pic_in.img.plane[0] + h * dst_y_stride,
-                   nv21_buffer + h * totalHeight, // 旋转后行宽为原高度
-                   totalHeight);
-        }
-    }
-//    if (dst_y_stride == src_y_stride) {
-//        LOGI("RTMP dst_y_stride == src_y_stride ")
-//        memcpy(pic_in.img.plane[0], nv21_buffer, y_len);
-//    } else {
-//        // 逐行拷贝，防止内存错位
-//        for (int h = 0; h < totalHeight; h++) {
-//            memcpy(pic_in.img.plane[0] + h * dst_y_stride,
-//                   nv21_buffer + h * src_y_stride,
-//                   src_y_stride);
-//        }
-//    }
-
-//    //复制UV
-//    int i;
-//    for(i = 0; i < u_len;i++)
-//    { -
-//        *(u + i) = *(nv21_buffer + y_len + i * 2 + 1);
-//        *(v + i) = *(nv21_buffer + y_len + i * 2);
-//    }
-
-    // 2. 转换 UV 平面 (注意 NV21 是 VUVU，NV12 是 UVUV)
-    // 当前是 NV21 (VUVU)
-    jbyte *src_uv = nv21_buffer + y_len;
-    jbyte *dst_u = reinterpret_cast<jbyte *>(pic_in.img.plane[1]);
-    jbyte *dst_v = reinterpret_cast<jbyte *>(pic_in.img.plane[2]);
-
-//    int src_uv_width = totalWidth / 2;
-//    int dst_u_stride = pic_in.img.i_stride[1];
-//    int dst_v_stride = pic_in.img.i_stride[2];
-//    int uv_height = totalHeight / 2;
-// 【关键修改】：旋转后，UV 平面的宽度变成了 totalHeight / 2，高度变成了 totalWidth / 2
-    int src_uv_width = totalHeight / 2;
-    int dst_u_stride = pic_in.img.i_stride[1];
-    int dst_v_stride = pic_in.img.i_stride[2];
-    int uv_height = totalWidth / 2;
-
-    for(int row = 0; row < uv_height; row++)
-    {
-        //源NV21 uv行起始
-        jbyte* src_row = src_uv + row * src_uv_width * 2;
-        //目标U/V行起始
-        jbyte* dst_u_row = dst_u + row * dst_u_stride;
-        jbyte* dst_v_row = dst_v + row * dst_v_stride;
-
-        for(int col = 0; col < src_uv_width; col++)
-        {
-            dst_v_row[col] = src_row[col*2];
-            dst_u_row[col] = src_row[col*2 + 1];
-        }
-    }
-
-
-    pic_in.i_pts += g_x264_param.i_fps_den;//根据i_fps_den顺序累加, 显示时间戳, 基于 x264 的 timebase
-
-    //通过 H264 编码得到 NALU 数组
-    x264_nal_t *nal = NULL;//NAL
-    int n_nal = -1; //NALU 的个数
-    //进行 H264 编码（NV21->I420）
-    //pic_in：输入图像，I420
-    //pic_out：输出图片信息，不是 YUV 图像！只存编码后的帧属性
-    if(x264_encoder_encode(video_encode_handle, &nal, &n_nal, &pic_in, &pic_out) < 0)
-    {
-        LOGE("编码失败")
-        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
-        return;
-    }
-
-//    char bufPath[256];   // 预先分配足够可写缓冲区
-//    strcpy(bufPath,SDKpath);   // 先拷贝原始字符串
-//    strcat(bufPath, "/test.h264");       // 拼接后缀
-//    LOGI("RTMP SDKpath %s",bufPath)
-//    ///storage/emulated/0/Android/data/com.example.android_study_demo_project/files/Movies/test.h264
-//    FILE *fp = fopen(bufPath, "ab+");
-//    if(fp) {
-//        fwrite(nal[i].p_payload, 1, nal[i].i_payload, fp);
-//        fclose(fp);
-//    }
-    // 【关键修改】将 x264 的帧序号 (PTS) 转换为毫秒级时间戳
-    // 公式：毫秒时间戳 = PTS * (1000 / 帧率)
-    // 因为你的 timebase 是 1/fps，所以 pic_out.i_pts 就是帧序号
-    uint32_t video_timestamp_ms = (uint32_t)(pic_out.i_pts * 1000 / fps);
-
-    //使用 RTMP 协议将 H264 编码的视频数据发送给流媒体服务器
-    //帧分为关键帧和普通帧，为了提高画面的纠错率，关键帧应包含 SPS 和 PPS 数据
-    int sps_len, pps_len;
-    unsigned char sps[100];
-    unsigned char pps[100];
-    memset(sps, 0, 100);
-    memset(pps, 0, 100);
-//    pic_in.i_pts += 1;//根据i_fps_den顺序累加, 显示时间戳, 基于 x264 的 timebase
-    //遍历 NALU 数组，根据 NALU 的类型判断
-    for(i = 0; i < n_nal; i++)
-    {
-        if(nal[i].i_type == NAL_SPS)
-        {
-            //复制SPS数据
-            sps_len = nal[i].i_payload - 4 ;//nal[i].i_payload : NAL单元有效字节长度
-
-            //nal[i].p_payload : NAL单元数据起始指针
-            memcpy(sps, nal[i].p_payload + 4, sps_len);//不复制 4 字节起始码
-        } else if(nal[i].i_type == NAL_PPS)
-        {
-            //复制 PPS 数据
-            pps_len = nal[i].i_payload - 4;
-
-            memcpy(pps, nal[i].p_payload + 4, pps_len);//不复制 4 字节起始码
-            //发送序列信息
-            //H264 关键帧会包含 SPS 和 PPS 数据
-//            add_264_sequence_header(pps, sps, pps_len, sps_len);
-            // 【关键修复】只在第一次发送 Sequence Header
-            if (!isHeaderSent) {
-                add_264_sequence_header(pps, sps, pps_len, sps_len);
-                isHeaderSent = true;
-            }
-        } else{
-            //发送帧信息(I 帧和普通帧)
-            add_264_body(nal[i].p_payload, nal[i].i_payload,video_timestamp_ms);
-        }
-    }
-
-    //释放数组
-//    env->ReleaseByteArrayElements(buffer,nv21_buffer,JNI_FALSE);
-// 【关键修改】：释放内存。如果是 malloc 的 rotated_buffer，用 free；如果是 JNI 的，用 ReleaseByteArrayElements
-    // 这里简单处理：因为上面已经把 nv21_buffer 指向了 rotated_buffer
-    // 为了安全，我们在开头记录原始的 JNI 指针
-    // (为保持代码简洁，这里假设如果使用了 malloc，就在最后 free)
-    // 实际工程中建议在函数开头保存 `jbyte *original_jni_buffer = nv21_buffer;`
-    // 这里为了适配您的原有逻辑，直接释放：
-    if (rotated_buffer != NULL) {
-        free(rotated_buffer);
-    } else {
-        env->ReleaseByteArrayElements(buffer, nv21_buffer, JNI_FALSE);
-    }
+    add_rtmp_packet(packet);
 }
 
 /**
- * 发送音频packet
+ * 加入 RTMPPacket 队列，等待发送线程发送
  */
 extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_sendAudioPacket(
-        JNIEnv *env, jobject thiz, jbyteArray buffer, jint len) {
-    int *pcmbuf;
-    unsigned char *bitbuf;
-    jbyte *b_buffer = env->GetByteArrayElements( buffer, JNI_FALSE);
-    pcmbuf = (int*) malloc(nInputSamples * sizeof(int));
-    bitbuf = (unsigned char*)malloc(nMaxOutputBytes * sizeof(unsigned char));
-    int nByteCount = 0;//已经处理完的采样点计数
-    //- `buffer` 是 Java 层 `byte[]`，存放**16bit PCM 音频数据（short，小端）
-    //- `len` 是 Java 字节数组的长度，`env->GetArrayLength(buffer)`，单位：字节
-    //- 16 位 PCM：每一个音频采样占 2 个字节
-    unsigned int nBufferSize = (unsigned int) len / 2;//总采样点的数量,44100Hz，代表 1 秒有 44100 个采样点
-    unsigned short *buf = (unsigned short*) b_buffer;
-    while (nByteCount < nBufferSize)
-    {
-        //nByteCount: 已经处理完的采样点计数
-        //nInputSamples: 单次希望处理的最大采样数
-        //audioLength: 本次循环实际要处理多少个采样点
-        int audioLength = nInputSamples;
-        if((nByteCount + nInputSamples) >= nBufferSize)
-        {
-            //已经超过了最大值，则取剩下的采样点
-            audioLength = nBufferSize - nByteCount;
-        }
-        int i;
-        for(i = 0;i < audioLength; i++)
-        {
-            //每次从实时的 PCM 音频队列中读出量化位数为 8 的 PCM 数据
-            int s = ((int16_t *)buf + nByteCount)[i];//+ nByteCount: 指针按采样点偏移（不是字节偏移），跳到这一轮分块的起始位置
-            //把 16bit 采样左移 8 位，提升到 32bit 整数高位,
-            //s << 8: 很多音频库（例如`swr_convert`，部分 aac 编码器）接收 32bit 有符号整数采样 `int32_t`，采样有效位放在高 16 位，低 16 位补 0
-            //- 原始：`int16_t`：`SSSS_SSSS_SSSS_SSSS`（16bit 有效）
-            //- `s <<8` 后存入 int：`SSSS_SSSS_SSSS_SSSS_0000_0000`，有效数据在高 16 位。
-            //`s`是有符号`int16_t`，左移后赋值给 int，会做符号扩展，负数不会错乱。
-            //每次都覆盖旧数据
-            pcmbuf[i] = s << 8;//用 8 个二进制位来表示一个采样量化点（模数转换）
-        }
-        nByteCount += audioLength;
-        //利用 FAAC 进行编码，pcmbuf 为转换后的 PCM 数据流，audioLength 为调用
-        // faacEncOpen 时得到的输入采样数，bitbuf 为编码后的数据 buff，nMaxOutputBytes 为
-        // 调用 faacEncOpen 时得到的最大输出字节数
-        int byteslen = faacEncEncode(audio_encode_handle,
-                                     pcmbuf,   // 当前块起始位置,
-                                     audioLength,
-                                     bitbuf, nMaxOutputBytes);
-        if(byteslen < 1)
-        {
-            continue;
-        }
-        //添加 AAC RTMP Packet
-        add_aac_body(bitbuf, byteslen,current_audio_timestamp_ms);
+void add_rtmp_packet(RTMPPacket *packet) {
+    //加互斥锁，保护共享资源
+    pthread_mutex_lock(&mutex);
 
-        // 假设你的采样率是 44100Hz（如果是 48000Hz 请替换）
-        int sample_rate = 44100;
-        // 【关键修改】累加下一帧的时间戳
-        // 公式：(1024个采样点 * 1000ms) / 采样率
-        current_audio_timestamp_ms += (1024 * 1000) / sample_rate;
-        //从 bitbuf 中得到编码后的 AAC 数据流，放到数据队列中
+//    int size_before = queue_size();
+    int pushed = 0;
+
+    if (is_pushing) {
+        pushed = queue_append_last(packet);
     }
-    env->ReleaseByteArrayElements(buffer, b_buffer, NULL);
-    if(bitbuf)
-    {
-        free(bitbuf);
-    }
-    if(pcmbuf)
-    {
-        free(pcmbuf);
-    }
+
+//    int size_after = queue_size();
+    //打印关键信息：入队前后size，是否push成功，当前包的时间戳和类型
+//    LOGI("RTMP [add_rtmp_packet] size_before=%d pushed=%d size_after=%d ts=%d type=%hhu is_pushing=%d",
+//         size_before, pushed, size_after, packet->m_nTimeStamp, packet->m_packetType,is_pushing);
+
+    //唤醒等待在`pthread_cond_wait(&cond, &mutex)`上的推流子线程
+    pthread_cond_signal(&cond);
+    //释放互斥锁
+    pthread_mutex_unlock(&mutex);
+}
+
 }

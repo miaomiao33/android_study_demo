@@ -4,7 +4,8 @@ public class FFmpegLiveStreamNativePlayer {
     static {
 //        System.loadLibrary("ffmpegLib");
     }
-    public native void startPush(String url,String path);
+    //JNI端创建推送线程，并开始推送
+    public native void startPush(String url,String sdkPath);
     public native void stopPush();
     public native void release();
 
