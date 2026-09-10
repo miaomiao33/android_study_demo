@@ -26,8 +26,8 @@ public class FFmpegLiveStreamMainActivity extends AppCompatActivity {
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.sv_ffmpeg_live_stream_surface);
 
         //相机图像的预览
-        String address = "rtmp://sendhw3.douyu.com/live/";
-        String livingCode = "12865925ruSY3iBt?dyPRI=0&noforward=1&origin=hw&record=flv&roirecognition=0&stemp_id=12898962&tw=0&wm=0&wsSecret=9b0fbb7ce524b840a82a221c85381495&wsSeek=off&wsTime=6aa161be";
+        String address = "rtmp://sendhw3a.douyu.com/live/";
+        String livingCode = "12865925rENVilkV?dyPRI=0&noforward=1&origin=hw&record=flv&roirecognition=0&stemp_id=12898962&tw=0&wm=0&wsSecret=71f356f98886ad7a418453f8c7c95e3a&wsSeek=off&wsTime=6aa265c5";
         URL = address+livingCode;
         mAvStreamPush = new AVStreamPush(surfaceView.getHolder(),getWindowManager());
         mStartLive.setOnClickListener(new View.OnClickListener() {

@@ -50,7 +50,7 @@ faacEncHandle audio_encode_handle;
 unsigned long nInputSamples;//输入的采样个数
 unsigned long nMaxOutputBytes;//编码输出之后的字节数
 
-bool isHeaderSent = false; // 摄像头的流数据sps/pps是否发送，为了只在第一次发送 Sequence Header
+bool isHeaderSent = FALSE; // 摄像头的流数据sps/pps是否发送，为了只在第一次发送 Sequence Header
 static x264_param_t g_x264_param;// 用于记录参数配置
 uint32_t current_audio_timestamp_ms = 0;//当前的音频tms
 bool isFirstIDRArrived = FALSE;// 发送packet时，发送了sps/pps后I帧有没有推送
@@ -112,7 +112,16 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_stopPush(
         JNIEnv *env, jobject thiz) {
+    // 停止推流，唤醒push线程退出循环
     is_pushing = FALSE;
+    pthread_cond_signal(&cond);
+
+    isHeaderSent = false;
+    isFirstIDRArrived = FALSE;
+
+    //属性归0
+    start_time = 0;
+    current_audio_timestamp_ms = 0;
 }
 
 extern "C"
@@ -120,6 +129,31 @@ JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_release(
         JNIEnv *env, jobject thiz) {
     // TODO: implement release()
+    // 1. 停止推流，唤醒push线程退出循环
+    is_pushing = FALSE;
+    pthread_cond_signal(&cond);
+    // 2. 关闭x264编码器，释放picture内存
+    if (video_encode_handle != nullptr)
+    {
+        x264_encoder_close(video_encode_handle);
+        video_encode_handle = nullptr;
+        // 释放x264 picture分配的内存
+        x264_picture_clean(&pic_in);
+        x264_picture_clean(&pic_out);
+    }
+    // 3. 关闭faac音频编码器
+    if(audio_encode_handle != nullptr)
+    {
+        faacEncClose(audio_encode_handle);
+        audio_encode_handle = nullptr;
+    }
+    // 4. 销毁消息队列，释放队列内所有残留RTMPPacket
+    destroy_queue();
+    // 5. 销毁互斥锁、条件变量
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
+
+    rtmp_path = nullptr; // rtmp_path已经在push_thread内free，这里置空防止野指针
 }
 
 /**
@@ -212,6 +246,11 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
         JNIEnv *env, jobject thiz, jint sampleRateInHz, jint numChannels) {
     //修改当前状态为pushing
     is_pushing = TRUE;
+    // 关闭已打开的编码器(用于二次设置编码器宽高)
+    if(audio_encode_handle != nullptr)
+    {
+        faacEncClose(audio_encode_handle);
+    }
     //打开音频编码器
     audio_encode_handle = faacEncOpen(sampleRateInHz, numChannels,
                                       &nInputSamples, &nMaxOutputBytes);
