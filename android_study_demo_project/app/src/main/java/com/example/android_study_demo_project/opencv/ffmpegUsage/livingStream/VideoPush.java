@@ -266,7 +266,7 @@ public class VideoPush extends BasePush implements SurfaceHolder.Callback, Camer
         if(isPushing)
         {
             //在回调函数中获取图像数据，然后给 Native 代码编码
-            nativePlayer.sendVideoPacket(nv21Copy, mVideoInfo.getFps());
+            nativePlayer.sendVideoPacket(nv21Copy, mVideoInfo.getFps(),mVideoInfo.getCameraId());
         }
     }
 

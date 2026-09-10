@@ -29,7 +29,7 @@ public class FFmpegLiveStreamNativePlayer {
      * 发送视频数据
      * @param data
      */
-    public native void sendVideoPacket(byte[] data,int fps);
+    public native void sendVideoPacket(byte[] data,int fps,int cameraDir);
 
     /***
      * 发送音频数据

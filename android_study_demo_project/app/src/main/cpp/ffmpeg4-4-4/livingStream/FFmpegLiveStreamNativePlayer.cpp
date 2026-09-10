@@ -284,7 +284,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_sendVideoPacket(
-        JNIEnv *env, jobject thiz, jbyteArray buffer, jint fps) {
+        JNIEnv *env, jobject thiz, jbyteArray buffer, jint fps,jint cameraDir) {
     //将视频数据转为 YUV420P
     /** NV21->YUV420P(I420) **/
     jbyte *nv21_buffer = env->GetByteArrayElements(buffer, JNI_FALSE);
@@ -292,6 +292,8 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
 //    jbyte *v = reinterpret_cast<jbyte *>(pic_in.img.plane[2]);
 
 // ================== 【新增】：在内存中对 NV21 进行顺时针旋转 90 度 ==================
+// ================== 后置摄像头传给直播的数据是逆时针旋转了90度，故需要顺时针旋转90度 ==================
+// ================== 前置摄像头传给直播的数据是顺时针旋转了90度，故需要逆时针旋转90度 ==================
     int src_w = totalWidth;
     int src_h = totalHeight;
     // 分配一个临时 buffer 存放旋转后的 NV21 数据
@@ -307,6 +309,15 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
             for (int x = 0; x < src_w; x++) {
                 int new_x = src_h - 1 - y;
                 int new_y = x;
+                if (cameraDir == 0) {
+                    // 后置：顺时针90°
+                    new_x = src_h - 1 - y;
+                    new_y = x;
+                } else {
+                    // 前置：逆时针90°
+                    new_x = y;
+                    new_y = src_w - 1 - x;
+                }
                 dst_y[new_y * src_h + new_x] = src_y[y * src_w + x];
             }
         }
@@ -318,6 +329,15 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_F
             for (int x = 0; x < uv_w; x++) {
                 int new_x = uv_h - 1 - y;
                 int new_y = x;
+                if (cameraDir == 0) {
+                    // 后置UV顺时针90
+                    new_x = uv_h - 1 - y;
+                    new_y = x;
+                } else {
+                    // 前置UV逆时针90
+                    new_x = y;
+                    new_y = uv_w - 1 - x;
+                }
                 // 每个像素占 2 字节 (V, U)
                 int src_idx = (y * uv_w + x) * 2;
                 int dst_idx = (new_y * src_h / 2 + new_x) * 2; // 旋转后 UV 平面的宽度变成了 src_h/2

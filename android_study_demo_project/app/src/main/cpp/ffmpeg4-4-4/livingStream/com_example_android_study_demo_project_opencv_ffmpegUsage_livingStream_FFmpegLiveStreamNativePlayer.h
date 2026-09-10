@@ -53,7 +53,7 @@ JNIEXPORT void JNICALL Java_com_example_android_1study_1demo_1project_opencv_ffm
  * Signature: ([B)V
  */
 JNIEXPORT void JNICALL Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer_sendVideoPacket
-  (JNIEnv *, jobject, jbyteArray, jint);
+  (JNIEnv *, jobject, jbyteArray, jint, jint);
 
 /*
  * Class:     com_example_android_study_demo_project_opencv_ffmpegUsage_livingStream_FFmpegLiveStreamNativePlayer

@@ -13,6 +13,7 @@ public class VideoInfo {
     private int bitrate = 480_000;
     //帧频默认为 25 fps
     private int fps = 25;
+    //后置CAMERA_FACING_BACK = 0;  前置CAMERA_FACING_FRONT = 1;
     private int cameraId;
 
     public VideoInfo(int previewWidth, int previewHeight, int cameraId) {
