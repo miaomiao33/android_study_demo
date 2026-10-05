@@ -95,7 +95,11 @@
         <activity android:name=".opencv.ffmpegUsage.FFmpegUsageMainActivity" />
         <activity android:name=".opencv.ffmpegUsage.FFmpegCoderUsageMainActivity" />
         <activity android:name=".opencv.ffmpegUsage.videoDecoder.FFmpegVideoDecoderMainActivity" />
-        <activity android:name=".opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity"/>
+        <activity android:name=".opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity" />
+        <activity android:name=".opencv.ffmpegUsage.pullRTMP.PullRtmpMainActivity" />
+        <activity
+            android:name=".opencv.ffmpegUsage.MusicPlayer.MusicPlayerMainActivity"
+            android:exported="false" />
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"

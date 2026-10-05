@@ -61,6 +61,8 @@ add_library( "ffmpegLib"
         librtmp/log.c
         librtmp/parseurl.c
         librtmp/rtmp.c
+        ffmpeg4-4-4/pullRtmp/FFmpegPullRtmpNativePlayer.cpp
+        ffmpeg4-4-4/musicPlayer/music_player.cpp
 )
 
 # x264
