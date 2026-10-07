@@ -9,6 +9,7 @@ extern "C"{
 #include "libavformat/avformat.h"
 #include "../../headerFile/LogUtils.h"
 };
+#define AUDIO_SIMPLE_RATE 44100
 
 class music_player {
 
