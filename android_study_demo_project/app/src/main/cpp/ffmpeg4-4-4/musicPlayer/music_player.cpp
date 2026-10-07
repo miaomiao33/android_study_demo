@@ -3,7 +3,6 @@
 //
 
 #include "music_player.h"
-#include <jni.h>
 
 /***
  * 初始化并创建一个AudioTrack的object
@@ -141,20 +140,51 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
 
     jAudioTrackClass = env->FindClass("android/media/AudioTrack");
     jWriteMid = env->GetMethodID(jAudioTrackClass,"write","([BII)I");
+    jAudioTrackObj = initCreateAudioTrack(env);//创建并初始化 AudioTrack object
+    pPacket = av_packet_alloc();
+    pFrame = av_frame_alloc();
+
+    //------- 重采样 start -------
+    //struct SwrContext *swr_alloc_set_opts(struct SwrContext *s,
+    //                                      int64_t out_ch_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate,
+    //                                      int64_t  in_ch_layout, enum AVSampleFormat  in_sample_fmt, int  in_sample_rate,
+    //                                      int log_offset, void *log_ctx);
+    //输出
+    int64_t out_ch_layout = AV_CH_LAYOUT_STEREO;
+    enum AVSampleFormat out_sample_fmt = AVSampleFormat::AV_SAMPLE_FMT_S16;
+    int out_sample_rate = AUDIO_SIMPLE_RATE;
+    //输入
+    int64_t  in_ch_layout = pCodecContext->channels;
+    enum AVSampleFormat  in_sample_fmt = pCodecContext->sample_fmt;
+    int  in_sample_rate = pCodecContext->sample_rate;
+    //设置参数并创建SwrContext
+    SwrContext *swrContext = swr_alloc_set_opts(NULL ,out_ch_layout, out_sample_fmt, out_sample_rate,
+                       in_ch_layout,  in_sample_fmt, in_sample_rate,0,NULL);
+    if(swrContext == NULL){
+        // 提示错误
+        return;
+    }
+    int swrInitRes = swr_init(swrContext);
+    if(swrInitRes < 0)
+    {
+        return;
+    }
+    //size 是播放指定的大小，是最终输出的大小
+    int outChannels = av_get_channel_layout_nb_channels(out_ch_layout);
+    int dataSize = av_samples_get_buffer_size(NULL,outChannels,
+                                              pCodecParameters->frame_size,
+                                              out_sample_fmt,0);
+    uint8_t *resampleOutBuffer = (uint8_t *)malloc(dataSize);
+    //------- 重采样 end -------
+
 
     /// 防止内存使用过大写法(注意更换av_samples_get_buffer_size参数取值，pFrame没有数值)
-    int dataSize = av_samples_get_buffer_size(NULL,pCodecParameters->channels,
-                                              pCodecParameters->frame_size,
-                                              pCodecContext->sample_fmt,0);
     jbyteArray jPcmByteArray = env->NewByteArray(dataSize);
     //同步数据到Java中
     //native 创建 C 数组
     jbyte *jPcmData = env->GetByteArrayElements(jPcmByteArray,NULL);
     ///
 
-    jAudioTrackObj = initCreateAudioTrack(env);//创建并初始化 AudioTrack object
-    pPacket = av_packet_alloc();
-    pFrame = av_frame_alloc();
     //不断读取压缩数据并解码成 PCM 数据
     while(av_read_frame(pFormatContext,pPacket) >= 0)
     {
@@ -171,13 +201,18 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
                     // AVPacket -> AVFrame
                     index++;
                     LOGI("解码第 %d 帧", index);
+
+                    //调用重采样方法(将原始数据重采样放入resampleOutBuffer中)
+                    swr_convert(swrContext,&resampleOutBuffer,pFrame->nb_samples,
+                                (const uint8_t**)pFrame->data,pFrame->nb_samples);
+
                     //解码之后开始播放
                     //write 写到缓冲区 pFrame，data -> java byte
                     //size 是多大，装 PCM 的数据
                     //1s（1秒）：44100采样点 2通道 2字节，总的 44100 * 2 * 2
                     //1帧不是一秒，pFrame->nb_samples点
 
-                    memcpy(jPcmData, pFrame->data,dataSize);//拷贝数据
+                    memcpy(jPcmData, resampleOutBuffer,dataSize);//拷贝数据
 
                     // 0: 把 C 的数组的数据同步到 jbyteArray，然后释放 native 数组; JNI_COMMIT不释放，继续使用
                     env->ReleaseByteArrayElements(jPcmByteArray,jPcmData,JNI_COMMIT);
