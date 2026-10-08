@@ -9,6 +9,11 @@ extern "C"{
 #include <jni.h>
 };
 
+enum ThreadMode{
+    THREAD_MAIN,    // JNI Java主线程
+    THREAD_CHILD  // 子线程
+};
+
 class DZJNICall {
 public:
     jobject jAudioTrackObj;
@@ -27,7 +32,7 @@ private:
 public:
     void callAudioTrackWrite(jbyteArray audioData, int offsetInBytes, int sizeInBytes);
 
-    void callPlayerError(int code, char *msg);
+    void callPlayerError(ThreadMode threadMode,int code, char *msg);
 };
 
 

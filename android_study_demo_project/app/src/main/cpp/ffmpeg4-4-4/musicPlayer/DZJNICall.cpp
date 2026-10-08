@@ -8,7 +8,8 @@
 DZJNICall::DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv,jobject jPlayerObj) {
     this->javaVm = javaVm;
     this->jniEnv = jniEnv;
-    this->jPlayerObj = jPlayerObj;
+    //new一个全局的object，因为外面的 instance 会随着运行被释放
+    this->jPlayerObj = jniEnv->NewGlobalRef(jPlayerObj);
     initCreateAudioTrack();
 
     jclass jPlayerClass = jniEnv->FindClass("com/example/android_study_demo_project/opencv/ffmpegUsage/MusicPlayer$DarrenPlayer");
@@ -18,6 +19,7 @@ DZJNICall::DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv,jobject jPlayerObj) {
 
 DZJNICall::~DZJNICall() {
     jniEnv->DeleteLocalRef(jAudioTrackObj);
+    jniEnv->DeleteGlobalRef(jPlayerObj);
 }
 
 //初始化并创建一个AudioTrack的object
@@ -60,7 +62,28 @@ void DZJNICall::callAudioTrackWrite(jbyteArray audioData, int offsetInBytes, int
                           sizeInBytes);
 }
 
-void DZJNICall::callPlayerError(int code, char *msg) {
-    jstring jMsg = jniEnv->NewStringUTF(msg);
-    jniEnv->CallVoidMethod(jPlayerObj,jPlayerErrorMid,code,jMsg);
+void DZJNICall::callPlayerError(ThreadMode threadMode,int code, char *msg) {
+    //子线程用不了主线程 jniEnv（native 线程）
+    //子线程是不共享 jniEnv，它们有自己所独立的
+    if(threadMode == THREAD_MAIN)
+    {
+        jstring jMsg = jniEnv->NewStringUTF(msg);
+        jniEnv->CallVoidMethod(jPlayerObj,jPlayerErrorMid,code,jMsg);
+        jniEnv->DeleteGlobalRef(jMsg);
+    } else if(threadMode == THREAD_CHILD){
+        //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
+        JNIEnv *env;
+        if(javaVm->AttachCurrentThread(&env,0) != JNI_OK)
+        {
+            LOGE("get child thread jniEnv error!");
+            return;
+        }
+
+        jstring jMsg = jniEnv->NewStringUTF(msg);
+        jniEnv->CallVoidMethod(jPlayerObj,jPlayerErrorMid,code,jMsg);
+        jniEnv->DeleteGlobalRef(jMsg);
+
+        javaVm->DetachCurrentThread();
+    }
+
 }
