@@ -3,6 +3,7 @@
 //
 
 #include "DZJNICall.h"
+#include "music_player.h"
 
 DZJNICall::DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv) {
     this->javaVm = javaVm;

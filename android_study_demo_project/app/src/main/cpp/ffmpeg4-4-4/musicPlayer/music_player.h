@@ -16,7 +16,6 @@ extern "C"{
 
 class music_player {
 
-
 public:
 };
 

@@ -1,6 +1,5 @@
 package com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer;
 
-import android.media.AudioTrack;
 import android.text.TextUtils;
 
 public class DarrenPlayer {
@@ -12,6 +11,20 @@ public class DarrenPlayer {
      * url 可以是本地地址，或者是 http 链接
      */
     private String url;
+    private MediaErrorListener mErrorListener;
+
+    public void setOnErrorListener(MediaErrorListener mErrorListener) {
+        this.mErrorListener = mErrorListener;
+    }
+
+    //called from jni
+    private void onError(int code,String msg)
+    {
+        if(mErrorListener != null)
+        {
+            mErrorListener.onError(code,msg);
+        }
+    }
 
     public void setDataSource(String url) {
         this.url = url;
@@ -25,7 +38,6 @@ public class DarrenPlayer {
         }
 
         nPlay(url);
-        AudioTrack
     }
 
     private native void nPlay(String url);

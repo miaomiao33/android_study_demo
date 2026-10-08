@@ -5,8 +5,9 @@
 #ifndef ANDROID_STUDY_DEMO_PROJECT_DZJNICALL_H
 #define ANDROID_STUDY_DEMO_PROJECT_DZJNICALL_H
 
+extern "C"{
 #include <jni.h>
-#include "music_player.h"
+};
 
 class DZJNICall {
 public:
