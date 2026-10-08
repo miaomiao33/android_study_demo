@@ -1,5 +1,6 @@
 package com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer;
 
+import android.media.AudioTrack;
 import android.text.TextUtils;
 
 public class DarrenPlayer {
@@ -24,6 +25,7 @@ public class DarrenPlayer {
         }
 
         nPlay(url);
+        AudioTrack
     }
 
     private native void nPlay(String url);

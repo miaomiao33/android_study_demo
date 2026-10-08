@@ -3,50 +3,15 @@
 //
 
 #include "music_player.h"
+#include "DZJNICall.cpp"
 
-/***
- * 初始化并创建一个AudioTrack的object
- * @param env
- * @return
- */
-jobject initCreateAudioTrack(JNIEnv *env)
-{
-    //public AudioTrack(int streamType, int sampleRateInHz, int channelConfig,
-    // int audioFormat, int bufferSizeInBytes, int mode)
-    //public static final int STREAM_MUSIC = 3
-    int streamType = 3;//正常应该是Java去拿然后传过来
-    int sampleRateInHz = AUDIO_SIMPLE_RATE;
-    //public static final int CHANNEL_OUT_STEREO = (CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT);
-    int channelConfig = (0x4 | 0x8);
-    //public static final int ENCODING_PCM_16BIT = 2;
-    int audioFormat = 2;//16位，就是2字节
-    //public static final int MODE_STREAM = 1;
-    int mode = 1;//播放音频总时间只有几秒钟就用0
-
-    jclass jAudioTrackClass = env->FindClass("android/media/AudioTrack");
-    jmethodID jAudioTrackMid = env->GetMethodID(jAudioTrackClass,"<init>","(IIIIII)V");
-
-    //public static int getMinBufferSize(int sampleRateInHz, int channelConfig, int audioFormat)
-    jmethodID getMinBufferSizeMid = env->GetStaticMethodID(jAudioTrackClass,
-                                                           "getMinBufferSize","(III)I");
-    int bufferSizeInBytes = env->CallStaticIntMethod(jAudioTrackClass,getMinBufferSizeMid,
-                                                     sampleRateInHz,channelConfig,audioFormat);
-    jobject jAudioTrackObj = env->NewObject(jAudioTrackClass,jAudioTrackMid,
-                   streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
-
-    //play方法
-    // void play()
-    jmethodID playMid = env->GetMethodID(jAudioTrackClass,"play","()V");
-    env->CallVoidMethod(jAudioTrackObj,playMid);
-
-    return jAudioTrackObj;
-}
+DZJNICall *pJNICall;
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_DarrenPlayer_nPlay(
         JNIEnv *env, jobject thiz, jstring url_) {
-
+    pJNICall = new DZJNICall(NULL,env);
     const char *url = (*env).GetStringUTFChars(url_,JNI_FALSE);
 
     av_register_all();
@@ -66,9 +31,6 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
     AVPacket *pPacket = NULL;
     AVFrame *pFrame = NULL;
     int index = 0;
-    jobject jAudioTrackObj = NULL;
-    jclass jAudioTrackClass = NULL;
-    jmethodID jWriteMid = NULL;
 
     formatOpenInputRes = avformat_open_input(&pFormatContext,url,NULL,NULL);
     if(formatOpenInputRes != 0)
@@ -138,9 +100,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
 
     LOGI("sample_rate：%d,channels：%d",pCodecParameters->sample_rate,pCodecParameters->channels);
 
-    jAudioTrackClass = env->FindClass("android/media/AudioTrack");
-    jWriteMid = env->GetMethodID(jAudioTrackClass,"write","([BII)I");
-    jAudioTrackObj = initCreateAudioTrack(env);//创建并初始化 AudioTrack object
+
     pPacket = av_packet_alloc();
     pFrame = av_frame_alloc();
 
@@ -216,9 +176,9 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
 
                     // 0: 把 C 的数组的数据同步到 jbyteArray，然后释放 native 数组; JNI_COMMIT不释放，继续使用
                     env->ReleaseByteArrayElements(jPcmByteArray,jPcmData,JNI_COMMIT);
-                    //调用java的write方法
-                    env->CallIntMethod(jAudioTrackObj,jWriteMid,jPcmByteArray,0,dataSize);
 
+                    //TODO
+                    pJNICall->callAudioTrackWrite(jPcmByteArray,0,dataSize);
                 }
             }
         } else{
@@ -234,10 +194,6 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
     //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
     av_packet_free(&pPacket);
     av_frame_free(&pFrame);
-    if(jAudioTrackObj != NULL)
-    {
-        env->DeleteLocalRef(jAudioTrackObj);//释放创建的object
-    }
     pPacket = NULL;
     pFrame = NULL;
 
@@ -248,6 +204,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
     env->DeleteLocalRef(jPcmByteArray);
     ///
 
+    delete pJNICall;
 
     //失败后释放
     _av_resource_destroy:
