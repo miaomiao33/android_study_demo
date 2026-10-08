@@ -5,10 +5,15 @@
 #include "DZJNICall.h"
 #include "music_player.h"
 
-DZJNICall::DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv) {
+DZJNICall::DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv,jobject jPlayerObj) {
     this->javaVm = javaVm;
     this->jniEnv = jniEnv;
+    this->jPlayerObj = jPlayerObj;
     initCreateAudioTrack();
+
+    jclass jPlayerClass = jniEnv->FindClass("com/example/android_study_demo_project/opencv/ffmpegUsage/MusicPlayer$DarrenPlayer");
+    jPlayerErrorMid = jniEnv->GetMethodID(jPlayerClass,"onError", "(ILjava/lang/String;)V");
+
 }
 
 DZJNICall::~DZJNICall() {
@@ -53,4 +58,9 @@ void DZJNICall::callAudioTrackWrite(jbyteArray audioData, int offsetInBytes, int
     //调用java的write方法
     jniEnv->CallIntMethod(jAudioTrackObj,jAudioTrackWriteMid,audioData,offsetInBytes,
                           sizeInBytes);
+}
+
+void DZJNICall::callPlayerError(int code, char *msg) {
+    jstring jMsg = jniEnv->NewStringUTF(msg);
+    jniEnv->CallVoidMethod(jPlayerObj,jPlayerErrorMid,code,jMsg);
 }

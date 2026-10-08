@@ -10,38 +10,7 @@ DZFFmpeg::DZFFmpeg(DZJNICall *pJniCall, const char *url) {
 }
 
 DZFFmpeg::~DZFFmpeg() {
-    //失败后释放
-    if(pCodecContext != NULL)
-    {
-        //这是主动alloc的AVCodecContext，所以需要释放
-        //关闭一些流之类的
-        avcodec_close(pCodecContext);
-        //释放内存
-        avcodec_free_context(&pCodecContext);
-        pCodecContext = NULL;
-    }
-    if(pFormatContext != NULL)
-    {
-        //关闭一些流之类的
-        avformat_close_input(&pFormatContext);
-        //释放内存
-        avformat_free_context(pFormatContext);
-        pFormatContext = NULL;
-    }
-
-    if(swrContext != NULL)
-    {
-        swr_free(&swrContext);
-        free(swrContext);
-        swrContext = NULL;
-    }
-
-    if(resampleOutBuffer != NULL)
-    {
-        free(resampleOutBuffer);
-        resampleOutBuffer = NULL;
-    }
-    avformat_network_deinit();
+    release();
 }
 
 void DZFFmpeg::play() {
@@ -71,6 +40,7 @@ void DZFFmpeg::play() {
         //return;
         LOGE("format open input error:%s",av_err2str(formatOpenInputRes))
 //        goto _av_resource_destroy;
+        callPlayerJniError(formatOpenInputRes,av_err2str(formatOpenInputRes));
         return;
     }
     formatFindStreamInfoRes = avformat_find_stream_info(pFormatContext,NULL);
@@ -79,6 +49,7 @@ void DZFFmpeg::play() {
         LOGE("format find stream info error:%s",av_err2str(formatFindStreamInfoRes))
         //不推荐这样写，但是的确很方便
 //        goto _av_resource_destroy;
+        callPlayerJniError(formatFindStreamInfoRes,av_err2str(formatFindStreamInfoRes));
         return;
     }
 
@@ -88,8 +59,8 @@ void DZFFmpeg::play() {
     if(audioStreamIndex < 0)
     {
         LOGE("format audio stream error:%s",av_err2str(audioStreamIndex))
-        //不推荐这样写，但是的确很方便
-//        goto _av_resource_destroy;
+
+        callPlayerJniError(FIND_STREAM_ERROR_CODE,"format audio stream error");
         return;
     }
 
@@ -101,6 +72,7 @@ void DZFFmpeg::play() {
         LOGE("codec find decoder error")
         //不推荐这样写，但是的确很方便
 //        goto _av_resource_destroy;
+        callPlayerJniError(CODEC_FIND_DECODER_ERROR_CODE,"codec find decoder error");
         return;
     }
 
@@ -109,23 +81,22 @@ void DZFFmpeg::play() {
     if(pCodecContext == NULL )
     {
         LOGE("avcodec alloc context3 error")
-        //不推荐这样写，但是的确很方便
-//        goto _av_resource_destroy;
+        callPlayerJniError(CODEC_ALLOC_CONTEXT_ERROR_CODE,"avcodec alloc context3 error");
         return;
     }
     codecParametersToContextRes = avcodec_parameters_to_context(pCodecContext,pCodecParameters);//将编码器参数放入pCodecContext中
     if(codecParametersToContextRes < 0 )
     {
         LOGE("avcodec parameters to context error:%s",av_err2str(codecParametersToContextRes))
-        //不推荐这样写，但是的确很方便
-//        goto _av_resource_destroy;
+        callPlayerJniError(codecParametersToContextRes,av_err2str(codecParametersToContextRes));
+        return;
     }
     codecOpenRes = avcodec_open2(pCodecContext,pCodec,NULL);
     if(codecOpenRes != 0 )
     {
         LOGE("codec audio open error:%s",av_err2str(codecOpenRes))
-        //不推荐这样写，但是的确很方便
-//        goto _av_resource_destroy;
+        callPlayerJniError(codecOpenRes,av_err2str(codecOpenRes));
+        return;
     }
 
     LOGI("sample_rate：%d,channels：%d",pCodecParameters->sample_rate,pCodecParameters->channels);
@@ -152,11 +123,13 @@ void DZFFmpeg::play() {
                                     in_ch_layout,  in_sample_fmt, in_sample_rate,0,NULL);
     if(swrContext == NULL){
         // 提示错误
+        callPlayerJniError(SWR_ALLOC_SET_OPTS_ERROR_CODE,"swr alloc set opts error");
         return;
     }
     int swrInitRes = swr_init(swrContext);
     if(swrInitRes < 0)
     {
+        callPlayerJniError(SWR_CONTEXT_INIT_ERROR_CODE,"swr context init error");
         return;
     }
     //size 是播放指定的大小，是最终输出的大小
@@ -237,5 +210,44 @@ void DZFFmpeg::play() {
 }
 
 void DZFFmpeg::callPlayerJniError(int code, char *msg) {
+    //失败了释放资源
+    release();
+    //回调给 Java 层调用
+    pJniCall->callPlayerError(code,msg);
+}
 
+void DZFFmpeg::release() {
+
+    //失败后释放
+    if(pCodecContext != NULL)
+    {
+        //这是主动alloc的AVCodecContext，所以需要释放
+        //关闭一些流之类的
+        avcodec_close(pCodecContext);
+        //释放内存
+        avcodec_free_context(&pCodecContext);
+        pCodecContext = NULL;
+    }
+    if(pFormatContext != NULL)
+    {
+        //关闭一些流之类的
+        avformat_close_input(&pFormatContext);
+        //释放内存
+        avformat_free_context(pFormatContext);
+        pFormatContext = NULL;
+    }
+
+    if(swrContext != NULL)
+    {
+        swr_free(&swrContext);
+        free(swrContext);
+        swrContext = NULL;
+    }
+
+    if(resampleOutBuffer != NULL)
+    {
+        free(resampleOutBuffer);
+        resampleOutBuffer = NULL;
+    }
+    avformat_network_deinit();
 }

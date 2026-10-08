@@ -1,6 +1,7 @@
 package com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,6 +21,14 @@ public class MusicPlayerMainActivity extends AppCompatActivity {
 
         mPlayer = new DarrenPlayer();
         mPlayer.setDataSource(mMusicFile.getAbsolutePath());
+        mPlayer.setOnErrorListener(new MediaErrorListener() {
+            @Override
+            public void onError(int code, String msg) {
+                Log.e("TAG","error code:"+code);
+                Log.e("TAG","error msg:"+msg);
+                //Java 的逻辑代码，处理失败时
+            }
+        });
         mPlayer.play();
     }
 }

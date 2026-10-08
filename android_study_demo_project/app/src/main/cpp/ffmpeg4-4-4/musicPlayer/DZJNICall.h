@@ -15,8 +15,10 @@ public:
     jmethodID jAudioTrackWriteMid;
     JavaVM *javaVm;
     JNIEnv *jniEnv;
+    jmethodID jPlayerErrorMid;
+    jobject jPlayerObj;
 public:
-    DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv);
+    DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv,jobject jPlayerObj);
     ~DZJNICall();
 
 private:
@@ -24,6 +26,8 @@ private:
 
 public:
     void callAudioTrackWrite(jbyteArray audioData, int offsetInBytes, int sizeInBytes);
+
+    void callPlayerError(int code, char *msg);
 };
 
 

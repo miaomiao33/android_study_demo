@@ -26,6 +26,7 @@ public:
 public:
     void play();
     void callPlayerJniError(int code,char* msg);
+    void release();
 private:
 };
 
