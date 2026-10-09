@@ -100,6 +100,9 @@
         <activity
             android:name=".opencv.ffmpegUsage.MusicPlayer.MusicPlayerMainActivity"
             android:exported="false" />
+        <activity
+            android:name=".opencv.ffmpegUsage.MusicPlayerOpenSLES.MusicPlayerOpenSLESMainActivity"
+            android:exported="false" />
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"

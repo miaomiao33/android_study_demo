@@ -9,6 +9,7 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.android_study_demo_project.R;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer.MusicPlayerMainActivity;
+import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayerOpenSLES.MusicPlayerOpenSLESMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.pullRTMP.PullRtmpMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.videoDecoder.FFmpegVideoDecoderMainActivity;
@@ -28,6 +29,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
     private Button gotToFFmpgeLivingStreamButton;
     private Button gotoPullRtmpButton;
     private Button gotoMusicPlayerButton;
+    private Button gotoMusicPlayerOpenSLESButton;
 
     private final String TAG = FFmpegUsageMainActivity.class.getSimpleName();
 
@@ -42,6 +44,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotToFFmpgeLivingStreamButton = (Button)findViewById(R.id.bt_goto_ffmpeg_living_stream);
         gotoPullRtmpButton = (Button) findViewById(R.id.bt_goto_ffmpeg_pull_rtmp);
         gotoMusicPlayerButton = (Button) findViewById(R.id.bt_goto_music_player);
+        gotoMusicPlayerOpenSLESButton = (Button) findViewById(R.id.bt_goto_music_player_opensles);
 
         FFmpegUsageClick click = new FFmpegUsageClick();
         changeFormatButton.setOnClickListener(click);
@@ -51,6 +54,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotToFFmpgeLivingStreamButton.setOnClickListener(click);
         gotoPullRtmpButton.setOnClickListener(click);
         gotoMusicPlayerButton.setOnClickListener(click);
+        gotoMusicPlayerOpenSLESButton.setOnClickListener(click);
     }
 
     void changeMP4toAVI()
@@ -109,6 +113,15 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     *  进入MusicPlayer 播放页面（使用OpenSLES）
+     */
+    void gotoMusicPlayerOpenSLESPage()
+    {
+        Intent intent = new Intent(this, MusicPlayerOpenSLESMainActivity.class);
+        startActivity(intent);
+    }
+
     private class FFmpegUsageClick implements View.OnClickListener {
 
         @Override
@@ -134,6 +147,9 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_goto_music_player:
                     gotoMusicPlayerPage();
+                    break;
+                case R.id.bt_goto_music_player_opensles:
+                    gotoMusicPlayerOpenSLESPage();
                     break;
             }
         }

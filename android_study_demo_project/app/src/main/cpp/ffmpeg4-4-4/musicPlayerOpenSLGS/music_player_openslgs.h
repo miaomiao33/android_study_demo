@@ -1,0 +1,14 @@
+//
+// Created by Machenike on 2026/10/9.
+//
+
+#ifndef ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_OPENSLGS_H
+#define ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_OPENSLGS_H
+
+
+class music_player_openslgs {
+
+};
+
+
+#endif //ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_OPENSLGS_H
