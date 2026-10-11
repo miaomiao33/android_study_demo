@@ -41,7 +41,7 @@ public class MusicPlayerMainActivity extends AppCompatActivity {
             @Override
             public void onPrepared() {
                 Log.i("TAG","准备完毕");
-                mPlayer.play();
+                mPlayer.playOpenSLES();
             }
         });
 
