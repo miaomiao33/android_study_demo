@@ -29,6 +29,22 @@ public class MusicPlayerMainActivity extends AppCompatActivity {
                 //Java 的逻辑代码，处理失败时
             }
         });
-        mPlayer.play();
+
+//        //使用AudioTrack播放音频
+//        mPlayer.play();
+
+//        //使用OpenSLES播放音频
+//        mPlayer.prepare();
+//        mPlayer.playOpenSLES();
+        //异步准备
+        mPlayer.setOnPreparedListener(new MediaPreparedListener() {
+            @Override
+            public void onPrepared() {
+                Log.i("TAG","准备完毕");
+                mPlayer.play();
+            }
+        });
+
+        mPlayer.prepareAsync();
     }
 }

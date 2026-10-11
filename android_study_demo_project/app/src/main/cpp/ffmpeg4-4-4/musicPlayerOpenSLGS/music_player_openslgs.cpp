@@ -3,10 +3,6 @@
 //
 
 #include "music_player_openslgs.h"
-#include <jni.h>
-#include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Android.h>
-#include <malloc.h>
 
 void initCreateOpenSLES();
 void playerCallback(SLAndroidSimpleBufferQueueItf caller,void *pContext);

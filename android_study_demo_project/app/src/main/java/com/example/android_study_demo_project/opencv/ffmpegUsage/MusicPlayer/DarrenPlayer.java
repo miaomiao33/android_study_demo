@@ -16,7 +16,6 @@ public class DarrenPlayer {
     public void setOnErrorListener(MediaErrorListener mErrorListener) {
         this.mErrorListener = mErrorListener;
     }
-
     //called from jni
     private void onError(int code,String msg)
     {
@@ -26,10 +25,24 @@ public class DarrenPlayer {
         }
     }
 
+    private MediaPreparedListener mPreparedListener;
+    public void setOnPreparedListener(MediaPreparedListener preparedListener) {
+        this.mPreparedListener = preparedListener;
+    }
+    //called from jni
+    private void onPrepared()
+    {
+        if(mPreparedListener != null)
+        {
+            mPreparedListener.onPrepared();
+        }
+    }
+
     public void setDataSource(String url) {
         this.url = url;
     }
 
+    //使用AudioTrack播放
     public void play()
     {
         if(TextUtils.isEmpty(url))
@@ -40,5 +53,45 @@ public class DarrenPlayer {
         nPlay(url);
     }
 
+    //使用OpenSLES播放
+    public void playOpenSLES()
+    {
+        if(TextUtils.isEmpty(url))
+        {
+            throw new NullPointerException("url is null, please call method setDataSource");
+        }
+
+        nPlayOpenSLES(url);
+    }
+
+    public void prepare() {
+        if(TextUtils.isEmpty(url))
+        {
+            throw new NullPointerException("url is null, please call method setDataSource");
+        }
+        nPrepare(url);
+    }
+
+    /**
+     * 异步准备
+     */
+    public void prepareAsync() {
+        if(TextUtils.isEmpty(url))
+        {
+            throw new NullPointerException("url is null, please call method setDataSource");
+        }
+        nPrepareAsync(url);
+    }
+
+
+    //使用普通的AudioTrack播放
     private native void nPlay(String url);
+
+    //使用OpenSLES进行播放
+    private native void nPlayOpenSLES(String url);
+
+    private native void nPrepare(String url);
+
+    //异步准备方法
+    private native void nPrepareAsync(String url);
 }
