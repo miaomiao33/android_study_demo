@@ -83,6 +83,28 @@ public class DarrenPlayer {
         nPrepareAsync(url);
     }
 
+    //使用OpenSLES播放
+    public void playOpenSLESWithQueue()
+    {
+        if(TextUtils.isEmpty(url))
+        {
+            throw new NullPointerException("url is null, please call method setDataSource");
+        }
+
+        nPlayOpenSLESWithQueue(url);
+    }
+
+    /**
+     * 异步准备带队列的方式
+     */
+    public void prepareAsyncWithQueue() {
+        if(TextUtils.isEmpty(url))
+        {
+            throw new NullPointerException("url is null, please call method setDataSource");
+        }
+        nPrepareAsyncWithQueue(url);
+    }
+
 
     //使用普通的AudioTrack播放
     private native void nPlay(String url);
@@ -94,4 +116,10 @@ public class DarrenPlayer {
 
     //异步准备方法
     private native void nPrepareAsync(String url);
+
+    //带队列的异步播放
+    private native void nPlayOpenSLESWithQueue(String url);
+    //带队列的异步准备方法
+
+    private native void nPrepareAsyncWithQueue(String url);
 }

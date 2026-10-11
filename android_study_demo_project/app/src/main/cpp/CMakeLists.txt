@@ -64,6 +64,7 @@ add_library( "ffmpegLib"
         ffmpeg4-4-4/pullRtmp/FFmpegPullRtmpNativePlayer.cpp
         ffmpeg4-4-4/musicPlayer/music_player.cpp
         ffmpeg4-4-4/musicPlayer/useOpenSLES/music_player.cpp
+        ffmpeg4-4-4/musicPlayer/useOpenSLESWithQueue/music_player.cpp
         ffmpeg4-4-4/musicPlayerOpenSLGS/music_player_openslgs.cpp
 )
 
