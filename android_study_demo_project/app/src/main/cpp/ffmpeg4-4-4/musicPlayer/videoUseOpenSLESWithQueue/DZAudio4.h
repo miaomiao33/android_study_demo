@@ -2,13 +2,13 @@
 // Created by Machenike on 2026/10/10.
 //
 
-#ifndef ANDROID_STUDY_DEMO_PROJECT_DZAUDIO_H
-#define ANDROID_STUDY_DEMO_PROJECT_DZAUDIO_H
+#ifndef ANDROID_STUDY_DEMO_PROJECT_DZAUDIO4_H
+#define ANDROID_STUDY_DEMO_PROJECT_DZAUDIO4_H
 
 #include <pthread.h>
-#include "DZJNICall.h"
-#include "DZPacketQueue.h"
-#include "DZPlayerStatus.h"
+#include "DZJNICall4.h"
+#include "DZPacketQueue4.h"
+#include "DZPlayerStatus4.h"
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -18,26 +18,25 @@ extern "C"{
 #include <SLES/OpenSLES_Android.h>
 };
 
-class DZAudio {
+class DZAudio4 {
 public:
     AVFormatContext *pFormatContext = NULL;
     AVCodecContext *pCodecContext = NULL;
     SwrContext *pSwrContext = NULL;
     uint8_t *resampleOutBuffer = NULL;
     char *url = NULL;
-    DZJNICall *pJniCall = NULL;
+    DZJNICall4 *pJniCall = NULL;
     int audioStreamIndex = -1;
-    DZPacketQueue *pPacketQueue = NULL;
-    DZPlayerStatus *pPlayerStatus = NULL;
+    DZPacketQueue4 *pPacketQueue = NULL;
+    DZPlayerStatus4 *pPlayerStatus = NULL;
 
 public:
-    DZAudio(int audioStreamIndex,DZJNICall *pJniCall,AVFormatContext *pFormatContext);
-    ~DZAudio();
+    DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, AVFormatContext *pFormatContext);
+    ~DZAudio4();
 
     void play();
 
-
-    void initCreateOpenSLES2();
+    void initCreateOpenSLES4();
 
     int resampleAudio();
 
@@ -49,4 +48,4 @@ public:
 };
 
 
-#endif //ANDROID_STUDY_DEMO_PROJECT_DZAUDIO_H
+#endif //ANDROID_STUDY_DEMO_PROJECT_DZAUDIO4_H

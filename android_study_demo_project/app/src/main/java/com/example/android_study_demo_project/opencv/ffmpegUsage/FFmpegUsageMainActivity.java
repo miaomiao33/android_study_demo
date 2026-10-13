@@ -8,6 +8,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.android_study_demo_project.R;
+import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicAndVideoPlayer.MusicAndVideoPlayerMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer.MusicPlayerMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayerOpenSLES.MusicPlayerOpenSLESMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity;
@@ -30,6 +31,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
     private Button gotoPullRtmpButton;
     private Button gotoMusicPlayerButton;
     private Button gotoMusicPlayerOpenSLESButton;
+    private Button gotoMusicAndVideoPlayerButton;
 
     private final String TAG = FFmpegUsageMainActivity.class.getSimpleName();
 
@@ -45,6 +47,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotoPullRtmpButton = (Button) findViewById(R.id.bt_goto_ffmpeg_pull_rtmp);
         gotoMusicPlayerButton = (Button) findViewById(R.id.bt_goto_music_player);
         gotoMusicPlayerOpenSLESButton = (Button) findViewById(R.id.bt_goto_music_player_opensles);
+        gotoMusicAndVideoPlayerButton = (Button) findViewById(R.id.bt_goto_music_and_video_player);
 
         FFmpegUsageClick click = new FFmpegUsageClick();
         changeFormatButton.setOnClickListener(click);
@@ -55,6 +58,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotoPullRtmpButton.setOnClickListener(click);
         gotoMusicPlayerButton.setOnClickListener(click);
         gotoMusicPlayerOpenSLESButton.setOnClickListener(click);
+        gotoMusicAndVideoPlayerButton.setOnClickListener(click);
     }
 
     void changeMP4toAVI()
@@ -122,6 +126,15 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     *  进入视频和音频播放页面
+     */
+    void gotoMusicAndVideoPlayerPage()
+    {
+        Intent intent = new Intent(this, MusicAndVideoPlayerMainActivity.class);
+        startActivity(intent);
+    }
+
     private class FFmpegUsageClick implements View.OnClickListener {
 
         @Override
@@ -150,6 +163,9 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_goto_music_player_opensles:
                     gotoMusicPlayerOpenSLESPage();
+                    break;
+                case R.id.bt_goto_music_and_video_player:
+                    gotoMusicAndVideoPlayerPage();
                     break;
             }
         }

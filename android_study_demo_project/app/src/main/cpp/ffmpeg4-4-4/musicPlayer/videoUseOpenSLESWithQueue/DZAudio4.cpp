@@ -2,27 +2,27 @@
 // Created by Machenike on 2026/10/10.
 //
 
-#include "DZAudio.h"
+#include "DZAudio4.h"
 
 void playerCallback2(SLAndroidSimpleBufferQueueItf caller,void *pContext);
 
-DZAudio::DZAudio(int audioStreamIndex, DZJNICall *pJniCall,AVFormatContext *pFormatContext) {
+DZAudio4::DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, AVFormatContext *pFormatContext) {
     this->audioStreamIndex = audioStreamIndex;
     this->pJniCall = pJniCall;
     this->pFormatContext = pFormatContext;
-    pPacketQueue = new DZPacketQueue();
-    pPlayerStatus = new DZPlayerStatus();
+    pPacketQueue = new DZPacketQueue4();
+    pPlayerStatus = new DZPlayerStatus4();
 }
 
-DZAudio::~DZAudio() {
+DZAudio4::~DZAudio4() {
     release();
 }
 //一个线程去播放
 void *threadPlay(void* context)
 {
-    DZAudio *pAudio = (DZAudio *)context;
+    DZAudio4 *pAudio = (DZAudio4 *)context;
     //初始化 OpenSLES
-    pAudio->initCreateOpenSLES2();
+    pAudio->initCreateOpenSLES4();
 
     return 0;
 }
@@ -30,7 +30,7 @@ void *threadPlay(void* context)
 //一个线程去解码
 void *threadReadPacket(void* context)
 {
-    DZAudio *pAudio = (DZAudio *)context;
+    DZAudio4 *pAudio = (DZAudio4 *)context;
 
     while (pAudio->pPlayerStatus != NULL && !pAudio->pPlayerStatus->isExit)
     {
@@ -54,11 +54,10 @@ void *threadReadPacket(void* context)
         }
     }
 
-
     return 0;
 }
 
-void DZAudio::play() {
+void DZAudio4::play() {
     //一个线程去读 Packet
     pthread_t readPacketThreadT;
     pthread_create(&readPacketThreadT,NULL,threadReadPacket,this);
@@ -67,7 +66,7 @@ void DZAudio::play() {
     //一个线程去解码播放
     //创建一个线程去播放，多线程边解码边播放
     pthread_t playThreadT;
-    //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg 对象指针。在线程内部可以强转回来
+    //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg4 对象指针。在线程内部可以强转回来
     pthread_create(&playThreadT,NULL,threadPlay,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(playThreadT);
@@ -75,7 +74,7 @@ void DZAudio::play() {
 
 
 //去解码一帧
-int DZAudio::resampleAudio()
+int DZAudio4::resampleAudio()
 {
     AVPacket *pPacket = NULL;
     AVFrame *pFrame = av_frame_alloc();
@@ -128,7 +127,7 @@ int DZAudio::resampleAudio()
 }
 
 //初始化OpenSLES，并进行播放
-void DZAudio::initCreateOpenSLES2() {
+void DZAudio4::initCreateOpenSLES4() {
     //3.1创建引擎接口对象(设置参数，实现，获取接口)
     SLObjectItf engineObject = NULL;
     SLEngineItf engineEngine;
@@ -188,7 +187,7 @@ void DZAudio::initCreateOpenSLES2() {
     playerCallback2(playerBufferQueue,this);
 }
 
-void DZAudio::analysisStream(ThreadMode threadMode, AVStream **streams) {
+void DZAudio4::analysisStream(ThreadMode threadMode, AVStream **streams) {
 
     //查找解码
     AVCodecParameters *pCodecParameters = pFormatContext->streams[audioStreamIndex]->codecpar;//声道，频率等参数
@@ -259,14 +258,14 @@ void DZAudio::analysisStream(ThreadMode threadMode, AVStream **streams) {
 }
 
 
-void DZAudio::callPlayerJniError(ThreadMode threadMode,int code, char *msg) {
+void DZAudio4::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     //失败了释放资源
     release();
     //回调给 Java 层调用
     pJniCall->callPlayerError(threadMode,code,msg);
 }
 
-void DZAudio::release() {
+void DZAudio4::release() {
     if(pPacketQueue != NULL)
     {
         delete(pPacketQueue);
@@ -302,8 +301,8 @@ void DZAudio::release() {
 }
 
 
-void playerCallback2(SLAndroidSimpleBufferQueueItf caller,void *pContext){
-    DZAudio *pAudio = (DZAudio *)pContext;
+void playerCallback4(SLAndroidSimpleBufferQueueItf caller,void *pContext){
+    DZAudio4 *pAudio = (DZAudio4 *)pContext;
     int dataSize = pAudio->resampleAudio();
     (*caller)->Enqueue(caller,pAudio->resampleOutBuffer,dataSize);
 }

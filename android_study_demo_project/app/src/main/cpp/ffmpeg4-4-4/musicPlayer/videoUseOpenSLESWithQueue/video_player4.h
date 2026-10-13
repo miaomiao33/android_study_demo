@@ -2,8 +2,12 @@
 // Created by Machenike on 2026/10/3.
 //
 
-#ifndef ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_H
-#define ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_H
+#ifndef ANDROID_STUDY_DEMO_PROJECT_VIDEO_PLAYER4_H
+#define ANDROID_STUDY_DEMO_PROJECT_VIDEO_PLAYER4_H
+
+#include "DZJNICall4.h"
+#include "DZFFmpeg4.h"
+#include "DZAudio4.h"
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -11,6 +15,8 @@ extern "C"{
 #include <jni.h>
 //    重采样的包
 #include "libswresample/swresample.h"
+#include "libswscale/swscale.h"
+#include "libavutil/imgutils.h"
 };
 #define AUDIO_SIMPLE_RATE 44100
 
@@ -23,10 +29,4 @@ extern "C"{
 
 //------- 播放错误码 end -------
 
-class music_player {
-
-public:
-};
-
-
-#endif //ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_H
+#endif //ANDROID_STUDY_DEMO_PROJECT_VIDEO_PLAYER4_H

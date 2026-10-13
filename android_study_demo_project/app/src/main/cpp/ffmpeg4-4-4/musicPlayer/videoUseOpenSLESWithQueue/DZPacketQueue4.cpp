@@ -2,21 +2,20 @@
 // Created by Machenike on 2026/10/11.
 //
 
-#include "DZPacketQueue.h"
+#include "DZPacketQueue4.h"
 
-void DZPacketQueue::clear() {
-    //需要清楚队列，还需要清楚每个 AVPacket* 的内存数据
-
+void DZPacketQueue4::clear() {
+    //需要清除队列，还需要清除每个 AVPacket* 的内存数据
 
 }
 
-DZPacketQueue::DZPacketQueue() {
+DZPacketQueue4::DZPacketQueue4() {
     packetQueue = new std::queue<AVPacket *>();
     pthread_mutex_init(&packetMutex,NULL);
     pthread_cond_init(&packetCond,NULL);
 }
 
-DZPacketQueue::~DZPacketQueue() {
+DZPacketQueue4::~DZPacketQueue4() {
     if(packetQueue != NULL)
     {
         clear();
@@ -27,7 +26,7 @@ DZPacketQueue::~DZPacketQueue() {
     pthread_cond_destroy(&packetCond);
 }
 
-void DZPacketQueue::push(AVPacket *pPacket) {
+void DZPacketQueue4::push(AVPacket *pPacket) {
     pthread_mutex_lock(&packetMutex);
 
     packetQueue->push(pPacket);
@@ -36,7 +35,7 @@ void DZPacketQueue::push(AVPacket *pPacket) {
 
 }
 
-AVPacket *DZPacketQueue::pop() {
+AVPacket *DZPacketQueue4::pop() {
     AVPacket *pPacket = NULL;
     pthread_mutex_lock(&packetMutex);
     //队列为空就一直等待

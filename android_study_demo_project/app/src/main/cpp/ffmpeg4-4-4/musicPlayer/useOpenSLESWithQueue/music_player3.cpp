@@ -2,13 +2,13 @@
 // Created by Machenike on 2026/10/3.
 //
 
-#include "music_player.h"
+#include "music_player3.h"
 
-#include "DZJNICall.h"
-#include "DZFFmpeg.h"
+#include "DZJNICall3.h"
+#include "DZFFmpeg3.h"
 
-DZJNICall *pJniCall;
-DZFFmpeg *pFFmpeg;
+DZJNICall3 *pJniCall;
+DZFFmpeg3 *pFFmpeg;
 
 JavaVM *pJavaVM = NULL;
 
@@ -31,7 +31,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *javaVm, void *reserved)
 //静态注册
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_DarrenPlayer_nPlayOpenSLES(
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_DarrenPlayer_nPlayOpenSLESWithQueue(
         JNIEnv *env, jobject instance, jstring url_) {
     if(pFFmpeg != NULL)
     {
@@ -41,13 +41,13 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_DarrenPlayer_nPrepare(
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_DarrenPlayer_nPrepareWithQueue(
         JNIEnv *env, jobject instance, jstring url_) {
     const char *url = (*env).GetStringUTFChars(url_,JNI_FALSE);
     if(pFFmpeg == NULL)
     {
-        pJniCall = new DZJNICall(pJavaVM,env,instance);
-        pFFmpeg = new DZFFmpeg(pJniCall,url);
+        pJniCall = new DZJNICall3(pJavaVM, env, instance);
+        pFFmpeg = new DZFFmpeg3(pJniCall, url);
         pFFmpeg->prepare();
     }
     env->ReleaseStringUTFChars(url_,url);
@@ -56,13 +56,13 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_Da
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_DarrenPlayer_nPrepareAsync(
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicPlayer_DarrenPlayer_nPrepareAsyncWithQueue(
         JNIEnv *env, jobject instance, jstring url_) {
     const char *url = (*env).GetStringUTFChars(url_,JNI_FALSE);
     if(pFFmpeg == NULL)
     {
-        pJniCall = new DZJNICall(pJavaVM,env,instance);
-        pFFmpeg = new DZFFmpeg(pJniCall,url);
+        pJniCall = new DZJNICall3(pJavaVM, env, instance);
+        pFFmpeg = new DZFFmpeg3(pJniCall, url);
         pFFmpeg->prepareAsync();
     }
     env->ReleaseStringUTFChars(url_,url);

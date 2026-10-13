@@ -2,13 +2,13 @@
 // Created by Machenike on 2026/10/7.
 //
 
-#ifndef ANDROID_STUDY_DEMO_PROJECT_DZJNICALL_H
-#define ANDROID_STUDY_DEMO_PROJECT_DZJNICALL_H
+#ifndef ANDROID_STUDY_DEMO_PROJECT_DZJNICALL4_H
+#define ANDROID_STUDY_DEMO_PROJECT_DZJNICALL4_H
 
 extern "C"{
 #include <jni.h>
 
-#include "music_player.h"
+#include "video_player4.h"
 };
 
 enum ThreadMode{
@@ -16,7 +16,7 @@ enum ThreadMode{
     THREAD_CHILD  // 子线程
 };
 
-class DZJNICall {
+class DZJNICall4 {
 public:
     JavaVM *javaVm;
     JNIEnv *jniEnv;
@@ -24,8 +24,8 @@ public:
     jmethodID jPlayerPreparedMid;
     jobject jPlayerObj;
 public:
-    DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv,jobject jPlayerObj);
-    ~DZJNICall();
+    DZJNICall4(JavaVM *javaVm, JNIEnv *jniEnv, jobject jPlayerObj);
+    ~DZJNICall4();
 
 public:
 
@@ -35,4 +35,4 @@ public:
 };
 
 
-#endif //ANDROID_STUDY_DEMO_PROJECT_DZJNICALL_H
+#endif //ANDROID_STUDY_DEMO_PROJECT_DZJNICALL4_H

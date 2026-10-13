@@ -2,11 +2,11 @@
 // Created by Machenike on 2026/10/10.
 //
 
-#ifndef ANDROID_STUDY_DEMO_PROJECT_DZAUDIO_H
-#define ANDROID_STUDY_DEMO_PROJECT_DZAUDIO_H
+#ifndef ANDROID_STUDY_DEMO_PROJECT_DZAUDIO2_H
+#define ANDROID_STUDY_DEMO_PROJECT_DZAUDIO2_H
 
 #include <pthread.h>
-#include "DZJNICall.h"
+#include "DZJNICall2.h"
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -16,18 +16,18 @@ extern "C"{
 #include <SLES/OpenSLES_Android.h>
 };
 
-class DZAudio {
+class DZAudio2 {
 public:
     AVFormatContext *pFormatContext = NULL;
     AVCodecContext *pCodecContext = NULL;
     SwrContext *pSwrContext = NULL;
     uint8_t *resampleOutBuffer = NULL;
     char *url = NULL;
-    DZJNICall *pJniCall = NULL;
+    DZJNICall2 *pJniCall = NULL;
     int audioStreamIndex = -1;
 public:
-    DZAudio(int audioStreamIndex,DZJNICall *pJniCall,
-            AVCodecContext *pCodecContext, AVFormatContext *pFormatContext,SwrContext *pSwrContext);
+    DZAudio2(int audioStreamIndex, DZJNICall2 *pJniCall,
+             AVCodecContext *pCodecContext, AVFormatContext *pFormatContext, SwrContext *pSwrContext);
 
     void play();
 
@@ -38,4 +38,4 @@ public:
 };
 
 
-#endif //ANDROID_STUDY_DEMO_PROJECT_DZAUDIO_H
+#endif //ANDROID_STUDY_DEMO_PROJECT_DZAUDIO2_H

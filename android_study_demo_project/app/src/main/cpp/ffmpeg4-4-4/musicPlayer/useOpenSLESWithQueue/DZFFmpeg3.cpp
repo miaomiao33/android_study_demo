@@ -2,21 +2,21 @@
 // Created by Machenike on 2026/10/8.
 //
 
-#include "DZFFmpeg.h"
+#include "DZFFmpeg3.h"
 
-DZFFmpeg::DZFFmpeg(DZJNICall *pJniCall, const char *url) {
+DZFFmpeg3::DZFFmpeg3(DZJNICall3 *pJniCall, const char *url) {
     this->pJniCall = pJniCall;
     //复制一份 url，防止外面方法结束销毁了传入的url
     this->url = (char *)malloc(strlen(url) + 1);
     memcpy(this->url,url,strlen(url) + 1);
 }
 
-DZFFmpeg::~DZFFmpeg() {
+DZFFmpeg3::~DZFFmpeg3() {
     release();
 }
 
 
-void DZFFmpeg::play() {
+void DZFFmpeg3::play() {
     if(pAudio != NULL)
     {
         //调用 Audio 进行音频播放
@@ -26,7 +26,7 @@ void DZFFmpeg::play() {
 }
 
 
-void DZFFmpeg::release() {
+void DZFFmpeg3::release() {
 
     //失败后释放
 
@@ -50,26 +50,26 @@ void DZFFmpeg::release() {
 
 void *threadPrepare(void* context)
 {
-    DZFFmpeg *pFFmpeg = (DZFFmpeg *)context;
+    DZFFmpeg3 *pFFmpeg = (DZFFmpeg3 *)context;
     pFFmpeg->prepare(THREAD_CHILD);
 
     return 0;
 }
 
-void DZFFmpeg::prepare() {
+void DZFFmpeg3::prepare() {
     prepare(THREAD_MAIN);
 }
 
-void DZFFmpeg::prepareAsync() {
+void DZFFmpeg3::prepareAsync() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t prepareThreadT;
-    //this：传给 threadPrepare 的参数，也就是当前 DZFFmpeg 对象指针。在线程内部可以强转回来
+    //this：传给 threadPrepare 的参数，也就是当前 DZFFmpeg3 对象指针。在线程内部可以强转回来
     pthread_create(&prepareThreadT,NULL,threadPrepare,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(prepareThreadT);
 }
 
-void DZFFmpeg::prepare(ThreadMode threadMode) {
+void DZFFmpeg3::prepare(ThreadMode threadMode) {
     av_register_all();
     avformat_network_init();
 
@@ -109,7 +109,7 @@ void DZFFmpeg::prepare(ThreadMode threadMode) {
     }
 
     //不是我的事我不干，但是不要想的过于复杂
-    pAudio = new DZAudio(audioStreamIndex,pJniCall,pFormatContext);
+    pAudio = new DZAudio3(audioStreamIndex, pJniCall, pFormatContext);
     //初始化Audio
     pAudio->analysisStream(threadMode, pFormatContext->streams);
     //------- 重采样 end -------

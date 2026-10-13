@@ -2,21 +2,21 @@
 // Created by Machenike on 2026/10/8.
 //
 
-#include "DZFFmpeg.h"
+#include "DZFFmpeg2.h"
 
-DZFFmpeg::DZFFmpeg(DZJNICall *pJniCall, const char *url) {
+DZFFmpeg2::DZFFmpeg2(DZJNICall2 *pJniCall, const char *url) {
     this->pJniCall = pJniCall;
     //复制一份 url，防止外面方法结束销毁了传入的url
     this->url = (char *)malloc(strlen(url) + 1);
     memcpy(this->url,url,strlen(url) + 1);
 }
 
-DZFFmpeg::~DZFFmpeg() {
+DZFFmpeg2::~DZFFmpeg2() {
     release();
 }
 
 
-void DZFFmpeg::play() {
+void DZFFmpeg2::play() {
     if(pAudio != NULL)
     {
         //调用 Audio 进行音频播放
@@ -25,14 +25,14 @@ void DZFFmpeg::play() {
 
 }
 
-void DZFFmpeg::callPlayerJniError(ThreadMode threadMode,int code, char *msg) {
+void DZFFmpeg2::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     //失败了释放资源
     release();
     //回调给 Java 层调用
     pJniCall->callPlayerError(threadMode,code,msg);
 }
 
-void DZFFmpeg::release() {
+void DZFFmpeg2::release() {
 
     //失败后释放
     if(pCodecContext != NULL)
@@ -71,26 +71,26 @@ void DZFFmpeg::release() {
 
 void *threadPrepare(void* context)
 {
-    DZFFmpeg *pFFmpeg = (DZFFmpeg *)context;
+    DZFFmpeg2 *pFFmpeg = (DZFFmpeg2 *)context;
     pFFmpeg->prepare(THREAD_CHILD);
 
     return 0;
 }
 
-void DZFFmpeg::prepare() {
+void DZFFmpeg2::prepare() {
     prepare(THREAD_MAIN);
 }
 
-void DZFFmpeg::prepareAsync() {
+void DZFFmpeg2::prepareAsync() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t prepareThreadT;
-    //this：传给 threadPrepare 的参数，也就是当前 DZFFmpeg 对象指针。在线程内部可以强转回来
+    //this：传给 threadPrepare 的参数，也就是当前 DZFFmpeg2 对象指针。在线程内部可以强转回来
     pthread_create(&prepareThreadT,NULL,threadPrepare,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(prepareThreadT);
 }
 
-void DZFFmpeg::prepare(ThreadMode threadMode) {
+void DZFFmpeg2::prepare(ThreadMode threadMode) {
     av_register_all();
     avformat_network_init();
 
@@ -198,7 +198,7 @@ void DZFFmpeg::prepare(ThreadMode threadMode) {
         return;
     }
     //初始化Audio
-    pAudio = new DZAudio(audioStreamIndex,pJniCall,pCodecContext,pFormatContext,swrContext);
+    pAudio = new DZAudio2(audioStreamIndex, pJniCall, pCodecContext, pFormatContext, swrContext);
     //------- 重采样 end -------
     //回调到 Java 层，通知准备好了
     pJniCall->callPlayerPrepared(threadMode);

@@ -2,14 +2,14 @@
 // Created by Machenike on 2026/10/8.
 //
 
-#ifndef ANDROID_STUDY_DEMO_PROJECT_DZFFMPEG_H
-#define ANDROID_STUDY_DEMO_PROJECT_DZFFMPEG_H
+#ifndef ANDROID_STUDY_DEMO_PROJECT_DZFFMPEG4_H
+#define ANDROID_STUDY_DEMO_PROJECT_DZFFMPEG4_H
 
 #include <pthread.h>
-//包含有 DZJNICall，故把线程的枚举类型放在 DZJNICall 中
-#include "DZJNICall.h"
-#include "music_player.h"
-#include "DZAudio.h"
+//包含有 DZJNICall4，故把线程的枚举类型放在 DZJNICall4 中
+#include "DZJNICall4.h"
+#include "video_player4.h"
+#include "DZAudio4.h"
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -18,17 +18,15 @@ extern "C"{
 };
 
 
-class DZFFmpeg {
+class DZFFmpeg4 {
 public:
     AVFormatContext *pFormatContext = NULL;
-    AVCodecContext *pCodecContext = NULL;
-    SwrContext *swrContext = NULL;
     char *url = NULL;
-    DZJNICall *pJniCall = NULL;
-    DZAudio *pAudio = NULL;
+    DZJNICall4 *pJniCall = NULL;
+    DZAudio4 *pAudio = NULL;
 public:
-    DZFFmpeg(DZJNICall *pJniCall, const char *url);
-    ~DZFFmpeg();
+    DZFFmpeg4(DZJNICall4 *pJniCall, const char *url);
+    ~DZFFmpeg4();
 
 public:
     void play();
@@ -47,4 +45,4 @@ private:
 };
 
 
-#endif //ANDROID_STUDY_DEMO_PROJECT_DZFFMPEG_H
+#endif //ANDROID_STUDY_DEMO_PROJECT_DZFFMPEG4_H

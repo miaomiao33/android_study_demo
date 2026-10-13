@@ -2,8 +2,8 @@
 // Created by Machenike on 2026/10/3.
 //
 
-#ifndef ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_H
-#define ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_H
+#ifndef ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER3_H
+#define ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER3_H
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -23,10 +23,4 @@ extern "C"{
 
 //------- 播放错误码 end -------
 
-class music_player {
-
-public:
-};
-
-
-#endif //ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER_H
+#endif //ANDROID_STUDY_DEMO_PROJECT_MUSIC_PLAYER3_H

@@ -2,9 +2,9 @@
 // Created by Machenike on 2026/10/7.
 //
 
-#include "DZJNICall.h"
+#include "DZJNICall3.h"
 
-DZJNICall::DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv,jobject jPlayerObj) {
+DZJNICall3::DZJNICall3(JavaVM *javaVm, JNIEnv *jniEnv, jobject jPlayerObj) {
     this->javaVm = javaVm;
     this->jniEnv = jniEnv;
     //new一个全局的object，因为外面的 instance 会随着运行被释放
@@ -16,12 +16,12 @@ DZJNICall::DZJNICall(JavaVM *javaVm, JNIEnv *jniEnv,jobject jPlayerObj) {
     jPlayerPreparedMid = jniEnv->GetMethodID(jPlayerClass,"onPrepared", "()V");
 }
 
-DZJNICall::~DZJNICall() {
+DZJNICall3::~DZJNICall3() {
     jniEnv->DeleteGlobalRef(jPlayerObj);
 }
 
 
-void DZJNICall::callPlayerError(ThreadMode threadMode,int code, char *msg) {
+void DZJNICall3::callPlayerError(ThreadMode threadMode, int code, char *msg) {
     //子线程用不了主线程 jniEnv（native 线程）
     //子线程是不共享 jniEnv，它们有自己所独立的
     if(threadMode == THREAD_MAIN)
@@ -52,7 +52,7 @@ void DZJNICall::callPlayerError(ThreadMode threadMode,int code, char *msg) {
  * @param threadMode
  */
 
-void DZJNICall::callPlayerPrepared(ThreadMode threadMode) {
+void DZJNICall3::callPlayerPrepared(ThreadMode threadMode) {
 //子线程用不了主线程 jniEnv（native 线程）
     //子线程是不共享 jniEnv，它们有自己所独立的
     if(threadMode == THREAD_MAIN)

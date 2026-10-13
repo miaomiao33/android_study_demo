@@ -2,12 +2,12 @@
 // Created by Machenike on 2026/10/10.
 //
 
-#include "DZAudio.h"
+#include "DZAudio2.h"
 
 void playerCallback2(SLAndroidSimpleBufferQueueItf caller,void *pContext);
 
-DZAudio::DZAudio(int audioStreamIndex, DZJNICall *pJniCall, AVCodecContext *pCodecContext,
-                 AVFormatContext *pFormatContext,SwrContext *pSwrContext) {
+DZAudio2::DZAudio2(int audioStreamIndex, DZJNICall2 *pJniCall, AVCodecContext *pCodecContext,
+                   AVFormatContext *pFormatContext, SwrContext *pSwrContext) {
     this->audioStreamIndex = audioStreamIndex;
     this->pJniCall = pJniCall;
     this->pCodecContext = pCodecContext;
@@ -18,18 +18,18 @@ DZAudio::DZAudio(int audioStreamIndex, DZJNICall *pJniCall, AVCodecContext *pCod
 
 void *threadPlay(void* context)
 {
-    DZAudio *pDZAudio = (DZAudio *)context;
+    DZAudio2 *pDZAudio = (DZAudio2 *)context;
     //初始化 OpenSLES
     pDZAudio->initCreateOpenSLES2();
 
     return 0;
 }
 
-void DZAudio::play() {
+void DZAudio2::play() {
 
     //创建一个线程去播放，多线程边解码边播放
     pthread_t playThreadT;
-    //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg 对象指针。在线程内部可以强转回来
+    //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg2 对象指针。在线程内部可以强转回来
     pthread_create(&playThreadT,NULL,threadPlay,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(playThreadT);
@@ -37,7 +37,7 @@ void DZAudio::play() {
 
 
 //去解码一帧
-int DZAudio::resampleAudio()
+int DZAudio2::resampleAudio()
 {
     AVPacket *pPacket = av_packet_alloc();
     AVFrame *pFrame = av_frame_alloc();
@@ -94,7 +94,7 @@ int DZAudio::resampleAudio()
 }
 
 //初始化OpenSLES，并进行播放
-void DZAudio::initCreateOpenSLES2() {
+void DZAudio2::initCreateOpenSLES2() {
     //3.1创建引擎接口对象(设置参数，实现，获取接口)
     SLObjectItf engineObject = NULL;
     SLEngineItf engineEngine;
@@ -155,7 +155,7 @@ void DZAudio::initCreateOpenSLES2() {
 }
 
 void playerCallback2(SLAndroidSimpleBufferQueueItf caller,void *pContext){
-    DZAudio *pDZAudio = (DZAudio *)pContext;
+    DZAudio2 *pDZAudio = (DZAudio2 *)pContext;
     int dataSize = pDZAudio->resampleAudio();
     (*caller)->Enqueue(caller,pDZAudio->resampleOutBuffer,dataSize);
 }
