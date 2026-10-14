@@ -43,9 +43,6 @@ public class MusicAndVideoPlayerMainActivity extends AppCompatActivity {
         //播放音频
         mVideoView.play(mVideoFile.getAbsolutePath());
 
-        //播放视频
-        decodeVideo(mVideoFile.getAbsolutePath(),mVideoView.getHolder().getSurface());
     }
 
-    private native void decodeVideo(String absolutePath, Surface surface);
 }

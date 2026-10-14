@@ -29,6 +29,11 @@ void DZFFmpeg4::play() {
         pAudio->play();
     }
 
+    if(pVideo != NULL){
+        //调用 Video 进行视频播放
+        pVideo->play();
+    }
+
 }
 
 
@@ -45,9 +50,12 @@ void *threadReadPacket(void* context)
         {
             if(pPacket->stream_index == pFFmpeg4->pAudio->streamIndex)
             {
+                //音频
                 pFFmpeg4->pAudio->pPacketQueue->push(pPacket);
-            } else{
+            } else if(pPacket->stream_index == pFFmpeg4->pVideo->streamIndex){
                 //视频
+                pFFmpeg4->pVideo->pPacketQueue->push(pPacket);
+            } else{
                 //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
                 av_packet_free(&pPacket);
             }
@@ -86,6 +94,18 @@ void DZFFmpeg4::release() {
     {
         delete(pPlayerStatus);
         pPlayerStatus = NULL;
+    }
+
+    if(pAudio != NULL)
+    {
+        delete(pAudio);
+        pAudio = NULL;
+    }
+
+    if(pVideo != NULL)
+    {
+        delete(pVideo);
+        pVideo = NULL;
     }
 }
 
@@ -145,15 +165,35 @@ void DZFFmpeg4::prepare(ThreadMode threadMode) {
     {
         LOGE("format audio stream error:%s",av_err2str(audioStreamIndex))
 
-        callPlayerJniError(threadMode,FIND_STREAM_ERROR_CODE,"format audio stream error");
+        callPlayerJniError(threadMode,FIND_STREAM_ERROR_CODE,"find audio stream error");
         return;
     }
-
     //不是我的事我不干，但是不要想的过于复杂
     pAudio = new DZAudio4(audioStreamIndex, pJniCall, pPlayerStatus);
     //初始化Audio
     pAudio->analysisStream(threadMode, pFormatContext);
-    //------- 重采样 end -------
+
+
+    //查找视频流的packet
+    int videoStreamIndex = av_find_best_stream(pFormatContext,AVMEDIA_TYPE_VIDEO,
+                                               -1,-1,NULL,0);
+//    if(videoStreamIndex < 0)
+//    {
+//        //如果没有视频直接播放音频
+//        return;
+//    }
+    if(videoStreamIndex < 0)
+    {
+        LOGE("format video stream error")
+
+        callPlayerJniError(threadMode,FIND_STREAM_ERROR_CODE,"find video stream error");
+        return;
+    }
+    //不是我的事我不干，但是不要想的过于复杂
+    pVideo = new DZVideo4(videoStreamIndex, pJniCall, pPlayerStatus);
+    //初始化Audio
+    pVideo->analysisStream(threadMode, pFormatContext);
+
 
     //回调到 Java 层，通知准备好了
     pJniCall->callPlayerPrepared(threadMode);
@@ -164,5 +204,12 @@ void DZFFmpeg4::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     release();
     //回调给 Java 层调用
     pJniCall->callPlayerError(threadMode,code,msg);
+}
+
+void DZFFmpeg4::setSurface(jobject surface) {
+    if(pVideo != NULL)
+    {
+        pVideo->setSurface(surface);
+    }
 }
 

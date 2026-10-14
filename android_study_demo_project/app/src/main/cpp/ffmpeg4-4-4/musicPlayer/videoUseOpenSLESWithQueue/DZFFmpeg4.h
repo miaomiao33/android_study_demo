@@ -11,6 +11,7 @@
 #include "video_player_common4.h"
 #include "DZAudio4.h"
 #include "DZPlayerStatus4.h"
+#include "DZVideo4.h"
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -24,8 +25,10 @@ public:
     AVFormatContext *pFormatContext = NULL;
     char *url = NULL;
     DZJNICall4 *pJniCall = NULL;
-    DZAudio4 *pAudio = NULL;
     DZPlayerStatus4 *pPlayerStatus;
+    DZAudio4 *pAudio = NULL;
+    DZVideo4 *pVideo = NULL;
+
 public:
     DZFFmpeg4(DZJNICall4 *pJniCall, const char *url);
     ~DZFFmpeg4();
@@ -42,7 +45,7 @@ public:
     void callPlayerJniError(ThreadMode threadMode,int code,char* msg);
 
     void release();
-private:
+    void setSurface(jobject surface);
 };
 
 

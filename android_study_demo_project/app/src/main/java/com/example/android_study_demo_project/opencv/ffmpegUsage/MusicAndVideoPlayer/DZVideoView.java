@@ -40,11 +40,12 @@ public class DZVideoView extends SurfaceView implements MediaPreparedListener {
      * 停止方法释放上一个视频内存
      */
     public void stop(){
-
+        mPlayer.stop();
     }
 
     @Override
     public void onPrepared() {
+        mPlayer.setSurface(getHolder().getSurface());
         mPlayer.play();
     }
 }

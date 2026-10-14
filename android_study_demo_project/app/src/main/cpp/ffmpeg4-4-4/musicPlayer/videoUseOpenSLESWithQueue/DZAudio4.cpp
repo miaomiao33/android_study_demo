@@ -11,10 +11,11 @@ DZAudio4::DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *
 }
 
 DZAudio4::~DZAudio4() {
+    DZMedia4::release();//释放父类的资源
     release();
 }
 //一个线程去播放
-void *threadPlay(void* context)
+void *threadAudioPlay(void* context)
 {
     DZAudio4 *pAudio = (DZAudio4 *)context;
     //初始化 OpenSLES
@@ -30,7 +31,7 @@ void DZAudio4::play() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t playThreadT;
     //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg4 对象指针。在线程内部可以强转回来
-    pthread_create(&playThreadT,NULL,threadPlay,this);
+    pthread_create(&playThreadT,NULL,threadAudioPlay,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(playThreadT);
 }
