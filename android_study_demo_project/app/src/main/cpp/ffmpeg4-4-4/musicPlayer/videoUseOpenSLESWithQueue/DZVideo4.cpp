@@ -3,11 +3,12 @@
 //
 
 #include "DZVideo4.h"
+
 int resampleVideo(DZVideo4 *pVideo);
 
-DZVideo4::DZVideo4(int videoStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *pPlayerStatus)
+DZVideo4::DZVideo4(int videoStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *pPlayerStatus,DZAudio4 *pAudio)
         : DZMedia4(videoStreamIndex, pJniCall, pPlayerStatus) {
-
+    this->pAudio = pAudio;
 }
 
 DZVideo4::~DZVideo4() {
@@ -36,7 +37,6 @@ void DZVideo4::play() {
 //去解码一帧
 int resampleVideo(DZVideo4 *pVideo)
 {
-
     ///绑定 Surface 的缓冲区
     //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
     JNIEnv *env;
@@ -86,6 +86,11 @@ int resampleVideo(DZVideo4 *pVideo)
                           0,pVideo->pCodecContext->height,//slice的0行到pCodecContext->height行
                           pVideo->pRgbaFrame->data,//输出帧（RGBA）的数据指针数组
                           pVideo->pRgbaFrame->linesize);//输出帧每行字节数
+                //在播放之前判断一下需要休眠多久
+                double frameSleepTime = pVideo->getFrameSleepTime(pFrame);
+                LOGI("frameSleepTime-> %f",frameSleepTime)
+                av_usleep(frameSleepTime * 1000000);
+
                 //把数据推送到缓冲区
                 ANativeWindow_lock(pNativeWindow,&outBuffer,NULL);
                 memcpy(outBuffer.bits,pVideo->pFrameBuffer,pVideo->frameSize);//frameSize其实就是宽高*2*2
@@ -109,7 +114,76 @@ int resampleVideo(DZVideo4 *pVideo)
     return dataSize;
 }
 
-void DZVideo4::privateAnalysisStream(ThreadMode threadMode, AVFormatContext *context) {
+double DZVideo4::getFrameSleepTime(AVFrame *pFrame)
+{
+    double times = static_cast<double>(pFrame->best_effort_timestamp) * av_q2d(timeBase);
+    if(times > currentTime)
+    {
+        currentTime = times;
+    }
+
+    //相差多少秒（音频和视频）
+    double diffTime = pAudio->currentTime - currentTime;
+
+    //视频快了就慢一点，视频慢了就快一点
+    //但是尽量把时间控制在视频的帧率时间范围左右 1/24s 大约0.04s 1/30 0.033
+
+    //小偏差，开始动态调整 delay
+    //第一次控制 0.016s 到 -0.016s (0.033的一半)
+    if(diffTime > 0.016 || diffTime < -0.016)
+    {
+        if(diffTime > 0.016)
+        {
+            //diffTime > 0.016：音频时间 > 视频时间 → 音频超前，视频慢了 → 减少视频等待时间
+            // `delayTime = delayTime * 2/3`，视频加快追赶
+            delayTime = delayTime * 2 / 3;
+        } else if(diffTime < -0.016)
+        {
+            delayTime = delayTime * 3 / 2;
+        }
+
+
+        //第二次控制 defaultDelayTime * 2 / 3 到 defaultDelayTime * 3 / 2
+        // (defaultDelayTime 初始默认值为0.04)
+        if(delayTime < defaultDelayTime / 2.0)
+        {
+            delayTime = defaultDelayTime * 2.0 / 3.0;
+        } else if(delayTime > defaultDelayTime * 2)
+        {
+            delayTime = defaultDelayTime * 3 / 2;
+        }
+
+//        //第二种调整
+//        if(delayTime < defaultDelayTime * 2.0 / 3.0)
+//        {
+//            delayTime = defaultDelayTime * 2.0 / 3.0;
+//        } else if(delayTime > defaultDelayTime * 3 / 2)
+//        {
+//            delayTime = defaultDelayTime * 3 / 2;
+//        }
+    }
+
+    // 大偏差，做极端矫正
+    //第三次控制，基本是异常情况
+    if(diffTime >= 0.25)
+    {
+        // 音频大幅领先，视频尽快渲染，不等待
+        delayTime = 0;
+    } else if(diffTime <= -0.25)
+    {
+        // 视频大幅领先音频
+        delayTime = defaultDelayTime * 2;
+
+        // =========【推荐替换方案B】=========
+        // 视频超前太多，直接丢当前帧，不渲染，取消sleep，更快对齐音频
+        // av_frame_free(&pFrame);
+        // continue;
+    }
+
+    return delayTime;
+}
+
+void DZVideo4::privateAnalysisStream(ThreadMode threadMode, AVFormatContext *pFormatContexts) {
     //3、初始化转换上下文
     pSwsContext = sws_getContext(pCodecContext->width,pCodecContext->height,
                                              pCodecContext->pix_fmt,pCodecContext->width,
@@ -126,6 +200,16 @@ void DZVideo4::privateAnalysisStream(ThreadMode threadMode, AVFormatContext *con
     //将frameBuffer内存地址绑定到AVFrame的data[]、linesize[]
     av_image_fill_arrays(pRgbaFrame->data,pRgbaFrame->linesize,pFrameBuffer,
                          AV_PIX_FMT_RGBA,pCodecContext->width,pCodecContext->height,1);
+
+    int num = pFormatContexts->streams[streamIndex]->avg_frame_rate.num;
+    int den = pFormatContexts->streams[streamIndex]->avg_frame_rate.den;
+    if(den != 0 && num != 0)
+    {
+        //1s/25帧
+//        int fps = num / den;
+//        defaultDelayTime = 1.0f / fps;
+        defaultDelayTime = 1.0f * den / num;
+    }
 }
 
 void DZVideo4::release() {

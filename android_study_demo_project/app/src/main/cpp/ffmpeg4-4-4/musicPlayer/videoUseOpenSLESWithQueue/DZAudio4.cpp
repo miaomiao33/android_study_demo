@@ -66,6 +66,14 @@ int DZAudio4::resampleAudio()
                 //这里使用 dataSize 作为数组长，此时dataSize = pFrame->nb_samples，故还需要* 2 * 2
                 dataSize = dataSize * 2 * 2;
 
+                //设置当前的时间，方便回调进度给 java，方便视频同步音频
+                //获取到 pts 和 timebase
+                double times = pFrame->best_effort_timestamp * av_q2d(timeBase);
+                if(times > currentTime)
+                {
+                    currentTime = times;
+                }
+
                 //解码之后开始播放
                 //write 写到缓冲区 pFrame，data -> java byte
                 //size 是多大，装 PCM 的数据

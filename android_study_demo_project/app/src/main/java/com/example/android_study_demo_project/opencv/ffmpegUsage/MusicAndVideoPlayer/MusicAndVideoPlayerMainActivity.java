@@ -2,22 +2,17 @@ package com.example.android_study_demo_project.opencv.ffmpegUsage.MusicAndVideoP
 
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.Surface;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.android_study_demo_project.R;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer.DarrenPlayer;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer.MediaPreparedListener;
 
 import java.io.File;
 
 public class MusicAndVideoPlayerMainActivity extends AppCompatActivity {
     File mVideoFile = new File(Environment.getExternalStorageDirectory(),".mp4");
-    private DarrenPlayer mPlayer;
     private DZVideoView mVideoView;
 
 
