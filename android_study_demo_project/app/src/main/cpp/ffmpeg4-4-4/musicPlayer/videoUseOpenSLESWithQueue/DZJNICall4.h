@@ -7,8 +7,6 @@
 
 extern "C"{
 #include <jni.h>
-
-#include "video_player4.h"
 };
 
 enum ThreadMode{

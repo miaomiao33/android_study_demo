@@ -4,14 +4,10 @@
 
 #include "DZAudio4.h"
 
-void playerCallback2(SLAndroidSimpleBufferQueueItf caller,void *pContext);
+void playerCallback4(SLAndroidSimpleBufferQueueItf caller,void *pContext);
 
-DZAudio4::DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, AVFormatContext *pFormatContext) {
-    this->audioStreamIndex = audioStreamIndex;
-    this->pJniCall = pJniCall;
-    this->pFormatContext = pFormatContext;
-    pPacketQueue = new DZPacketQueue4();
-    pPlayerStatus = new DZPlayerStatus4();
+DZAudio4::DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *pPlayerStatus)
+:DZMedia4(audioStreamIndex,pJniCall,pPlayerStatus) {
 }
 
 DZAudio4::~DZAudio4() {
@@ -27,42 +23,9 @@ void *threadPlay(void* context)
     return 0;
 }
 
-//一个线程去解码
-void *threadReadPacket(void* context)
-{
-    DZAudio4 *pAudio = (DZAudio4 *)context;
-
-    while (pAudio->pPlayerStatus != NULL && !pAudio->pPlayerStatus->isExit)
-    {
-        AVPacket *pPacket = av_packet_alloc();
-
-        if(av_read_frame(pAudio->pFormatContext,pPacket) >= 0)
-        {
-            if(pPacket->stream_index == pAudio->audioStreamIndex)
-            {
-                pAudio->pPacketQueue->push(pPacket);
-            } else{
-                //视频
-                //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
-                av_packet_free(&pPacket);
-            }
-        } else{
-            //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
-            av_packet_free(&pPacket);
-            //解码完了，睡眠一下，尽量不去消耗CPU的资源，也可以退出销毁这个线程
-            //break;
-        }
-    }
-
-    return 0;
-}
 
 void DZAudio4::play() {
-    //一个线程去读 Packet
-    pthread_t readPacketThreadT;
-    pthread_create(&readPacketThreadT,NULL,threadReadPacket,this);
-    pthread_detach(readPacketThreadT);
-
+    //另一个读取packet的放在了DZFFmpeg4里面
     //一个线程去解码播放
     //创建一个线程去播放，多线程边解码边播放
     pthread_t playThreadT;
@@ -180,50 +143,16 @@ void DZAudio4::initCreateOpenSLES4() {
     SLAndroidSimpleBufferQueueItf playerBufferQueue;
     (*pPlayer)->GetInterface(pPlayer,SL_IID_BUFFERQUEUE,&playerBufferQueue);
     //每次回调 this 会被带给 playerCallback2 里面的 context
-    (*playerBufferQueue)->RegisterCallback(playerBufferQueue,playerCallback2,this);
+    (*playerBufferQueue)->RegisterCallback(playerBufferQueue,playerCallback4,this);
     //3.5设置播放状态
     (*pPlayItf)->SetPlayState(pPlayItf, SL_PLAYSTATE_PLAYING);
     //3.6调用回调函数
-    playerCallback2(playerBufferQueue,this);
+    playerCallback4(playerBufferQueue,this);
 }
 
-void DZAudio4::analysisStream(ThreadMode threadMode, AVStream **streams) {
-
-    //查找解码
-    AVCodecParameters *pCodecParameters = pFormatContext->streams[audioStreamIndex]->codecpar;//声道，频率等参数
-    AVCodec *pCodec = avcodec_find_decoder(pCodecParameters->codec_id);
-    if(pCodec == NULL )
-    {
-        LOGE("codec find decoder error")
-        callPlayerJniError(threadMode,CODEC_FIND_DECODER_ERROR_CODE,"codec find decoder error");
-        return;
-    }
-
-    //打开解码器
-    pCodecContext = avcodec_alloc_context3(pCodec);//初始化一个AVCodecContext
-    if(pCodecContext == NULL )
-    {
-        LOGE("avcodec alloc context3 error")
-        callPlayerJniError(threadMode,CODEC_ALLOC_CONTEXT_ERROR_CODE,"avcodec alloc context3 error");
-        return;
-    }
-    int codecParametersToContextRes = avcodec_parameters_to_context(pCodecContext,pCodecParameters);//将编码器参数放入pCodecContext中
-    if(codecParametersToContextRes < 0 )
-    {
-        LOGE("avcodec parameters to context error:%s",av_err2str(codecParametersToContextRes))
-        callPlayerJniError(threadMode,codecParametersToContextRes,av_err2str(codecParametersToContextRes));
-        return;
-    }
-    int codecOpenRes = avcodec_open2(pCodecContext,pCodec,NULL);
-    if(codecOpenRes != 0 )
-    {
-        LOGE("codec audio open error:%s",av_err2str(codecOpenRes))
-        callPlayerJniError(threadMode,codecOpenRes,av_err2str(codecOpenRes));
-        return;
-    }
+void DZAudio4::privateAnalysisStream(ThreadMode threadMode, AVFormatContext *context) {
 
     LOGI("sample_rate：%d,channels：%d",pCodecParameters->sample_rate,pCodecParameters->channels);
-
 
     //------- 重采样 start -------
     //struct SwrContext *swr_alloc_set_opts(struct SwrContext *s,
@@ -258,39 +187,15 @@ void DZAudio4::analysisStream(ThreadMode threadMode, AVStream **streams) {
 }
 
 
-void DZAudio4::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
-    //失败了释放资源
-    release();
-    //回调给 Java 层调用
-    pJniCall->callPlayerError(threadMode,code,msg);
-}
 
 void DZAudio4::release() {
-    if(pPacketQueue != NULL)
-    {
-        delete(pPacketQueue);
-        pPacketQueue = NULL;
-    }
+
     if(resampleOutBuffer != NULL)
     {
         free(resampleOutBuffer);
         resampleOutBuffer = NULL;
     }
-    if(pPlayerStatus != NULL)
-    {
-        delete(pPlayerStatus);
-        pPlayerStatus = NULL;
-    }
 
-    if(pCodecContext != NULL)
-    {
-        //这是主动alloc的AVCodecContext，所以需要释放
-        //关闭一些流之类的
-        avcodec_close(pCodecContext);
-        //释放内存
-        avcodec_free_context(&pCodecContext);
-        pCodecContext = NULL;
-    }
 
     if(pSwrContext != NULL)
     {

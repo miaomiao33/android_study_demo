@@ -3,6 +3,8 @@
 //
 
 #include "video_player4.h"
+#include "DZJNICall4.h"
+#include "DZFFmpeg4.h"
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 

@@ -10,6 +10,7 @@
 #include "DZJNICall4.h"
 #include "video_player4.h"
 #include "DZAudio4.h"
+#include "DZPlayerStatus4.h"
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -24,6 +25,7 @@ public:
     char *url = NULL;
     DZJNICall4 *pJniCall = NULL;
     DZAudio4 *pAudio = NULL;
+    DZPlayerStatus4 *pPlayerStatus;
 public:
     DZFFmpeg4(DZJNICall4 *pJniCall, const char *url);
     ~DZFFmpeg4();
@@ -40,7 +42,6 @@ public:
     void callPlayerJniError(ThreadMode threadMode,int code,char* msg);
 
     void release();
-
 private:
 };
 

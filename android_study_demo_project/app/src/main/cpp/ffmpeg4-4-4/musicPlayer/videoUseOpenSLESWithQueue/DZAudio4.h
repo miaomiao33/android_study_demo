@@ -9,6 +9,8 @@
 #include "DZJNICall4.h"
 #include "DZPacketQueue4.h"
 #include "DZPlayerStatus4.h"
+#include "DZMedia4.h"
+#include "video_player4.h"
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -18,33 +20,25 @@ extern "C"{
 #include <SLES/OpenSLES_Android.h>
 };
 
-class DZAudio4 {
+class DZAudio4 : public DZMedia4{
 public:
     AVFormatContext *pFormatContext = NULL;
-    AVCodecContext *pCodecContext = NULL;
     SwrContext *pSwrContext = NULL;
     uint8_t *resampleOutBuffer = NULL;
     char *url = NULL;
-    DZJNICall4 *pJniCall = NULL;
-    int audioStreamIndex = -1;
-    DZPacketQueue4 *pPacketQueue = NULL;
-    DZPlayerStatus4 *pPlayerStatus = NULL;
 
 public:
-    DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, AVFormatContext *pFormatContext);
+    DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *pPlayerStatus);
     ~DZAudio4();
 
-    void play();
+    void play() override;
 
     void initCreateOpenSLES4();
 
     int resampleAudio();
+    void privateAnalysisStream(ThreadMode threadMode, AVFormatContext *context) override;
 
-    void analysisStream(ThreadMode threadMode, AVStream **streams);
-
-    void callPlayerJniError(ThreadMode threadMode, int code, char *msg);
-
-    void release();
+    void release() override;
 };
 
 

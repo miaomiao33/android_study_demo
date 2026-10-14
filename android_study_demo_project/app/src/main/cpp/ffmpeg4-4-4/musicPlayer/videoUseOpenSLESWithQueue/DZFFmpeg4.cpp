@@ -3,12 +3,14 @@
 //
 
 #include "DZFFmpeg4.h"
+void *threadReadPacket(void* context);
 
 DZFFmpeg4::DZFFmpeg4(DZJNICall4 *pJniCall, const char *url) {
     this->pJniCall = pJniCall;
     //复制一份 url，防止外面方法结束销毁了传入的url
     this->url = (char *)malloc(strlen(url) + 1);
     memcpy(this->url,url,strlen(url) + 1);
+    pPlayerStatus = new DZPlayerStatus4();
 }
 
 DZFFmpeg4::~DZFFmpeg4() {
@@ -17,6 +19,10 @@ DZFFmpeg4::~DZFFmpeg4() {
 
 
 void DZFFmpeg4::play() {
+    //一个线程去读 Packet
+    pthread_t readPacketThreadT;
+    pthread_create(&readPacketThreadT,NULL,threadReadPacket,this);
+    pthread_detach(readPacketThreadT);
     if(pAudio != NULL)
     {
         //调用 Audio 进行音频播放
@@ -26,10 +32,39 @@ void DZFFmpeg4::play() {
 }
 
 
+//一个线程去解码
+void *threadReadPacket(void* context)
+{
+    DZFFmpeg4 *pFFmpeg4 = (DZFFmpeg4 *)context;
+
+    while (pFFmpeg4->pPlayerStatus != NULL && !pFFmpeg4->pPlayerStatus->isExit)
+    {
+        AVPacket *pPacket = av_packet_alloc();
+
+        if(av_read_frame(pFFmpeg4->pFormatContext,pPacket) >= 0)
+        {
+            if(pPacket->stream_index == pFFmpeg4->pAudio->streamIndex)
+            {
+                pFFmpeg4->pAudio->pPacketQueue->push(pPacket);
+            } else{
+                //视频
+                //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
+                av_packet_free(&pPacket);
+            }
+        } else{
+            //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
+            av_packet_free(&pPacket);
+            //解码完了，睡眠一下，尽量不去消耗CPU的资源，也可以退出销毁这个线程
+            //break;
+        }
+    }
+
+    return 0;
+}
+
+
 void DZFFmpeg4::release() {
-
     //失败后释放
-
     if(pFormatContext != NULL)
     {
         //关闭一些流之类的
@@ -45,6 +80,12 @@ void DZFFmpeg4::release() {
     {
         free(url);
         url = NULL;
+    }
+
+    if(pPlayerStatus != NULL)
+    {
+        delete(pPlayerStatus);
+        pPlayerStatus = NULL;
     }
 }
 
@@ -109,11 +150,19 @@ void DZFFmpeg4::prepare(ThreadMode threadMode) {
     }
 
     //不是我的事我不干，但是不要想的过于复杂
-    pAudio = new DZAudio4(audioStreamIndex, pJniCall, pFormatContext);
+    pAudio = new DZAudio4(audioStreamIndex, pJniCall, pPlayerStatus);
     //初始化Audio
-    pAudio->analysisStream(threadMode, pFormatContext->streams);
+    pAudio->analysisStream(threadMode, pFormatContext);
     //------- 重采样 end -------
 
     //回调到 Java 层，通知准备好了
     pJniCall->callPlayerPrepared(threadMode);
 }
+
+void DZFFmpeg4::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
+    //失败了释放资源
+    release();
+    //回调给 Java 层调用
+    pJniCall->callPlayerError(threadMode,code,msg);
+}
+

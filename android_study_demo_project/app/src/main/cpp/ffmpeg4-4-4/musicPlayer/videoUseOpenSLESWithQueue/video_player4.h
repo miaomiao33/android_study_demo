@@ -5,10 +5,6 @@
 #ifndef ANDROID_STUDY_DEMO_PROJECT_VIDEO_PLAYER4_H
 #define ANDROID_STUDY_DEMO_PROJECT_VIDEO_PLAYER4_H
 
-#include "DZJNICall4.h"
-#include "DZFFmpeg4.h"
-#include "DZAudio4.h"
-
 extern "C"{
 #include "libavformat/avformat.h"
 #include "../../../headerFile/LogUtils.h"

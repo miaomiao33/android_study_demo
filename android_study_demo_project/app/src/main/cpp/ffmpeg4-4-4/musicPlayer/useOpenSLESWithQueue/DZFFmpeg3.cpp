@@ -117,3 +117,10 @@ void DZFFmpeg3::prepare(ThreadMode threadMode) {
     //回调到 Java 层，通知准备好了
     pJniCall->callPlayerPrepared(threadMode);
 }
+
+void DZFFmpeg3::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
+    //失败了释放资源
+    release();
+    //回调给 Java 层调用
+    pJniCall->callPlayerError(threadMode,code,msg);
+}
