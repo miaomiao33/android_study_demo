@@ -8,7 +8,7 @@
 #include <pthread.h>
 //包含有 DZJNICall4，故把线程的枚举类型放在 DZJNICall4 中
 #include "DZJNICall4.h"
-#include "video_player4.h"
+#include "video_player_common4.h"
 #include "DZAudio4.h"
 #include "DZPlayerStatus4.h"
 

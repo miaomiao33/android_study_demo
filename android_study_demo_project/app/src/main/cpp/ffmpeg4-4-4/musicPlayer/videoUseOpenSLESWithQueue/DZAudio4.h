@@ -10,7 +10,7 @@
 #include "DZPacketQueue4.h"
 #include "DZPlayerStatus4.h"
 #include "DZMedia4.h"
-#include "video_player4.h"
+#include "video_player_common4.h"
 
 extern "C"{
 #include "libavformat/avformat.h"

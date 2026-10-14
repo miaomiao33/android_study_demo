@@ -2,11 +2,21 @@
 // Created by Machenike on 2026/10/3.
 //
 
-#include "video_player4.h"
+#include "video_player_common4.h"
 #include "DZJNICall4.h"
 #include "DZFFmpeg4.h"
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
+#include <jni.h>
+
+extern "C"{
+#include "libavformat/avformat.h"
+#include "../../../headerFile/LogUtils.h"
+//    重采样的包
+#include "libswresample/swresample.h"
+#include "libswscale/swscale.h"
+#include "libavutil/imgutils.h"
+};
 
 
 DZJNICall4 *pJniCall;

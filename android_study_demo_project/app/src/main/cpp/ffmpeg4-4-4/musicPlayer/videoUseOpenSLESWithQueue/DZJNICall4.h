@@ -7,6 +7,8 @@
 
 extern "C"{
 #include <jni.h>
+
+#include "../../../headerFile/LogUtils.h"
 };
 
 enum ThreadMode{

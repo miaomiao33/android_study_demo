@@ -8,6 +8,7 @@
 #include "DZJNICall4.h"
 #include "DZPacketQueue4.h"
 #include "DZPlayerStatus4.h"
+#include "video_player_common4.h"
 
 extern "C"{
 #include "libavcodec/avcodec.h"
