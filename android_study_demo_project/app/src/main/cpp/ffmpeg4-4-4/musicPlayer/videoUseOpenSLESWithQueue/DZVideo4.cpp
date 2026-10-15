@@ -66,7 +66,7 @@ int resampleVideo(DZVideo4 *pVideo)
     {
         pPacket = pVideo->pPacketQueue->pop();
         //音频
-        //Packet 包，压缩的数据，解码成 PCM 数据
+        //Packet 包，压缩的数据，解码成原始数据
         int codecSendPacketRes = avcodec_send_packet(pVideo->pCodecContext,pPacket);
         if(codecSendPacketRes == 0)
         {

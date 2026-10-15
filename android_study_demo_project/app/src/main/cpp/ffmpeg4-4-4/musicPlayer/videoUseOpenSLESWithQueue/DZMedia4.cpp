@@ -58,7 +58,8 @@ void DZMedia4::publicAnalysisStream(ThreadMode threadMode, AVFormatContext *pFor
         callPlayerJniError(threadMode,CODEC_ALLOC_CONTEXT_ERROR_CODE,"avcodec alloc context3 error");
         return;
     }
-    int codecParametersToContextRes = avcodec_parameters_to_context(pCodecContext,pCodecParameters);//将编码器参数放入pCodecContext中
+    //将编码器参数放入pCodecContext中
+    int codecParametersToContextRes = avcodec_parameters_to_context(pCodecContext,pCodecParameters);
     if(codecParametersToContextRes < 0 )
     {
         LOGE("avcodec parameters to context error:%s",av_err2str(codecParametersToContextRes))

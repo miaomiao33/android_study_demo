@@ -190,7 +190,7 @@ void DZFFmpeg4::prepare(ThreadMode threadMode) {
         return;
     }
     //不是我的事我不干，但是不要想的过于复杂
-    pVideo = new DZVideo4(videoStreamIndex, pJniCall, pPlayerStatus);
+    pVideo = new DZVideo4(videoStreamIndex, pJniCall, pPlayerStatus,pAudio);
     //初始化Audio
     pVideo->analysisStream(threadMode, pFormatContext);
 
