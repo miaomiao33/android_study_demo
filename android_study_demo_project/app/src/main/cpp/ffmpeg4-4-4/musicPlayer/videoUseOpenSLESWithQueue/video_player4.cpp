@@ -19,26 +19,28 @@ extern "C"{
 };
 
 
-DZJNICall4 *pJniCall;
-DZFFmpeg4 *pFFmpeg;
+DZJNICall4 *pJniCall4;
+DZFFmpeg4 *pFFmpeg4;
 
-JavaVM *pJavaVM = NULL;
+extern JavaVM *pJavaVM;//使用music_player的pJavaVM
+//JavaVM *pJavaVM = NULL;
 
-//重写 so 被加载时会调用的一个方法
-//作业：了解一下什么叫动态注册
-extern "C"
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *javaVm, void *reserved)
-{
-    LOGE("JNI_OnLoad -->")
-    pJavaVM = javaVm;
-    JNIEnv *env;
-    if(javaVm->GetEnv((void **)(&env), JNI_VERSION_1_4) != JNI_OK)
-    {
-        return -1;
-    }
-
-    return JNI_VERSION_1_4;
-}
+////重写 so 被加载时会调用的一个方法
+////本方法别的地方在使用时，记得注释掉
+////作业：了解一下什么叫动态注册
+//extern "C"
+//JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *javaVm, void *reserved)
+//{
+//    LOGE("JNI_OnLoad -->")
+//    pJavaVM = javaVm;
+//    JNIEnv *env;
+//    if(javaVm->GetEnv((void **)(&env), JNI_VERSION_1_4) != JNI_OK)
+//    {
+//        return -1;
+//    }
+//
+//    return JNI_VERSION_1_4;
+//}
 
 //静态注册
 //音频播放
@@ -46,9 +48,9 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicAndVideoPlayer_DarrenPlayer4_nPlay4(
         JNIEnv *env, jobject thiz) {
-    if(pFFmpeg != NULL)
+    if(pFFmpeg4 != NULL)
     {
-        pFFmpeg->play();
+        pFFmpeg4->play();
     }
 }
 
@@ -57,11 +59,11 @@ JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicAndVideoPlayer_DarrenPlayer4_nPrepare4(
         JNIEnv *env, jobject instance, jstring url_) {
     const char *url = (*env).GetStringUTFChars(url_,JNI_FALSE);
-    if(pFFmpeg == NULL)
+    if(pFFmpeg4 == NULL)
     {
-        pJniCall = new DZJNICall4(pJavaVM, env, instance);
-        pFFmpeg = new DZFFmpeg4(pJniCall, url);
-        pFFmpeg->prepare();
+        pJniCall4 = new DZJNICall4(pJavaVM, env, instance);
+        pFFmpeg4 = new DZFFmpeg4(pJniCall4, url);
+        pFFmpeg4->prepare();
     }
     env->ReleaseStringUTFChars(url_,url);
 
@@ -74,11 +76,11 @@ JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicAndVideoPlayer_DarrenPlayer4_nPrepareAsync4(
         JNIEnv *env, jobject instance, jstring url_) {
     const char *url = (*env).GetStringUTFChars(url_,JNI_FALSE);
-    if(pFFmpeg == NULL)
+    if(pFFmpeg4 == NULL)
     {
-        pJniCall = new DZJNICall4(pJavaVM, env, instance);
-        pFFmpeg = new DZFFmpeg4(pJniCall, url);
-        pFFmpeg->prepareAsync();
+        pJniCall4 = new DZJNICall4(pJavaVM, env, instance);
+        pFFmpeg4 = new DZFFmpeg4(pJniCall4, url);
+        pFFmpeg4->prepareAsync();
     }
     env->ReleaseStringUTFChars(url_,url);
 }
@@ -89,7 +91,7 @@ JNIEXPORT void JNICALL
 Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_MusicAndVideoPlayer_DarrenPlayer4_setSurface(
         JNIEnv *env, jobject thiz, jobject surface) {
     //当前函数是在准备之后播放之前调用的
-    if(pFFmpeg != NULL){
-        pFFmpeg->setSurface(surface);
+    if(pFFmpeg4 != NULL){
+        pFFmpeg4->setSurface(surface);
     }
 }

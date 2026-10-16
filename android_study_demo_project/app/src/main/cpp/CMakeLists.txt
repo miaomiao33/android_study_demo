@@ -67,6 +67,31 @@ add_library( "ffmpegLib"
         ffmpeg4-4-4/musicPlayer/useOpenSLESWithQueue/music_player3.cpp
         ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/video_player4.cpp
         ffmpeg4-4-4/musicPlayerOpenSLGS/music_player_openslgs.cpp
+        ffmpeg4-4-4/musicPlayer/livePush/live_push.cpp
+
+        ffmpeg4-4-4/musicPlayer/DZFFmpeg.cpp
+        ffmpeg4-4-4/musicPlayer/DZJNICall.cpp
+
+        ffmpeg4-4-4/musicPlayer/useOpenSLES/DZFFmpeg2.cpp
+        ffmpeg4-4-4/musicPlayer/useOpenSLES/DZJNICall2.cpp
+        ffmpeg4-4-4/musicPlayer/useOpenSLES/DZAudio2.cpp
+
+        ffmpeg4-4-4/musicPlayer/useOpenSLESWithQueue/DZFFmpeg3.cpp
+        ffmpeg4-4-4/musicPlayer/useOpenSLESWithQueue/DZJNICall3.cpp
+        ffmpeg4-4-4/musicPlayer/useOpenSLESWithQueue/DZAudio3.cpp
+        ffmpeg4-4-4/musicPlayer/useOpenSLESWithQueue/DZPacketQueue3.cpp
+        ffmpeg4-4-4/musicPlayer/useOpenSLESWithQueue/DZPlayerStatus3.cpp
+
+        ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/DZFFmpeg4.cpp
+        ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/DZJNICall4.cpp
+        ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/DZAudio4.cpp
+        ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/DZVideo4.cpp
+        ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/DZPacketQueue4.cpp
+        ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/DZPlayerStatus4.cpp
+        ffmpeg4-4-4/musicPlayer/videoUseOpenSLESWithQueue/DZMedia4.cpp
+
+        ffmpeg4-4-4/musicPlayer/livePush/DZJNICall5.cpp
+        ffmpeg4-4-4/musicPlayer/livePush/DZLivePush.cpp
 )
 
 # x264

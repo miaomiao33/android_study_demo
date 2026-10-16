@@ -11,6 +11,7 @@ import com.example.android_study_demo_project.R;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicAndVideoPlayer.MusicAndVideoPlayerMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer.MusicPlayerMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayerOpenSLES.MusicPlayerOpenSLESMainActivity;
+import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.LivePushMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.pullRTMP.PullRtmpMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.videoDecoder.FFmpegVideoDecoderMainActivity;
@@ -32,6 +33,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
     private Button gotoMusicPlayerButton;
     private Button gotoMusicPlayerOpenSLESButton;
     private Button gotoMusicAndVideoPlayerButton;
+    private Button gotoLivePushButton;
 
     private final String TAG = FFmpegUsageMainActivity.class.getSimpleName();
 
@@ -48,6 +50,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotoMusicPlayerButton = (Button) findViewById(R.id.bt_goto_music_player);
         gotoMusicPlayerOpenSLESButton = (Button) findViewById(R.id.bt_goto_music_player_opensles);
         gotoMusicAndVideoPlayerButton = (Button) findViewById(R.id.bt_goto_music_and_video_player);
+        gotoLivePushButton = (Button) findViewById(R.id.bt_goto_living_push_page);
 
         FFmpegUsageClick click = new FFmpegUsageClick();
         changeFormatButton.setOnClickListener(click);
@@ -59,6 +62,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotoMusicPlayerButton.setOnClickListener(click);
         gotoMusicPlayerOpenSLESButton.setOnClickListener(click);
         gotoMusicAndVideoPlayerButton.setOnClickListener(click);
+        gotoLivePushButton.setOnClickListener(click);
     }
 
     void changeMP4toAVI()
@@ -135,6 +139,15 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     *  进入FFmpeg 视频推流页面
+     */
+    void gotoLivePushPage()
+    {
+        Intent intent = new Intent(this, LivePushMainActivity.class);
+        startActivity(intent);
+    }
+
     private class FFmpegUsageClick implements View.OnClickListener {
 
         @Override
@@ -166,6 +179,9 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_goto_music_and_video_player:
                     gotoMusicAndVideoPlayerPage();
+                    break;
+                case R.id.bt_goto_living_push_page:
+                    gotoLivePushPage();
                     break;
             }
         }

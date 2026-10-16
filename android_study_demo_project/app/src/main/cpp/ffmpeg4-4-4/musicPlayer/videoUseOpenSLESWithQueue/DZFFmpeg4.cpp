@@ -3,7 +3,7 @@
 //
 
 #include "DZFFmpeg4.h"
-void *threadReadPacket(void* context);
+void *threadReadPacket4(void* context);
 
 DZFFmpeg4::DZFFmpeg4(DZJNICall4 *pJniCall, const char *url) {
     this->pJniCall = pJniCall;
@@ -21,7 +21,7 @@ DZFFmpeg4::~DZFFmpeg4() {
 void DZFFmpeg4::play() {
     //一个线程去读 Packet
     pthread_t readPacketThreadT;
-    pthread_create(&readPacketThreadT,NULL,threadReadPacket,this);
+    pthread_create(&readPacketThreadT,NULL,threadReadPacket4,this);
     pthread_detach(readPacketThreadT);
     if(pAudio != NULL)
     {
@@ -38,7 +38,7 @@ void DZFFmpeg4::play() {
 
 
 //一个线程去解码
-void *threadReadPacket(void* context)
+void *threadReadPacket4(void* context)
 {
     DZFFmpeg4 *pFFmpeg4 = (DZFFmpeg4 *)context;
 
@@ -109,7 +109,7 @@ void DZFFmpeg4::release() {
     }
 }
 
-void *threadPrepare(void* context)
+void *threadPrepare4(void* context)
 {
     DZFFmpeg4 *pFFmpeg = (DZFFmpeg4 *)context;
     pFFmpeg->prepare(THREAD_CHILD);
@@ -125,7 +125,7 @@ void DZFFmpeg4::prepareAsync() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t prepareThreadT;
     //this：传给 threadPrepare 的参数，也就是当前 DZFFmpeg4 对象指针。在线程内部可以强转回来
-    pthread_create(&prepareThreadT,NULL,threadPrepare,this);
+    pthread_create(&prepareThreadT,NULL,threadPrepare4,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(prepareThreadT);
 }

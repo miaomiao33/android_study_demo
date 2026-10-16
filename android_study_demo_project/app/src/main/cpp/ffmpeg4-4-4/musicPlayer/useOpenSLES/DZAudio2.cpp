@@ -16,7 +16,7 @@ DZAudio2::DZAudio2(int audioStreamIndex, DZJNICall2 *pJniCall, AVCodecContext *p
     resampleOutBuffer = (uint8_t *)malloc(pCodecContext->frame_size * 2 * 2);
 }
 
-void *threadPlay(void* context)
+void *threadPlay2(void* context)
 {
     DZAudio2 *pDZAudio = (DZAudio2 *)context;
     //初始化 OpenSLES
@@ -30,7 +30,7 @@ void DZAudio2::play() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t playThreadT;
     //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg2 对象指针。在线程内部可以强转回来
-    pthread_create(&playThreadT,NULL,threadPlay,this);
+    pthread_create(&playThreadT,NULL,threadPlay2,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(playThreadT);
 }

@@ -12,7 +12,7 @@ import com.example.android_study_demo_project.R;
 import java.io.File;
 
 public class MusicAndVideoPlayerMainActivity extends AppCompatActivity {
-    File mVideoFile = new File(Environment.getExternalStorageDirectory(),".mp4");
+    File mVideoFile = new File(getExternalFilesDir(Environment.DIRECTORY_MOVIES),"videoTest.mp4");
     private DZVideoView mVideoView;
 
 
@@ -33,11 +33,9 @@ public class MusicAndVideoPlayerMainActivity extends AppCompatActivity {
     }
 
 
-
     public void play(View view) {
-        //播放音频
+        //播放
         mVideoView.play(mVideoFile.getAbsolutePath());
-
     }
 
 }

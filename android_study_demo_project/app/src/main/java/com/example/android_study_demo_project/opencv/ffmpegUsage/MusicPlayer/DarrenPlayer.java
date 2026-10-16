@@ -17,7 +17,7 @@ public class DarrenPlayer {
         this.mErrorListener = mErrorListener;
     }
     //called from jni
-    private void onError(int code,String msg)
+    public void onError(int code,String msg)
     {
         if(mErrorListener != null)
         {
@@ -30,7 +30,7 @@ public class DarrenPlayer {
         this.mPreparedListener = preparedListener;
     }
     //called from jni
-    private void onPrepared()
+    public void onPrepared()
     {
         if(mPreparedListener != null)
         {

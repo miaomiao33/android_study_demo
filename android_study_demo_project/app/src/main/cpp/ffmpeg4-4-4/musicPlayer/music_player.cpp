@@ -13,6 +13,7 @@ DZFFmpeg *pFFmpeg;
 JavaVM *pJavaVM = NULL;
 
 //重写 so 被加载时会调用的一个方法
+//本方法别的地方在使用时，记得注释掉
 //作业：了解一下什么叫动态注册
 extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *javaVm, void *reserved)
@@ -20,12 +21,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *javaVm, void *reserved)
     LOGE("JNI_OnLoad -->")
     pJavaVM = javaVm;
     JNIEnv *env;
-    if(javaVm->GetEnv((void **)(&env), JNI_VERSION_1_4) != JNI_OK)
+    if(javaVm->GetEnv((void **)(&env), JNI_VERSION_1_6) != JNI_OK)
     {
         return -1;
     }
 
-    return JNI_VERSION_1_4;
+    return JNI_VERSION_1_6;
 }
 
 //静态注册

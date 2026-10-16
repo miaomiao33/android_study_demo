@@ -19,7 +19,31 @@ DZFFmpeg::~DZFFmpeg() {
 void *threadPlay(void* context)
 {
     DZFFmpeg *pFFmpeg = (DZFFmpeg *)context;
+
+    /** 当前线程是子线程，故使用 jniEnv 前需要注意 **/
+    JavaVM* javaVm = pFFmpeg->pJniCall->javaVm;
+    JNIEnv *env = nullptr;
+    bool needDetach = false;
+    jint ret = javaVm->GetEnv((void**)&env, JNI_VERSION_1_6);
+    if(ret == JNI_EDETACHED)
+    {
+        if(javaVm->AttachCurrentThread(&env, nullptr) != JNI_OK)
+        {
+            LOGE("threadPlay AttachCurrentThread failed");
+            return nullptr;
+        }
+        needDetach = true;
+    }
+
+    // 整个prepare 内部所有JNI调用，复用本次attach
     pFFmpeg->prepare(THREAD_CHILD);
+
+    // 线程退出，解绑一次
+    if(needDetach)
+    {
+        javaVm->DetachCurrentThread();
+    }
+    /** 当前线程是子线程，故使用 jniEnv 前需要注意 **/
 
     return 0;
 }
@@ -218,28 +242,43 @@ void DZFFmpeg::prepare(ThreadMode threadMode) {
     resampleOutBuffer = (uint8_t *)malloc(dataSize);
     //------- 重采样 end -------
 
-
-    //pJniCall->jniEnv: 主线程的，如果是子线程需要 attach，因为当前的prepare()是开启的一个子线程操作的，下面是例子
-//    if(threadMode == THREAD_MAIN)
-//    {
-//        jbyteArray jPcmByteArray = pJniCall->jniEnv->NewByteArray(dataSize);
-//    } else if(threadMode == THREAD_CHILD){
-//        //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
-//        JNIEnv *env;
-//        if(pJniCall->javaVm->AttachCurrentThread(&env,0) != JNI_OK)
-//        {
-//            LOGE("get child thread jniEnv error!");
-//            return;
-//        }
-//        jbyteArray jPcmByteArray = pJniCall->jniEnv->NewByteArray(dataSize);
-//        pJniCall->javaVm->DetachCurrentThread();
-//    }
+//    /// 防止内存使用过大写法(注意更换av_samples_get_buffer_size参数取值，pFrame没有数值)
+//    jbyteArray jPcmByteArray = pJniCall->jniEnv->NewByteArray(dataSize);
+//    //同步数据到Java中
+//    //native 创建 C 数组
+//    jbyte *jPcmData = pJniCall->jniEnv->GetByteArrayElements(jPcmByteArray,NULL);
+//    ///
+    /** 当前线程是子线程，故使用 jniEnv 前需要注意  **/
     /// 防止内存使用过大写法(注意更换av_samples_get_buffer_size参数取值，pFrame没有数值)
-    jbyteArray jPcmByteArray = pJniCall->jniEnv->NewByteArray(dataSize);
+    jbyteArray jPcmByteArray = NULL;
     //同步数据到Java中
     //native 创建 C 数组
-    jbyte *jPcmData = pJniCall->jniEnv->GetByteArrayElements(jPcmByteArray,NULL);
-    ///
+    jbyte *jPcmData = NULL;
+
+    //pJniCall->jniEnv: 主线程的 env，
+    //如果当前是子线程需要 attach，最好在 prepare 外面进行 attach，这样整个 prepare 都可以复用
+    //==== 子线程模式：从javaVm拿当前线程env，不再重复attach====
+    JNIEnv *env = nullptr;
+    jint retGetEnv = pJniCall->javaVm->GetEnv((void**)&env, JNI_VERSION_1_6);
+    // 线程已经在threadPlay attach好了，这里一定是JNI_OK
+    if(retGetEnv != JNI_OK || env == nullptr)
+    {
+        LOGE("get env failed inside prepare");
+        return;
+    }
+
+    // 不管主线程子线程，子线程直接使用上面拿到的env
+    if(threadMode == THREAD_MAIN)
+    {
+        jPcmByteArray = pJniCall->jniEnv->NewByteArray(dataSize);
+        jPcmData = pJniCall->jniEnv->GetByteArrayElements(jPcmByteArray,NULL);
+    } else if(threadMode == THREAD_CHILD){
+        jPcmByteArray = env->NewByteArray(dataSize);
+        jPcmData = env->GetByteArrayElements(jPcmByteArray,NULL);
+        // Attach/Detach 已经在线程入口处理了
+    }
+    /** 当前线程是子线程，故使用 jniEnv 前需要注意 end **/
+
 
     //不断读取压缩数据并解码成 PCM 数据
     while(av_read_frame(pFormatContext,pPacket) >= 0)
@@ -270,8 +309,16 @@ void DZFFmpeg::prepare(ThreadMode threadMode) {
 
                     memcpy(jPcmData, resampleOutBuffer,dataSize);//拷贝数据
 
-                    // 0: 把 C 的数组的数据同步到 jbyteArray，然后释放 native 数组; JNI_COMMIT不释放，继续使用
-                    pJniCall->jniEnv->ReleaseByteArrayElements(jPcmByteArray,jPcmData,JNI_COMMIT);
+                    /** 当前线程是子线程，故使用 jniEnv 前需要注意 **/
+                    // ========== 子线程使用env，不要用pJniCall->jniEnv ==========
+                    if(threadMode == THREAD_MAIN)
+                    {
+                        // 0: 把 C 的数组的数据同步到 jbyteArray，然后释放 native 数组; JNI_COMMIT不释放，继续使用
+                        pJniCall->jniEnv->ReleaseByteArrayElements(jPcmByteArray,jPcmData,JNI_COMMIT);
+                    }else{
+                        env->ReleaseByteArrayElements(jPcmByteArray,jPcmData,JNI_COMMIT);
+                    }
+                    /** 当前线程是子线程，故使用 jniEnv 前需要注意 end **/
 
                     //TODO
                     pJniCall->callAudioTrackWrite(jPcmByteArray,0,dataSize);
@@ -293,12 +340,16 @@ void DZFFmpeg::prepare(ThreadMode threadMode) {
     pPacket = NULL;
     pFrame = NULL;
 
-    ///节约内存写法
-    // 0: 把 C 的数组的数据同步到 jbyteArray，然后释放 native 数组
-    pJniCall->jniEnv->ReleaseByteArrayElements(jPcmByteArray,jPcmData,0);
-    //解除 jPcmByteArray 的持有，让 JavaGC 回收
-    pJniCall->jniEnv->DeleteLocalRef(jPcmByteArray);
-    ///
+    /** 当前线程是子线程，故使用 jniEnv 前需要注意 **/
+    if(threadMode == THREAD_MAIN)
+    {
+        pJniCall->jniEnv->ReleaseByteArrayElements(jPcmByteArray,jPcmData,0);
+        pJniCall->jniEnv->DeleteLocalRef(jPcmByteArray);
+    } else if(threadMode == THREAD_CHILD){
+        env->ReleaseByteArrayElements(jPcmByteArray,jPcmData,0);
+        env->DeleteLocalRef(jPcmByteArray);
+    }
+    /** 当前线程是子线程，故使用 jniEnv 前需要注意 end **/
 
 }
 

@@ -48,7 +48,7 @@ void DZFFmpeg3::release() {
     }
 }
 
-void *threadPrepare(void* context)
+void *threadPrepare3(void* context)
 {
     DZFFmpeg3 *pFFmpeg = (DZFFmpeg3 *)context;
     pFFmpeg->prepare(THREAD_CHILD);
@@ -64,7 +64,7 @@ void DZFFmpeg3::prepareAsync() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t prepareThreadT;
     //this：传给 threadPrepare 的参数，也就是当前 DZFFmpeg3 对象指针。在线程内部可以强转回来
-    pthread_create(&prepareThreadT,NULL,threadPrepare,this);
+    pthread_create(&prepareThreadT,NULL,threadPrepare3,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(prepareThreadT);
 }

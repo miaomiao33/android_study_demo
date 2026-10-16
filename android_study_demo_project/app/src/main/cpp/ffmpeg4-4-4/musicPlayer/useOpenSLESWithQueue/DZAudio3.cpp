@@ -18,7 +18,7 @@ DZAudio3::~DZAudio3() {
     release();
 }
 //一个线程去播放
-void *threadPlay(void* context)
+void *threadPlay3(void* context)
 {
     DZAudio3 *pAudio = (DZAudio3 *)context;
     //初始化 OpenSLES
@@ -68,7 +68,7 @@ void DZAudio3::play() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t playThreadT;
     //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg3 对象指针。在线程内部可以强转回来
-    pthread_create(&playThreadT,NULL,threadPlay,this);
+    pthread_create(&playThreadT,NULL,threadPlay3,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(playThreadT);
 }
