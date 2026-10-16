@@ -18,8 +18,9 @@ DZVideo4::~DZVideo4() {
 //一个线程去播放
 void *threadVideoPlay(void* context)
 {
+    //当前是子线程
     DZVideo4 *pVideo = (DZVideo4 *)context;
-    //去解码一帧
+    //去队列获取并解码一帧
     resampleVideo(pVideo);
     return 0;
 }
@@ -34,20 +35,34 @@ void DZVideo4::play() {
     pthread_detach(playThreadT);
 }
 
-//去解码一帧
+//去队列获取并解码一帧
 int resampleVideo(DZVideo4 *pVideo)
 {
+    //当前为子线程，但是只有获取窗口一处地方使用了env，故 AttachCurrentThread 不放外面
     ///绑定 Surface 的缓冲区
     //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
-    JNIEnv *env;
-    if(pVideo->pJniCall->javaVm->AttachCurrentThread(&env,0) != JNI_OK)
+    JavaVM* javaVm = pVideo->pJniCall->javaVm;
+    JNIEnv *env = nullptr;
+    bool needDetach = false;
+    jint ret = javaVm->GetEnv((void**)&env, JNI_VERSION_1_6);
+    if(ret == JNI_EDETACHED)
     {
-        LOGE("get child thread jniEnv error!");
-        return 0;
+        if(pVideo->pJniCall->javaVm->AttachCurrentThread(&env,0) != JNI_OK)
+        {
+            LOGE("get child thread jniEnv error!");
+            return 0;
+        }
+        needDetach = true;
     }
+
     //1、获取窗体
     ANativeWindow *pNativeWindow= ANativeWindow_fromSurface(env,pVideo->surface);
-    pVideo->pJniCall->javaVm->DetachCurrentThread();
+
+    // 线程退出，解绑一次
+    if(needDetach)
+    {
+        pVideo->pJniCall->javaVm->DetachCurrentThread();
+    }
 
     //2、设置缓冲区的数据
     ANativeWindow_setBuffersGeometry(pNativeWindow, pVideo->pCodecContext->width,
@@ -114,6 +129,11 @@ int resampleVideo(DZVideo4 *pVideo)
     return dataSize;
 }
 
+/***
+ * 视频同步音频，计算获取休眠的时间
+ * @param pFrame
+ * @return
+ */
 double DZVideo4::getFrameSleepTime(AVFrame *pFrame)
 {
     double times = static_cast<double>(pFrame->best_effort_timestamp) * av_q2d(timeBase);

@@ -29,6 +29,7 @@ public:
     int audioStreamIndex = -1;
     DZPacketQueue3 *pPacketQueue = NULL;
     DZPlayerStatus3 *pPlayerStatus = NULL;
+    AVFrame *pFrame = NULL;  // 新增成员，只分配一次
 
 public:
     DZAudio3(int audioStreamIndex, DZJNICall3 *pJniCall, AVFormatContext *pFormatContext);
@@ -39,7 +40,7 @@ public:
 
     void initCreateOpenSLES3();
 
-    int resampleAudio();
+    int resampleAudio3();
 
     void analysisStream(ThreadMode threadMode, AVStream **streams);
 

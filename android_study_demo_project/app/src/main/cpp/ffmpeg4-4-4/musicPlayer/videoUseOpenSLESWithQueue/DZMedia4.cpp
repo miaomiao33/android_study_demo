@@ -82,6 +82,6 @@ void DZMedia4::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     //失败了释放资源
     release();
     //回调给 Java 层调用
-    pJniCall->callPlayerError(threadMode,code,msg);
+    pJniCall->callPlayerError4(threadMode,code,msg);
 }
 

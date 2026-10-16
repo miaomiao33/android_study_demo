@@ -34,13 +34,14 @@ public class MusicPlayerMainActivity extends AppCompatActivity {
             }
         });
 
-        //使用AudioTrack播放音频
-        mPlayer.play();
+//        //使用AudioTrack播放音频
+//        mPlayer.play();
 
 //        //使用OpenSLES播放音频
 //        mPlayer.prepare();
 //        mPlayer.playOpenSLES();
-        //异步准备
+
+//        //异步准备（不带队列）
 //        mPlayer.setOnPreparedListener(new MediaPreparedListener() {
 //            @Override
 //            public void onPrepared() {
@@ -48,7 +49,16 @@ public class MusicPlayerMainActivity extends AppCompatActivity {
 //                mPlayer.playOpenSLES();
 //            }
 //        });
-//
 //        mPlayer.prepareAsync();
+//
+        //异步准备（带队列）
+        mPlayer.setOnPreparedListener(new MediaPreparedListener() {
+            @Override
+            public void onPrepared() {
+                Log.i("TAG","准备完毕");
+                mPlayer.playOpenSLESWithQueue();
+            }
+        });
+        mPlayer.prepareAsyncWithQueue();
     }
 }

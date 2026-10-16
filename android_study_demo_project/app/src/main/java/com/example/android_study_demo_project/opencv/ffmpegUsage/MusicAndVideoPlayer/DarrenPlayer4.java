@@ -25,7 +25,7 @@ public class DarrenPlayer4 {
         this.mErrorListener = mErrorListener;
     }
     //called from jni
-    private void onError(int code,String msg)
+    public void onError(int code,String msg)
     {
         if(mErrorListener != null)
         {
@@ -34,7 +34,7 @@ public class DarrenPlayer4 {
     }
 
     //called from jni
-    private void onPrepared()
+    public void onPrepared()
     {
         if(mPreparedListener != null)
         {

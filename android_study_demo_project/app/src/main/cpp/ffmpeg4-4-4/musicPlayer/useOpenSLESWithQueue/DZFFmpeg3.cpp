@@ -22,7 +22,6 @@ void DZFFmpeg3::play() {
         //调用 Audio 进行音频播放
         pAudio->play();
     }
-
 }
 
 
@@ -45,6 +44,12 @@ void DZFFmpeg3::release() {
     {
         free(url);
         url = NULL;
+    }
+
+    if(pAudio != nullptr)
+    {
+        delete pAudio;
+        pAudio = nullptr;
     }
 }
 
@@ -115,12 +120,12 @@ void DZFFmpeg3::prepare(ThreadMode threadMode) {
     //------- 重采样 end -------
 
     //回调到 Java 层，通知准备好了
-    pJniCall->callPlayerPrepared(threadMode);
+    pJniCall->callPlayerPrepared3(threadMode);
 }
 
 void DZFFmpeg3::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     //失败了释放资源
     release();
     //回调给 Java 层调用
-    pJniCall->callPlayerError(threadMode,code,msg);
+    pJniCall->callPlayerError3(threadMode,code,msg);
 }

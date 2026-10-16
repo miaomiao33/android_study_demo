@@ -88,7 +88,7 @@
         android:id="@+id/bt_goto_music_player_opensles"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="MusicPlayer 播放器(使用OpenSLES)"
+        android:text="MusicPlayer PCM播放器(使用OpenSLES)"
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

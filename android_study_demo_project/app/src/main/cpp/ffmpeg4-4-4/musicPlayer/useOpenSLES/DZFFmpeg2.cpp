@@ -17,6 +17,7 @@ DZFFmpeg2::~DZFFmpeg2() {
 
 
 void DZFFmpeg2::play() {
+    //当前在主线程进行播放
     if(pAudio != NULL)
     {
         //调用 Audio 进行音频播放
@@ -29,7 +30,7 @@ void DZFFmpeg2::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     //失败了释放资源
     release();
     //回调给 Java 层调用
-    pJniCall->callPlayerError(threadMode,code,msg);
+    pJniCall->callPlayerError2(threadMode,code,msg);
 }
 
 void DZFFmpeg2::release() {
@@ -69,7 +70,7 @@ void DZFFmpeg2::release() {
     }
 }
 
-void *threadPrepare(void* context)
+void *threadPrepare2(void* context)
 {
     DZFFmpeg2 *pFFmpeg = (DZFFmpeg2 *)context;
     pFFmpeg->prepare(THREAD_CHILD);
@@ -85,7 +86,7 @@ void DZFFmpeg2::prepareAsync() {
     //创建一个线程去播放，多线程边解码边播放
     pthread_t prepareThreadT;
     //this：传给 threadPrepare 的参数，也就是当前 DZFFmpeg2 对象指针。在线程内部可以强转回来
-    pthread_create(&prepareThreadT,NULL,threadPrepare,this);
+    pthread_create(&prepareThreadT,NULL,threadPrepare2,this);
     //把线程设置为 分离态 ,线程退出后自动释放线程资源，不需要 pthread_join 等待回收
     pthread_detach(prepareThreadT);
 }
@@ -201,5 +202,5 @@ void DZFFmpeg2::prepare(ThreadMode threadMode) {
     pAudio = new DZAudio2(audioStreamIndex, pJniCall, pCodecContext, pFormatContext, swrContext);
     //------- 重采样 end -------
     //回调到 Java 层，通知准备好了
-    pJniCall->callPlayerPrepared(threadMode);
+    pJniCall->callPlayerPrepared2(threadMode);
 }

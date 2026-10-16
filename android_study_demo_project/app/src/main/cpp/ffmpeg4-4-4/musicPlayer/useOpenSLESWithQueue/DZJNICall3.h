@@ -29,9 +29,9 @@ public:
 
 public:
 
-    void callPlayerError(ThreadMode threadMode,int code, char *msg);
+    void callPlayerError3(ThreadMode threadMode,int code, char *msg);
 
-    void callPlayerPrepared(ThreadMode mode);
+    void callPlayerPrepared3(ThreadMode mode);
 };
 
 

@@ -106,20 +106,19 @@ public class DarrenPlayer {
     }
 
 
+
+    private native void nPrepare(String url);
     //使用普通的AudioTrack播放
     private native void nPlay(String url);
 
+    //异步准备方法
+    private native void nPrepareAsync(String url);
     //使用OpenSLES进行播放
     private native void nPlayOpenSLES(String url);
 
-    private native void nPrepare(String url);
-
-    //异步准备方法
-    private native void nPrepareAsync(String url);
+    //带队列的异步准备方法
+    private native void nPrepareAsyncWithQueue(String url);
 
     //带队列的异步播放
     private native void nPlayOpenSLESWithQueue(String url);
-    //带队列的异步准备方法
-
-    private native void nPrepareAsyncWithQueue(String url);
 }

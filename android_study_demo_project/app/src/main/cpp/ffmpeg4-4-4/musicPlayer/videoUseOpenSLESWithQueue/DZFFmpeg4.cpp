@@ -60,10 +60,11 @@ void *threadReadPacket4(void* context)
                 av_packet_free(&pPacket);
             }
         } else{
+            // 文件读取结束
             //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
             av_packet_free(&pPacket);
             //解码完了，睡眠一下，尽量不去消耗CPU的资源，也可以退出销毁这个线程
-            //break;
+            break;
         }
     }
 
@@ -191,19 +192,19 @@ void DZFFmpeg4::prepare(ThreadMode threadMode) {
     }
     //不是我的事我不干，但是不要想的过于复杂
     pVideo = new DZVideo4(videoStreamIndex, pJniCall, pPlayerStatus,pAudio);
-    //初始化Audio
+    //初始化 pVideo
     pVideo->analysisStream(threadMode, pFormatContext);
 
 
     //回调到 Java 层，通知准备好了
-    pJniCall->callPlayerPrepared(threadMode);
+    pJniCall->callPlayerPrepared4(threadMode);
 }
 
 void DZFFmpeg4::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     //失败了释放资源
     release();
     //回调给 Java 层调用
-    pJniCall->callPlayerError(threadMode,code,msg);
+    pJniCall->callPlayerError4(threadMode,code,msg);
 }
 
 void DZFFmpeg4::setSurface(jobject surface) {

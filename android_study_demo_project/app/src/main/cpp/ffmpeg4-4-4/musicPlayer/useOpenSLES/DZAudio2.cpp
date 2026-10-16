@@ -18,6 +18,7 @@ DZAudio2::DZAudio2(int audioStreamIndex, DZJNICall2 *pJniCall, AVCodecContext *p
 
 void *threadPlay2(void* context)
 {
+    //当前是子线程内
     DZAudio2 *pDZAudio = (DZAudio2 *)context;
     //初始化 OpenSLES
     pDZAudio->initCreateOpenSLES2();
@@ -26,7 +27,6 @@ void *threadPlay2(void* context)
 }
 
 void DZAudio2::play() {
-
     //创建一个线程去播放，多线程边解码边播放
     pthread_t playThreadT;
     //this：传给 threadPlay 的参数，也就是当前 DZFFmpeg2 对象指针。在线程内部可以强转回来
@@ -95,6 +95,7 @@ int DZAudio2::resampleAudio()
 
 //初始化OpenSLES，并进行播放
 void DZAudio2::initCreateOpenSLES2() {
+    //当前在子线程，但是未使用env
     //3.1创建引擎接口对象(设置参数，实现，获取接口)
     SLObjectItf engineObject = NULL;
     SLEngineItf engineEngine;
@@ -156,6 +157,8 @@ void DZAudio2::initCreateOpenSLES2() {
 
 void playerCallback2(SLAndroidSimpleBufferQueueItf caller,void *pContext){
     DZAudio2 *pDZAudio = (DZAudio2 *)pContext;
+    //去解码一帧
     int dataSize = pDZAudio->resampleAudio();
+    //放入 OpenSLES 的队列中进行播放
     (*caller)->Enqueue(caller,pDZAudio->resampleOutBuffer,dataSize);
 }

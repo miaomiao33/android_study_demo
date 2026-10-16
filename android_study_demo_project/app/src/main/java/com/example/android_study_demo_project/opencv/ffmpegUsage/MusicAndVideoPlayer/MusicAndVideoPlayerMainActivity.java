@@ -12,7 +12,7 @@ import com.example.android_study_demo_project.R;
 import java.io.File;
 
 public class MusicAndVideoPlayerMainActivity extends AppCompatActivity {
-    File mVideoFile = new File(getExternalFilesDir(Environment.DIRECTORY_MOVIES),"videoTest.mp4");
+    File mVideoFile ;
     private DZVideoView mVideoView;
 
 
@@ -20,6 +20,8 @@ public class MusicAndVideoPlayerMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_and_video_player_main);
+        //播放 /storage/emulated/0/Android/data/com.example.android_study_demo_project/files/Movie 下的 videoTest.mp4
+        mVideoFile = new File(getExternalFilesDir(Environment.DIRECTORY_MOVIES),"videoTest.mp4");
 
         Button playButton = findViewById(R.id.bt_video_player_play);
         playButton.setOnClickListener(new View.OnClickListener() {

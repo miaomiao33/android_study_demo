@@ -12,6 +12,7 @@ DZAudio3::DZAudio3(int audioStreamIndex, DZJNICall3 *pJniCall, AVFormatContext *
     this->pFormatContext = pFormatContext;
     pPacketQueue = new DZPacketQueue3();
     pPlayerStatus = new DZPlayerStatus3();
+    pFrame = av_frame_alloc(); // 只分配一次！
 }
 
 DZAudio3::~DZAudio3() {
@@ -28,7 +29,7 @@ void *threadPlay3(void* context)
 }
 
 //一个线程去解码
-void *threadReadPacket(void* context)
+void *threadReadPacket3(void* context)
 {
     DZAudio3 *pAudio = (DZAudio3 *)context;
 
@@ -40,6 +41,7 @@ void *threadReadPacket(void* context)
         {
             if(pPacket->stream_index == pAudio->audioStreamIndex)
             {
+                //音频
                 pAudio->pPacketQueue->push(pPacket);
             } else{
                 //视频
@@ -47,13 +49,13 @@ void *threadReadPacket(void* context)
                 av_packet_free(&pPacket);
             }
         } else{
+            // 文件读取结束
             //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
             av_packet_free(&pPacket);
             //解码完了，睡眠一下，尽量不去消耗CPU的资源，也可以退出销毁这个线程
-            //break;
+            break;
         }
     }
-
 
     return 0;
 }
@@ -61,7 +63,7 @@ void *threadReadPacket(void* context)
 void DZAudio3::play() {
     //一个线程去读 Packet
     pthread_t readPacketThreadT;
-    pthread_create(&readPacketThreadT,NULL,threadReadPacket,this);
+    pthread_create(&readPacketThreadT,NULL,threadReadPacket3,this);
     pthread_detach(readPacketThreadT);
 
     //一个线程去解码播放
@@ -74,24 +76,46 @@ void DZAudio3::play() {
 }
 
 
-//去解码一帧
-int DZAudio3::resampleAudio()
+//去队列解码一帧
+int DZAudio3::resampleAudio3()
 {
-    AVPacket *pPacket = NULL;
-    AVFrame *pFrame = av_frame_alloc();
     int dataSize = 0;
-
     //不断读取压缩数据并解码成 PCM 数据
     while(pPlayerStatus != NULL && !pPlayerStatus->isExit)
     {
-        pPacket = pPacketQueue->pop();
+        //最多等待20ms，拿不到包直接返回nullptr，不永久卡住音频线程
+        AVPacket *pPacket = pPacketQueue->pop_timeout(20);
+        if(pPacket == nullptr)
+        {
+            LOGI("队列空，无音频包");
+            // 队列空，没有数据，直接返回0，OpenSL 会填充静音,等待 OpenSL 下次循环
+            av_frame_unref(pFrame);
+            return 0;
+        }
+        LOGI("拿到音频packet");
+        
         //音频
         //Packet 包，压缩的数据，解码成 PCM 数据
         int codecSendPacketRes = avcodec_send_packet(pCodecContext,pPacket);
-        if(codecSendPacketRes == 0)
+
+        // packet使命完成！立刻在当前轮次内完整释放，不要跨轮持有！
+        av_packet_unref(pPacket);   // 释放内部音频data
+        av_packet_free(&pPacket);    // 释放AVPacket结构体本身
+        pPacket = nullptr;
+
+        // send失败（EAGAIN/错误），继续循环取下一个包
+        if(codecSendPacketRes != 0)
         {
+            av_frame_unref(pFrame);
+            continue;
+        } else{
             int codecReceiveFrameRes = avcodec_receive_frame(pCodecContext,pFrame);
-            if(codecReceiveFrameRes == 0)
+            if(codecReceiveFrameRes != 0)
+            {
+                // EAGAIN：解码器内部还没攒够一帧，继续循环喂下一个packet
+                av_frame_unref(pFrame);
+                continue;
+            } else
             {
                 // AVPacket -> AVFrame
                 LOGI("解码音频帧");
@@ -108,21 +132,26 @@ int DZAudio3::resampleAudio()
                 //size 是多大，装 PCM 的数据
                 //1s（1秒）：44100采样点 2通道 2字节，总的 44100 * 2 * 2
                 //1帧不是一秒，pFrame->nb_samples点
+
+                // 释放当前frame引用，退出循环，把PCM喂给OpenSL
+                av_frame_unref(pFrame);
                 break;
             }
         }
-
-        //解引用(让这一块结构体不指向 data 内存区域，这样可以重复利用 pPacket 等结构体)
-        av_packet_unref(pPacket);
-        av_frame_unref(pFrame);
+//        //解引用(让这一块结构体不指向 data 内存区域，这样可以重复利用 pPacket 等结构体)
+//        av_packet_unref(pPacket);
+//        av_frame_unref(pFrame);
+//        pPacket = nullptr; //清空本地指针，防止重复操作
     }
 
-    //释放掉结构体内存
-    //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
-    av_packet_free(&pPacket);
-    av_frame_free(&pFrame);
-    pPacket = NULL;
-    pFrame = NULL;
+//    // 不能在这里av_packet_free！packet结构体所有权属于PacketQueue
+//    // 只负责 av_packet_unref释放packet里面的data缓冲区
+//    //释放掉结构体内存
+//    //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
+//    av_packet_free(&pPacket);
+//    av_frame_free(&pFrame);
+//    pPacket = NULL;
+//    pFrame = NULL;
 
     return dataSize;
 }
@@ -263,7 +292,7 @@ void DZAudio3::callPlayerJniError(ThreadMode threadMode, int code, char *msg) {
     //失败了释放资源
     release();
     //回调给 Java 层调用
-    pJniCall->callPlayerError(threadMode,code,msg);
+    pJniCall->callPlayerError3(threadMode,code,msg);
 }
 
 void DZAudio3::release() {
@@ -296,14 +325,23 @@ void DZAudio3::release() {
     if(pSwrContext != NULL)
     {
         swr_free(&pSwrContext);
-        free(pSwrContext);
+       // free(pSwrContext); //swr_free已经释放内存
         pSwrContext = NULL;
+    }
+
+    //释放AVFrame
+    if(pFrame != nullptr)
+    {
+        av_frame_free(&pFrame);
+        pFrame = nullptr;
     }
 }
 
-
+//最好是 单独开一个解码线程预解码 PCM 放到 PCM 环形 buffer，OpenSL 回调只读取 PCM，完全不碰 packet 队列和解码器。
 void playerCallback3(SLAndroidSimpleBufferQueueItf caller,void *pContext){
     DZAudio3 *pAudio = (DZAudio3 *)pContext;
-    int dataSize = pAudio->resampleAudio();
+    //去队列解码一帧
+    int dataSize = pAudio->resampleAudio3();
+    //放入缓冲区
     (*caller)->Enqueue(caller,pAudio->resampleOutBuffer,dataSize);
 }

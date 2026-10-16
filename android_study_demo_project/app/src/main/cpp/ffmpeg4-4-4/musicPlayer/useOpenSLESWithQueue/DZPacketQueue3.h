@@ -27,6 +27,7 @@ public:
 public:
     void push(AVPacket *pPacket);
     AVPacket* pop();
+    AVPacket* pop_timeout(int ms);
     /***
      * 清理整个队列
      */
