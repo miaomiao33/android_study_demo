@@ -8,6 +8,7 @@ void playerCallback4(SLAndroidSimpleBufferQueueItf caller,void *pContext);
 
 DZAudio4::DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *pPlayerStatus)
 :DZMedia4(audioStreamIndex,pJniCall,pPlayerStatus) {
+    pFrame = av_frame_alloc();
 }
 
 DZAudio4::~DZAudio4() {
@@ -40,22 +41,39 @@ void DZAudio4::play() {
 //去解码一帧
 int DZAudio4::resampleAudio()
 {
-    AVPacket *pPacket = NULL;
-    AVFrame *pFrame = av_frame_alloc();
     int dataSize = 0;
 
     //不断读取压缩数据并解码成 PCM 数据
     while(pPlayerStatus != NULL && !pPlayerStatus->isExit)
     {
-        pPacket = pPacketQueue->pop();
-        //音频
+        //最多等待20ms，拿不到包直接返回nullptr，不永久卡住音频线程
+        AVPacket *pPacket = pPacketQueue->pop_timeout(20);
+        if(pPacket == nullptr)
+        {
+            LOGI("队列空，无音频包");
+            // 队列空，没有数据，直接返回0，OpenSL 会填充静音,等待 OpenSL 下次循环
+            av_frame_unref(pFrame);
+            return 0;
+        }
+        //视频
         //Packet 包，压缩的数据，解码成 PCM 数据
         int codecSendPacketRes = avcodec_send_packet(pCodecContext,pPacket);
-        if(codecSendPacketRes == 0)
+        // packet用完立刻完整释放，不要跨轮持有
+        av_packet_unref(pPacket);
+        av_packet_free(&pPacket);
+
+        if(codecSendPacketRes != 0)
         {
+            // send失败，立刻释放packet
+            av_frame_unref(pFrame);
+            continue;
+        } else {
             int codecReceiveFrameRes = avcodec_receive_frame(pCodecContext,pFrame);
-            if(codecReceiveFrameRes == 0)
+            if(codecReceiveFrameRes != 0)
             {
+                av_frame_unref(pFrame);
+                continue;
+            } else {
                 // AVPacket -> AVFrame
                 LOGI("解码音频帧");
 
@@ -79,21 +97,23 @@ int DZAudio4::resampleAudio()
                 //size 是多大，装 PCM 的数据
                 //1s（1秒）：44100采样点 2通道 2字节，总的 44100 * 2 * 2
                 //1帧不是一秒，pFrame->nb_samples点
+                // 释放当前frame引用，退出循环，把PCM喂给OpenSL
+                av_frame_unref(pFrame);
                 break;
             }
         }
 
-        //解引用(让这一块结构体不指向 data 内存区域，这样可以重复利用 pPacket 等结构体)
-        av_packet_unref(pPacket);
-        av_frame_unref(pFrame);
+//        //解引用(让这一块结构体不指向 data 内存区域，这样可以重复利用 pPacket 等结构体)
+//        av_packet_unref(pPacket);
+//        av_frame_unref(pFrame);
     }
 
-    //释放掉结构体内存
-    //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
-    av_packet_free(&pPacket);
-    av_frame_free(&pFrame);
-    pPacket = NULL;
-    pFrame = NULL;
+//    //释放掉结构体内存
+//    //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
+//    av_packet_free(&pPacket);
+//    av_frame_free(&pFrame);
+//    pPacket = NULL;
+//    pFrame = NULL;
 
     return dataSize;
 }
@@ -211,6 +231,12 @@ void DZAudio4::release() {
         swr_free(&pSwrContext);
         free(pSwrContext);
         pSwrContext = NULL;
+    }
+
+    if(pFrame != nullptr)
+    {
+        av_frame_free(&pFrame);
+        pFrame = nullptr;
     }
 }
 

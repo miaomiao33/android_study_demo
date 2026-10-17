@@ -49,3 +49,36 @@ AVPacket *DZPacketQueue4::pop() {
     pthread_mutex_unlock(&packetMutex);
     return nullptr;
 }
+
+
+//增加超时版本，队列为空返回 nullptr，不卡死音频线程
+AVPacket* DZPacketQueue4::pop_timeout(int ms)
+{
+    pthread_mutex_lock(&packetMutex);
+
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec += ms / 1000;
+    ts.tv_nsec += (ms % 1000) * 1000000;
+    if (ts.tv_nsec >= 1000000000)
+    {
+        ts.tv_sec++;
+        ts.tv_nsec -= 1000000000;
+    }
+
+    int ret = 0;
+    while (packetQueue->empty() && ret == 0)
+    {
+        ret = pthread_cond_timedwait(&packetCond, &packetMutex, &ts);
+    }
+
+    AVPacket *pkt = nullptr;
+    if (!packetQueue->empty())
+    {
+        pkt = packetQueue->front();
+        packetQueue->pop();
+    }
+
+    pthread_mutex_unlock(&packetMutex);
+    return pkt;
+}

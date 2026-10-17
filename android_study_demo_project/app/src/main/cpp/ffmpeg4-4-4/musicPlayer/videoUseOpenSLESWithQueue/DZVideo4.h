@@ -10,6 +10,8 @@
 #include "DZAudio4.h"
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 extern "C"{
 #include "../../../headerFile/LogUtils.h"

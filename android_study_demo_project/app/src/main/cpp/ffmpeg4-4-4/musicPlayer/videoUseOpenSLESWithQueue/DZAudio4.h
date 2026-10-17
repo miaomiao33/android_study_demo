@@ -26,6 +26,7 @@ public:
     SwrContext *pSwrContext = NULL;
     uint8_t *resampleOutBuffer = NULL;
     char *url = NULL;
+    AVFrame *pFrame = NULL;
 
 public:
     DZAudio4(int audioStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *pPlayerStatus);

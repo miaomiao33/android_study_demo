@@ -5,6 +5,8 @@
 #include "DZVideo4.h"
 
 int resampleVideo(DZVideo4 *pVideo);
+int getTid();
+bool isMainThreadNative();
 
 DZVideo4::DZVideo4(int videoStreamIndex, DZJNICall4 *pJniCall, DZPlayerStatus4 *pPlayerStatus,DZAudio4 *pAudio)
         : DZMedia4(videoStreamIndex, pJniCall, pPlayerStatus) {
@@ -79,15 +81,32 @@ int resampleVideo(DZVideo4 *pVideo)
     //不断读取压缩数据并解码成 PCM 数据
     while(pVideo->pPlayerStatus != NULL && !pVideo->pPlayerStatus->isExit)
     {
-        pPacket = pVideo->pPacketQueue->pop();
+        //最多等待20ms，拿不到包直接返回nullptr，不永久卡住音频线程
+        pPacket = pVideo->pPacketQueue->pop_timeout(20);
+        if(pPacket == nullptr)
+        {
+            LOGI("队列空，无音频包");
+            // 队列空，没有数据，直接返回0，OpenSL 会填充静音,等待 OpenSL 下次循环
+            av_frame_unref(pFrame);
+            continue;
+        }
         //音频
         //Packet 包，压缩的数据，解码成原始数据
         int codecSendPacketRes = avcodec_send_packet(pVideo->pCodecContext,pPacket);
-        if(codecSendPacketRes == 0)
+        // packet用完立刻完整释放，不要跨轮持有
+        av_packet_unref(pPacket);
+        av_packet_free(&pPacket);
+        if(codecSendPacketRes != 0)
         {
+            av_frame_unref(pFrame);
+            continue;
+        } else {
             int codecReceiveFrameRes = avcodec_receive_frame(pVideo->pCodecContext,pFrame);
-            if(codecReceiveFrameRes == 0)
+            if(codecReceiveFrameRes != 0)
             {
+                av_frame_unref(pFrame);
+                continue;
+            } else{
                 // AVPacket -> AVFrame
                 LOGI("解码视频帧");
 
@@ -115,16 +134,24 @@ int resampleVideo(DZVideo4 *pVideo)
         }
 
         //解引用(让这一块结构体不指向 data 内存区域，这样可以重复利用 pPacket 等结构体)
-        av_packet_unref(pPacket);
-        av_frame_unref(pFrame);
+//        av_packet_unref(pPacket);
+//        av_frame_unref(pFrame);
     }
 
     //释放掉结构体内存
     //1、解引用数据 data，释放 pPacket 结构体内存，3、pPacket = NULL
-    av_packet_free(&pPacket);
-    av_frame_free(&pFrame);
+    if(pPacket != NULL)
+    {
+        av_packet_free(&pPacket);//内部会自动先执行 av_packet_unref(pPacket)
+    }
+    if(pFrame != NULL)
+    {
+        av_frame_free(&pFrame);
+    }
     pPacket = NULL;
     pFrame = NULL;
+    // NativeWindow引用计数-1，防止野指针
+    ANativeWindow_release(pNativeWindow);
 
     return dataSize;
 }
@@ -234,10 +261,11 @@ void DZVideo4::privateAnalysisStream(ThreadMode threadMode, AVFormatContext *pFo
 
 void DZVideo4::release() {
     DZMedia4::release();
+
     if(pSwsContext != NULL)
     {
         sws_freeContext(pSwsContext);
-        free(pSwsContext);
+//        free(pSwsContext);
         pSwsContext = NULL;
     }
 
@@ -255,12 +283,86 @@ void DZVideo4::release() {
     }
 
     //注意 ：pJniCall 需要在 DZFFmpeg 之后销毁
-    if(pJniCall != NULL)
+    // 安全释放surface全局引用
+    if(pJniCall != NULL && surface != nullptr)
     {
-        pJniCall->jniEnv->DeleteGlobalRef(surface);
+        JavaVM* javaVm = pJniCall->javaVm;
+        JNIEnv* env = nullptr;
+        bool needDetach = false;
+
+        jint ret = javaVm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+        if(ret == JNI_EDETACHED)
+        {
+            if(javaVm->AttachCurrentThread(&env, nullptr) == JNI_OK)
+            {
+                needDetach = true;
+            }
+        }
+
+        if(env != nullptr)
+        {
+            env->DeleteGlobalRef(surface);
+            surface = nullptr;
+        }
+
+        if(needDetach)
+        {
+            javaVm->DetachCurrentThread();
+        }
     }
+
 }
 
 void DZVideo4::setSurface(jobject surface) {
-    this->surface = pJniCall->jniEnv->NewGlobalRef(surface);
+    //pJniCall->jniEnv 是主线程缓存的env，当前可能是别的线程，直接崩溃
+//    this->surface = pJniCall->jniEnv->NewGlobalRef(surface);
+
+    JavaVM* javaVm = pJniCall->javaVm;
+    JNIEnv* env = nullptr;
+    bool needDetach = false;
+
+    // 判断当前是不是主线程
+    if (!isMainThreadNative())
+    {
+        //子线程，需要attach
+        int ret = javaVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
+        if(ret == JNI_EDETACHED)
+        {
+            //线程未挂载，attach
+            if( javaVm->AttachCurrentThread(&env, nullptr) != JNI_OK)
+            {
+                LOGE("get child thread jniEnv error!");
+                return;
+            }
+            needDetach = true;
+        } else if(ret != JNI_OK)
+        {
+            LOGE("GetEnv error, ret = %d", ret);
+            return;
+        }
+        //已经挂载了，不需要再次挂载
+    }else{
+        //主线程，直接获取env
+        javaVm->GetEnv((void**)&env, JNI_VERSION_1_6);
+    }
+
+    // 在这里安全执行JNI操作 NewGlobalRef / CallVoidMethod
+    this->surface = env->NewGlobalRef(surface);
+
+    if(needDetach)
+    {
+        javaVm->DetachCurrentThread();
+    }
+}
+
+// 获取linux内核tid
+int getTid() {
+    return syscall(SYS_gettid);
+}
+
+bool isMainThreadNative()
+{
+    pid_t pid = getTid();
+    pid_t tid = getTid();
+    return pid == tid;
 }

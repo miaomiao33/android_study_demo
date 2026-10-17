@@ -32,6 +32,7 @@ public:
      */
     void clear();
 
+    AVPacket *pop_timeout(int ms);
 };
 
 
