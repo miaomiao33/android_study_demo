@@ -10,7 +10,7 @@ DZJNICall5::DZJNICall5(JavaVM *javaVm, JNIEnv *jniEnv, jobject jLiveObj) {
     //new一个全局的object，因为外面的 instance 会随着运行被释放
     this->jLiveObj = jniEnv->NewGlobalRef(jLiveObj);
 
-    jclass jPlayerClass = jniEnv->FindClass("com/example/android_study_demo_project/opencv/ffmpegUsage/MusicPlayer$DarrenPlayer");
+    jclass jPlayerClass = jniEnv->FindClass("com/example/android_study_demo_project/opencv/ffmpegUsage/MusicPlayer/DarrenPlayer");
     jPlayerErrorMid = jniEnv->GetMethodID(jPlayerClass,"onError", "(ILjava/lang/String;)V");
 
     jPlayerPreparedMid = jniEnv->GetMethodID(jPlayerClass,"onPrepared", "()V");
@@ -31,18 +31,32 @@ void DZJNICall5::callPlayerError(ThreadMode threadMode, int code, char *msg) {
         jniEnv->DeleteGlobalRef(jMsg);
     } else if(threadMode == THREAD_CHILD){
         //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
-        JNIEnv *env;
-        if(javaVm->AttachCurrentThread(&env,0) != JNI_OK)
+        JNIEnv *env = nullptr;
+        int ret = javaVm->GetEnv((void **)&jniEnv,JNI_VERSION_1_6);
+        bool  needDetach = false;
+        if(ret == JNI_EDETACHED)
         {
-            LOGE("get child thread jniEnv error!");
+            //线程未挂载，attach
+            if(javaVm->AttachCurrentThread(&env,0) != JNI_OK)
+            {
+                LOGE("get child thread jniEnv error!");
+                return;
+            }
+            needDetach = true;
+        } else if(ret != JNI_OK)
+        {
+            LOGE("GetEnv error, ret = %d", ret);
             return;
         }
 
-        jstring jMsg = jniEnv->NewStringUTF(msg);
-        jniEnv->CallVoidMethod(jLiveObj,jPlayerErrorMid,code,jMsg);
-        jniEnv->DeleteGlobalRef(jMsg);
+        jstring jMsg = env->NewStringUTF(msg);
+        env->CallVoidMethod(jLiveObj,jPlayerErrorMid,code,jMsg);
+        env->DeleteGlobalRef(jMsg);
 
-        javaVm->DetachCurrentThread();
+        if(needDetach)
+        {
+            javaVm->DetachCurrentThread();
+        }
     }
 
 }
@@ -60,16 +74,30 @@ void DZJNICall5::callPlayerPrepared(ThreadMode threadMode) {
         jniEnv->CallVoidMethod(jLiveObj,jPlayerPreparedMid);
     } else if(threadMode == THREAD_CHILD){
         //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
-        JNIEnv *env;
-        if(javaVm->AttachCurrentThread(&env,0) != JNI_OK)
+        JNIEnv *env = nullptr;
+        int ret = javaVm->GetEnv((void **)&jniEnv,JNI_VERSION_1_6);
+        bool  needDetach = false;
+        if(ret == JNI_EDETACHED)
         {
-            LOGE("get child thread jniEnv error!");
+            //线程未挂载，attach
+            if(javaVm->AttachCurrentThread(&env,0) != JNI_OK)
+            {
+                LOGE("get child thread jniEnv error!");
+                return;
+            }
+            needDetach = true;
+        } else if(ret != JNI_OK)
+        {
+            LOGE("GetEnv error, ret = %d", ret);
             return;
         }
 
         env->CallVoidMethod(jLiveObj,jPlayerPreparedMid);
 
-        javaVm->DetachCurrentThread();
+        if(needDetach)
+        {
+            javaVm->DetachCurrentThread();
+        }
     }
 
 }

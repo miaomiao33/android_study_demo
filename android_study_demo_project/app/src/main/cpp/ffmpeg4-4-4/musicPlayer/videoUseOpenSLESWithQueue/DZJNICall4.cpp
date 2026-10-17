@@ -28,7 +28,7 @@ void DZJNICall4::callPlayerError4(ThreadMode threadMode, int code, char *msg) {
     {
         jstring jMsg = jniEnv->NewStringUTF(msg);
         jniEnv->CallVoidMethod(jPlayerObj,jPlayerErrorMid,code,jMsg);
-        jniEnv->DeleteGlobalRef(jMsg);
+        jniEnv->DeleteLocalRef(jMsg);
     } else if(threadMode == THREAD_CHILD){
         //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
         JNIEnv *env = nullptr;
@@ -51,7 +51,8 @@ void DZJNICall4::callPlayerError4(ThreadMode threadMode, int code, char *msg) {
 
         jstring jMsg = env->NewStringUTF(msg);
         env->CallVoidMethod(jPlayerObj,jPlayerErrorMid,code,jMsg);
-        env->DeleteGlobalRef(jMsg);
+        //`NewStringUTF` 返回的是 LocalRef（局部引用），不是 GlobalRef！
+        env->DeleteLocalRef(jMsg);
 
         if(needDetach)
         {

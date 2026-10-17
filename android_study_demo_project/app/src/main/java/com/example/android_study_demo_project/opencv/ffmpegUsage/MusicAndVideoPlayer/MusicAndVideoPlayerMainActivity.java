@@ -38,6 +38,7 @@ public class MusicAndVideoPlayerMainActivity extends AppCompatActivity {
     public void play(View view) {
         //播放
         mVideoView.play(mVideoFile.getAbsolutePath());
+//        mVideoView.play("rtmp://192.168.0.173:1935/live/teststream");
     }
 
 }
