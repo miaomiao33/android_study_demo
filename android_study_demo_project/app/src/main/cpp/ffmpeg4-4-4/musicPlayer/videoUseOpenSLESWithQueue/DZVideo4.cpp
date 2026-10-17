@@ -60,12 +60,6 @@ int resampleVideo(DZVideo4 *pVideo)
     //1、获取窗体
     ANativeWindow *pNativeWindow= ANativeWindow_fromSurface(env,pVideo->surface);
 
-    // 线程退出，解绑一次
-    if(needDetach)
-    {
-        pVideo->pJniCall->javaVm->DetachCurrentThread();
-    }
-
     //2、设置缓冲区的数据
     ANativeWindow_setBuffersGeometry(pNativeWindow, pVideo->pCodecContext->width,
                                      pVideo->pCodecContext->height,WINDOW_FORMAT_RGBA_8888);
@@ -88,20 +82,27 @@ int resampleVideo(DZVideo4 *pVideo)
             LOGI("队列空，无音频包");
             // 队列空，没有数据，直接返回0，OpenSL 会填充静音,等待 OpenSL 下次循环
             av_frame_unref(pFrame);
-            continue;
+            return 0;
         }
         //音频
         //Packet 包，压缩的数据，解码成原始数据
         int codecSendPacketRes = avcodec_send_packet(pVideo->pCodecContext,pPacket);
-        // packet用完立刻完整释放，不要跨轮持有
-        av_packet_unref(pPacket);
-        av_packet_free(&pPacket);
+
         if(codecSendPacketRes != 0)
         {
             av_frame_unref(pFrame);
+
+            // packet用完立刻完整释放，不要跨轮持有
+            av_packet_unref(pPacket);
+            av_packet_free(&pPacket);
             continue;
         } else {
             int codecReceiveFrameRes = avcodec_receive_frame(pVideo->pCodecContext,pFrame);
+
+            // packet用完立刻完整释放，不要跨轮持有
+            av_packet_unref(pPacket);
+            av_packet_free(&pPacket);
+
             if(codecReceiveFrameRes != 0)
             {
                 av_frame_unref(pFrame);
@@ -126,8 +127,24 @@ int resampleVideo(DZVideo4 *pVideo)
                 av_usleep(frameSleepTime * 1000000);
 
                 //把数据推送到缓冲区
-                ANativeWindow_lock(pNativeWindow,&outBuffer,NULL);
-                memcpy(outBuffer.bits,pVideo->pFrameBuffer,pVideo->frameSize);//frameSize其实就是宽高*2*2
+                int lockRet = ANativeWindow_lock(pNativeWindow,&outBuffer,NULL);
+//                memcpy(outBuffer.bits,pVideo->pFrameBuffer,pVideo->frameSize);//frameSize其实就是宽高*2*2
+                //ANativeWindow 的 outBuffer 有自己的 linesize（行对齐）,不可以直接 memcpy
+                if(lockRet == 0)
+                {
+                    uint8_t *dst = (uint8_t*)outBuffer.bits;
+                    uint8_t *src = pVideo->pRgbaFrame->data[0];
+                    int w = pVideo->pCodecContext->width;
+                    int h = pVideo->pCodecContext->height;
+                    int srcStride = pVideo->pRgbaFrame->linesize[0];
+                    int dstStride = outBuffer.stride * 4; // RGBA8888，每个像素4字节
+
+                    for(int y=0; y<h; y++)
+                    {
+                        memcpy(dst + y * dstStride, src + y * srcStride, w * 4);
+                    }
+                    ANativeWindow_unlockAndPost(pNativeWindow);
+                }
                 ANativeWindow_unlockAndPost(pNativeWindow);
 
             }
@@ -152,6 +169,12 @@ int resampleVideo(DZVideo4 *pVideo)
     pFrame = NULL;
     // NativeWindow引用计数-1，防止野指针
     ANativeWindow_release(pNativeWindow);
+    // 线程退出，解绑一次
+    if(needDetach)
+    {
+        pVideo->pJniCall->javaVm->DetachCurrentThread();
+    }
+
 
     return dataSize;
 }
