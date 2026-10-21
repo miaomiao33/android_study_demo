@@ -13,7 +13,7 @@ import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.Render
 public class LivePushCameraView extends BaseGLSurfaceView implements LivePushCameraRender.RenderListener {
     private LivePushCameraHelper mCameraHelper;
     private LivePushCameraRender mCameraRender;
-    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     private boolean mIsFocusing;
     private FocusListener mFocusListener;
 
@@ -73,13 +73,17 @@ public class LivePushCameraView extends BaseGLSurfaceView implements LivePushCam
         //前置摄像头
         if(mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT)
         {
-            mCameraRender.rotateMatrix(0,90,0,0,1);
-            //绕 X 轴转 180 度 → 上下翻转（图像上下颠倒）
-//            mCameraRender.rotateMatrix(0,180,1,0,0);
+            //后写的变换，先执行
+            //不用左右镜像，大部分摄像头都是镜像反转的
             //- x = `-1`：X 轴缩放 - 1 → 左右镜像翻转
             //- y = `1`：Y 轴不变，不上下翻转
             //- z = `1`：Z 轴不变
             mCameraRender.scaleMatrix(-1,1,1); //左右镜像
+            //绕 X 轴转 180 度 → 上下翻转（图像上下颠倒）
+            mCameraRender.rotateMatrix(0,180,1,0,0);
+            //Camera1 原生输出画面是横屏方向（手机竖屏拿相机，图像本身是横的）
+            //绕 Z 轴 顺时针旋转 90 度
+            mCameraRender.rotateMatrix(0,90,0,0,1);
         }
         //后置摄像头
         else if(mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK)
