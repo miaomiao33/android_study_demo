@@ -8,7 +8,6 @@ import android.graphics.Point;
 import android.view.MotionEvent;
 
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.BaseGLSurfaceView;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.RenderListener;
 
 public class LivePushCameraView extends BaseGLSurfaceView implements LivePushCameraRender.RenderListener {
     private LivePushCameraHelper mCameraHelper;
@@ -25,9 +24,11 @@ public class LivePushCameraView extends BaseGLSurfaceView implements LivePushCam
 
     public LivePushCameraView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        //版本
         setEGLContextClientVersion(2);
         mCameraRender = new LivePushCameraRender(context);
         mCameraHelper = new LivePushCameraHelper(context);
+        //创建渲染器
         setRenderer(mCameraRender);
         mCameraRender.setOnRenderListener(this);
     }

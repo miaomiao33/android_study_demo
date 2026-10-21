@@ -13,6 +13,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
+/**
+ * 离谱渲染 FboRender
+ */
 public class FboRender implements IFboRender {
     private static final String TAG = "FboRender";
     // FBO纹理尺寸：等于相机预览分辨率（推流分辨率）
@@ -207,7 +210,7 @@ public class FboRender implements IFboRender {
         // 重点：这里绑定【FBO纹理】，把FBO画面输出到屏幕
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mFboTextureId);
 
-        //设置正交矩阵的值
+//        //设置正交矩阵的值
 //        GLES20.glUniformMatrix4fv(uMatrix,1,false,matrix,0);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER,mVboId);
 

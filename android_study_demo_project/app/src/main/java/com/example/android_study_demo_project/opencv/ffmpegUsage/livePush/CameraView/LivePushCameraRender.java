@@ -84,8 +84,10 @@ public class LivePushCameraRender extends BaseRender {
         mFboRender.onSurfaceCreated(mViewWidth,mViewHeight);
 
         // =========  然后创建 CameraViewRender 的 Surface =========
+        //获取对应顶点和纹理的代码
         String vertexSource = LivePushUtils.getGLResource(mContext, R.raw.vertex_shader_matrix);
         String fragmentSource = LivePushUtils.getGLResource(mContext, R.raw.fragment_shader_camera);
+        //编译链接生成程序
         mProgram = LivePushUtils.createProgram(vertexSource,fragmentSource);
         //获取坐标
         vPosition = GLES20.glGetAttribLocation(mProgram, "v_Position");
