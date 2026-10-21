@@ -92,6 +92,7 @@ add_library( "ffmpegLib"
 
         ffmpeg4-4-4/musicPlayer/livePush/DZJNICall5.cpp
         ffmpeg4-4-4/musicPlayer/livePush/DZLivePush.cpp
+        ffmpeg4-4-4/musicPlayer/livePush/DZPacketQueue5.cpp
 )
 
 # x264

@@ -20,8 +20,8 @@ class DZJNICall5 {
 public:
     JavaVM *javaVm;
     JNIEnv *jniEnv;
-    jmethodID jPlayerErrorMid;
-    jmethodID jPlayerPreparedMid;
+    jmethodID jConnectErrorMid;
+    jmethodID jConnectSuccessMid;
     jobject jLiveObj;
 public:
     DZJNICall5(JavaVM *javaVm, JNIEnv *jniEnv, jobject jLiveObj);
@@ -29,9 +29,9 @@ public:
 
 public:
 
-    void callPlayerError(ThreadMode threadMode,int code, char *msg);
+    void callConnectError(ThreadMode threadMode,int code, char *msg);
 
-    void callPlayerPrepared(ThreadMode mode);
+    void callConnectSuccess(ThreadMode mode);
 };
 
 

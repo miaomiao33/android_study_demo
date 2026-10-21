@@ -109,6 +109,9 @@
         <activity
             android:name=".opencv.ffmpegUsage.livePush.LivePushMainActivity"
             android:exported="false" />
+        <activity
+            android:name=".opencv.ffmpegUsage.livePush.CameraView.LivePushCameraMainActivity"
+            android:exported="false" />
 
         <receiver
             android:name=".fragmentUsage.StaticBroadcastUsageReceiver"

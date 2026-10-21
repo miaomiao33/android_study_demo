@@ -37,6 +37,23 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_LiveP
 
     pJniCall5 = new DZJNICall5(pJavaVM,env,instance);
     pLivePush = new DZLivePush(liveUrl,pJniCall5);
+    pLivePush->initConnect();
 
     env->ReleaseStringUTFChars(liveUrl_,liveUrl);
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_LivePush_nStop(
+        JNIEnv *env, jobject thiz) {
+    if(pLivePush != NULL)
+    {
+        delete(pLivePush);
+        pLivePush = NULL;
+    }
+
+    if(pJniCall5 != NULL)
+    {
+        delete(pJniCall5);
+        pJniCall5 = NULL;
+    }
 }

@@ -11,6 +11,7 @@ import com.example.android_study_demo_project.R;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicAndVideoPlayer.MusicAndVideoPlayerMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer.MusicPlayerMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayerOpenSLES.MusicPlayerOpenSLESMainActivity;
+import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.LivePushCameraMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.LivePushMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.pullRTMP.PullRtmpMainActivity;
@@ -34,6 +35,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
     private Button gotoMusicPlayerOpenSLESButton;
     private Button gotoMusicAndVideoPlayerButton;
     private Button gotoLivePushButton;
+    private Button gotoOpenGlCameraButton;
 
     private final String TAG = FFmpegUsageMainActivity.class.getSimpleName();
 
@@ -51,6 +53,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotoMusicPlayerOpenSLESButton = (Button) findViewById(R.id.bt_goto_music_player_opensles);
         gotoMusicAndVideoPlayerButton = (Button) findViewById(R.id.bt_goto_music_and_video_player);
         gotoLivePushButton = (Button) findViewById(R.id.bt_goto_living_push_page);
+        gotoOpenGlCameraButton = (Button) findViewById(R.id.bt_goto_opengl_camera_page);
 
         FFmpegUsageClick click = new FFmpegUsageClick();
         changeFormatButton.setOnClickListener(click);
@@ -63,6 +66,7 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
         gotoMusicPlayerOpenSLESButton.setOnClickListener(click);
         gotoMusicAndVideoPlayerButton.setOnClickListener(click);
         gotoLivePushButton.setOnClickListener(click);
+        gotoOpenGlCameraButton.setOnClickListener(click);
     }
 
     void changeMP4toAVI()
@@ -140,6 +144,15 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
     }
 
     /**
+     *  进入 OpenGl 渲染相机页面
+     */
+    void gotoOpenGLForCameraPage()
+    {
+        Intent intent = new Intent(this, LivePushCameraMainActivity.class);
+        startActivity(intent);
+    }
+
+    /**
      *  进入FFmpeg 视频推流页面
      */
     void gotoLivePushPage()
@@ -179,6 +192,9 @@ public class FFmpegUsageMainActivity extends AppCompatActivity {
                     break;
                 case R.id.bt_goto_music_and_video_player:
                     gotoMusicAndVideoPlayerPage();
+                    break;
+                case R.id.bt_goto_opengl_camera_page:
+                    gotoOpenGLForCameraPage();
                     break;
                 case R.id.bt_goto_living_push_page:
                     gotoLivePushPage();
