@@ -80,8 +80,10 @@ public class LivePushCameraRender extends BaseRender {
 
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
+        // =========  先创建 FBO 的 Surface =========
         mFboRender.onSurfaceCreated(mViewWidth,mViewHeight);
 
+        // =========  然后创建 CameraViewRender 的 Surface =========
         String vertexSource = LivePushUtils.getGLResource(mContext, R.raw.vertex_shader_matrix);
         String fragmentSource = LivePushUtils.getGLResource(mContext, R.raw.fragment_shader_camera);
         mProgram = LivePushUtils.createProgram(vertexSource,fragmentSource);
@@ -139,8 +141,10 @@ public class LivePushCameraRender extends BaseRender {
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
+        //设置FBO视口（和外面保持一致）
         mFboRender.onSurfaceChanged(width,height);
 
+        //设置视口（Viewport）
         GLES20.glViewport(0,0,width,height);
 
 //        BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -170,7 +174,10 @@ public class LivePushCameraRender extends BaseRender {
             mCameraSt.updateTexImage();
         }
 
+        // =========  绑定FBO：切换绘制目标！核心 =========
         mFboRender.onBindFbo();
+
+        //========= 后面所有 glDraw 不再画到手机屏幕，全部画到 FBO 的那张 2D 纹理（mFboTextureId）上 =========
         //清屏并绘制红色
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glClearColor(0f,0f,0f,1f);
@@ -197,7 +204,7 @@ public class LivePushCameraRender extends BaseRender {
         GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,8,0);
         GLES20.glEnableVertexAttribArray(fPosition);
         GLES20.glVertexAttribPointer(fPosition,2,GLES20.GL_FLOAT,false,8,mVertexCoordinate.length * 4);
-        //绘制到屏幕
+        //绘制到屏幕(实际上是绘制到FBO内存，输出写入 FBO 纹理)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP,0,4);//两个三角形，4个点
         //解绑
         GLES20.glDisableVertexAttribArray(vPosition);
@@ -205,7 +212,9 @@ public class LivePushCameraRender extends BaseRender {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER,0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,0);
 
+        // =========  解绑FBO，画布切回默认屏幕帧缓冲 =========
         mFboRender.onUnBindFbo();
+        // =========  把FBO里已经渲染好的画面，画到屏幕给用户预览 =========
         //Fbo绘制到屏幕上
         mFboRender.onDrawFrame();
     }
