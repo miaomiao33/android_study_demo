@@ -60,7 +60,7 @@ public class FboRender implements IFboRender {
     private int mProgram;
 
     private int mFboId;            // FBO容器id
-    private int mFboTextureId;     // FBO颜色附件纹理【重点：推流拿这个纹理】
+    private static int mFboTextureId;     // FBO颜色附件纹理【重点：推流拿这个纹理】
     private int vPosition;
     private int fPosition;
 //    private int uMatrix;
@@ -84,6 +84,10 @@ public class FboRender implements IFboRender {
                 .put(mFragmentCoordinate);
         mFragmentBuffer.position(0);
 
+    }
+
+    public static int getTextureId() {
+        return mFboTextureId;
     }
 
 

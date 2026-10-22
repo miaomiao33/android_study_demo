@@ -50,7 +50,7 @@ public class BaseGLSurfaceView extends GLSurfaceView {
      * 通过此方法可以获取 EGL 环境上下文，可用于共享渲染同一个纹理
      * @return
      */
-    public EGLContext getmEglContext()
+    public EGLContext getEglContext()
     {
         return mEglContext;
     }

@@ -133,6 +133,7 @@ public class LivePushCameraView extends BaseGLSurfaceView implements LivePushCam
 
     public int getTextureId()
     {
+        //这里的 TextureId 应该是去拿 FBO 的
         return mCameraRender.getTextureId();
     }
 

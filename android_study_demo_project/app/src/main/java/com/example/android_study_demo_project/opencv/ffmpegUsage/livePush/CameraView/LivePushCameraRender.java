@@ -235,7 +235,8 @@ public class LivePushCameraRender extends BaseRender {
     }
 
     public int getTextureId() {
-        return mTextureId;
+        //这里的 TextureId 应该是去拿 FBO 的，因为最后是渲染到 FBO 上
+        return FboRender.getTextureId();
     }
 
     // ========== 上层LivePushCameraView调用的矩阵方法 ==========
