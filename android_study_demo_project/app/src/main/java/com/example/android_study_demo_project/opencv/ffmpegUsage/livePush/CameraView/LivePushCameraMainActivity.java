@@ -14,7 +14,7 @@ import com.example.android_study_demo_project.R;
 public class LivePushCameraMainActivity extends AppCompatActivity implements BaseVideoRecorder.RecordListener {
     private LivePushCameraView mCameraView;
     private Button startButton;
-    private BaseVideoRecorder mVideoRecorder;
+    private BaseVideoRecorder mVideoRecorder;//使用多态
     private TextView timeTextView;
 
     @Override
@@ -43,9 +43,14 @@ public class LivePushCameraMainActivity extends AppCompatActivity implements Bas
                 if("开始录制".contentEquals(button.getText()))
                 {
                     button.setText("结束录制");
+                    //正常滤镜
                     mVideoRecorder = new DefaultVideoRecorder(LivePushCameraMainActivity.this,
                             mCameraView.getEglContext(),
                             mCameraView.getTextureId());
+//                    //保存为黑白滤镜
+//                    mVideoRecorder = new GrayVideoRecorder(LivePushCameraMainActivity.this,
+//                            mCameraView.getEglContext(),
+//                            mCameraView.getTextureId());
                     mVideoRecorder.initVideo(getExternalFilesDir(Environment.DIRECTORY_MUSIC)
                                     + "/四月是你的谎言.mp3",
                             getExternalFilesDir(Environment.DIRECTORY_MOVIES)+"/videoRecord.mp4",

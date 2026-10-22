@@ -43,6 +43,7 @@ public class RecorderRender extends BaseRender {
     private int mProgram;
     private int vPosition;
     private int fPosition;
+    private int mFragmentShader = -1;
 
     public RecorderRender(Context context,int textureId) {
         this.mContext = context;
@@ -67,7 +68,11 @@ public class RecorderRender extends BaseRender {
         // =========  然后创建 CameraViewRender 的 Surface =========
         //获取对应顶点和纹理的代码
         String vertexSource = LivePushUtils.getGLResource(mContext, R.raw.vertex_shader);
-        String fragmentSource = LivePushUtils.getGLResource(mContext, R.raw.fragment_shader);
+        if(mFragmentShader == -1)
+        {
+            mFragmentShader = R.raw.fragment_shader;
+        }
+        String fragmentSource = LivePushUtils.getGLResource(mContext, mFragmentShader);
         //编译链接生成程序
         mProgram = LivePushUtils.createProgram(vertexSource,fragmentSource);
         //获取坐标
@@ -146,5 +151,9 @@ public class RecorderRender extends BaseRender {
         GLES20.glDeleteBuffers(1, temp, 0);
 
         GLES20.glDeleteProgram(mProgram);
+    }
+
+    public void setFragmentRender(int fragmentShader) {
+        this.mFragmentShader = fragmentShader;
     }
 }
