@@ -93,6 +93,13 @@ add_library( "ffmpegLib"
         ffmpeg4-4-4/musicPlayer/livePush/DZJNICall5.cpp
         ffmpeg4-4-4/musicPlayer/livePush/DZLivePush.cpp
         ffmpeg4-4-4/musicPlayer/livePush/DZPacketQueue5.cpp
+
+        ffmpeg4-4-4/musicPlayer/recordVideoWithBackgroundMusic/music_player_for_record_video.cpp
+        ffmpeg4-4-4/musicPlayer/recordVideoWithBackgroundMusic/DZFFmpeg6.cpp
+        ffmpeg4-4-4/musicPlayer/recordVideoWithBackgroundMusic/DZJNICall6.cpp
+        ffmpeg4-4-4/musicPlayer/recordVideoWithBackgroundMusic/DZAudio6.cpp
+        ffmpeg4-4-4/musicPlayer/recordVideoWithBackgroundMusic/DZPacketQueue6.cpp
+        ffmpeg4-4-4/musicPlayer/recordVideoWithBackgroundMusic/DZPlayerStatus6.cpp
 )
 
 # x264
