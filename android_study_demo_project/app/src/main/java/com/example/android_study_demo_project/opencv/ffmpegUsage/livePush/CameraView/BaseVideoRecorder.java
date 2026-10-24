@@ -18,6 +18,13 @@ import java.util.concurrent.CyclicBarrier;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
+/**
+ * 视频、音频是两个独立线程、两个独立 MediaCodec，互不阻塞,两个编码器各自独立编码
+ *
+ * 音频和视频能复合为一个文件：两个共用了一个 MediaMuxer
+ * 靠 `MediaMuxer`（MP4 复用器），先创建两条独立轨道（video 轨道 + audio 轨道），视频 H264 编码包、音频 AAC
+ * 编码包分别交给 muxer，muxer 自动把两路流封装到同一个 mp4 文件。
+ */
 public class BaseVideoRecorder {
     private WeakReference<BaseVideoRecorder> mVideoRecorderWr = new WeakReference<>(this);
     /**
@@ -33,10 +40,10 @@ public class BaseVideoRecorder {
      */
     private EGLContext mEglContext;
     private Context mContext;
-
     private GLSurfaceView.Renderer mRenderer;
     private VideoRenderThread mRendererThread;
     private VideoEncoderThread mVideoThread;
+    private AudioEncoderThread mAudioThread;
     private MediaMuxer mMediaMuxer;
     private MediaCodec mVideoCodec;
     private MediaCodec mAudioCodec;
@@ -59,38 +66,69 @@ public class BaseVideoRecorder {
             @Override
             public void onPrepared() {
                 Log.i("TAG","准备完毕");
+                //播放背景音乐
                 mMusicPlayer.playOpenSLESWithQueue();
+                start();
             }
         });
+        //在音乐播放器准备好了进行的回调
         mMusicPlayer.setInfoListener(mMediaInfoListener);
+    }
+
+    private MediaInfoListener mMediaInfoListener = new MediaInfoListener() {
+        private long mAudioPts = 0;
+        private int mSampleRate = 0;
+        private int mChannels = 0;
+        @Override
+        public void musicInfo(int sampleRate, int channels) {
+            //获取了音频信息
+            try {
+                this.mSampleRate = sampleRate;
+                this.mChannels = channels;
+                initAudioCodec(sampleRate,channels);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void callbackPcm(byte[] pcmData, int size) {
+            //native 端音乐播放器获取到的 pcm 数据
+            //把数据写入到 mAudioCodec 的 InputBuffer
+            int inputBufferIndex = mAudioCodec.dequeueInputBuffer(0);
+            if(inputBufferIndex >= 0)
+            {
+                ByteBuffer byteBuffer = mAudioCodec.getInputBuffers()[inputBufferIndex];
+                byteBuffer.clear();//清空然后写入
+                byteBuffer.put(pcmData);
+                //pts 44100 * 2 * 2(一秒总字节)，每次累加的是【微秒】
+//                mAudioPts += size * 1.0f / (1.0f/mSampleRate * mChannels * 2);
+                mAudioPts += size * 1.0f / (mSampleRate * mChannels * 2) * 1000000L;
+                //size 22050 * 2 * 2(本次回调拿到的 PCM 字节总数)
+                mAudioCodec.queueInputBuffer(inputBufferIndex,0,size,mAudioPts,0);
+            }
+        }
+    };
+
+    public void start()
+    {
+        mRendererThread.start();
+        mVideoThread.start();
+        mAudioThread.start();
     }
 
     public void startRecord()
     {
-        mRendererThread.start();
-        mVideoThread.start();
         //准备完了直接就进行回调然后进行播放
         mMusicPlayer.prepareAsyncWithQueue();
     }
     public void stopRecord()
     {
+        mMusicPlayer.stop();
         mRendererThread.requestExit();
         mVideoThread.requestExit();
-        mMusicPlayer.stop();
+        mAudioThread.requestExit();
     }
-
-    private MediaInfoListener mMediaInfoListener = new MediaInfoListener() {
-        @Override
-        public void musicInfo(int sampleRate, int channels) {
-
-        }
-
-        @Override
-        public void callbackPcm(byte[] pcmData, int size) {
-
-        }
-    };
-
 
     /**
      * 初始化参数
@@ -137,6 +175,28 @@ public class BaseVideoRecorder {
         //开启一个编码采集 InputSurface 上的数据，合成视频
         mVideoThread = new VideoEncoderThread(mVideoRecorderWr);
 
+    }
+
+    /**
+     * 初始化音频的 MediaCodec
+     * @param sampleRate
+     * @param channels
+     */
+    private void initAudioCodec(int sampleRate, int channels) throws IOException {
+        MediaFormat audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC,sampleRate,channels);
+        audioFormat.setInteger(MediaFormat.KEY_BIT_RATE,96000);
+        audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+        audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,sampleRate * channels * 2);//一通道是16位，即2字节
+
+        //创建编码器
+        mAudioCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
+
+        mAudioCodec.configure(audioFormat,null,null,MediaCodec.CONFIGURE_FLAG_ENCODE);
+        //开启一个编码采集音乐播放器回调的 PCM 数据，合成视频
+        mAudioThread = new AudioEncoderThread(mVideoRecorderWr);
+
+        //开启 AudioCodec
+        mAudioCodec.start();
     }
 
     /**
@@ -376,7 +436,6 @@ public class BaseVideoRecorder {
         @Override
         public void run() {
             try {
-                mAudioCodec.start();
                 while (true) {
                     if (mShouldExit) {
                         return;
