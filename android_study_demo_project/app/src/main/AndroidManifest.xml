@@ -107,7 +107,7 @@
             android:name=".opencv.ffmpegUsage.MusicAndVideoPlayer.MusicAndVideoPlayerMainActivity"
             android:exported="false" />
         <activity
-            android:name=".opencv.ffmpegUsage.livePush.LivePushMainActivity"
+            android:name=".opencv.ffmpegUsage.livePush.livePushMain.LivePushMainActivity"
             android:exported="false" />
         <activity
             android:name=".opencv.ffmpegUsage.livePush.CameraView.LivePushCameraMainActivity"

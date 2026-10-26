@@ -31,7 +31,7 @@ extern JavaVM *pJavaVM;//使用music_player的pJavaVM
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_LivePush_nInitConnect(
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_livePushMain_LivePush_nInitConnect(
         JNIEnv *env, jobject instance,jstring liveUrl_) {
     const char* liveUrl = env->GetStringUTFChars(liveUrl_,JNI_FALSE);
 
@@ -43,7 +43,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_LiveP
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_LivePush_nStop(
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_livePushMain_LivePush_nStop(
         JNIEnv *env, jobject thiz) {
     if(pLivePush != NULL)
     {
@@ -56,4 +56,47 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_LiveP
         delete(pJniCall5);
         pJniCall5 = NULL;
     }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_livePushMain_LivePush_pushSPSPps(
+        JNIEnv *env, jobject thiz, jbyteArray sps_data, jint sps_len, jbyteArray pps_data,
+        jint pps_len) {
+    // TODO: implement pushSPSPps()
+    jbyte * spsData = env->GetByteArrayElements(sps_data,JNI_FALSE);
+    jbyte * ppsData = env->GetByteArrayElements(pps_data,JNI_FALSE);
+
+    if(pLivePush != NULL)
+    {
+        pLivePush->pushSpsPps(spsData,sps_len,ppsData,pps_len);
+    }
+
+    env->ReleaseByteArrayElements(sps_data,spsData,0);
+    env->ReleaseByteArrayElements(pps_data,ppsData,0);
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_livePushMain_LivePush_pushVideo(
+        JNIEnv *env, jobject thiz, jbyteArray video_data, jint data_len, jboolean key_frame) {
+    jbyte * videoData = env->GetByteArrayElements(video_data,JNI_FALSE);
+
+    if(pLivePush != NULL)
+    {
+        pLivePush->pushVideo(videoData,data_len,key_frame);
+    }
+
+    env->ReleaseByteArrayElements(video_data,videoData,0);
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_livePushMain_LivePush_pushAudio(
+        JNIEnv *env, jobject thiz, jbyteArray audio_data, jint data_len) {
+    jbyte * audioData = env->GetByteArrayElements(audio_data,JNI_FALSE);
+
+    if(pLivePush != NULL)
+    {
+        pLivePush->pushAudio(audioData,data_len);
+    }
+
+    env->ReleaseByteArrayElements(audio_data,audioData,0);
 }

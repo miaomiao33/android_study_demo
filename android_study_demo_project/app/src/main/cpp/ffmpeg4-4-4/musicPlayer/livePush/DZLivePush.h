@@ -19,12 +19,20 @@ public:
     char *liveUrl = NULL;
     DZPacketQueue5 *pPacketQueue5 = NULL;
     RTMP *pRtmp = NULL;
+    bool isPushing = true;
+    uint32_t startTime;
 
 public:
     DZLivePush(const char *liveUrl, DZJNICall5 *pJniCall);
     ~DZLivePush();
 
     void initConnect();
+
+    void pushSpsPps(jbyte *spsData, jint spsLen, jbyte *ppsData, jint ppsLen);
+
+    void pushVideo(jbyte *videoData, jint dataLen, jboolean keyFrame);
+
+    void pushAudio(jbyte *audioData, jint audioLen);
 };
 
 

@@ -5,6 +5,26 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".opencv.ffmpegUsage.livePush.LivePushMainActivity">
+    tools:context=".opencv.ffmpegUsage.livePush.livePushMain.LivePushMainActivity">
+    <com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.LivePushCameraView
+        android:id="@+id/lcv_live_push_camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <TextView
+        android:id="@+id/tv_live_push_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bt_live_push_start"/>
+    <Button
+        android:id="@+id/bt_live_push_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="开始推流"
+        android:layout_marginBottom="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

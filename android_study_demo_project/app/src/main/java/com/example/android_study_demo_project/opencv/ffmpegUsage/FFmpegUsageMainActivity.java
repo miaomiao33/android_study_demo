@@ -12,7 +12,7 @@ import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicAndVideoPl
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayer.MusicPlayerMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.MusicPlayerOpenSLES.MusicPlayerOpenSLESMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.LivePushCameraMainActivity;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.LivePushMainActivity;
+import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.livePushMain.LivePushMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livingStream.FFmpegLiveStreamMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.pullRTMP.PullRtmpMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.videoDecoder.FFmpegVideoDecoderMainActivity;

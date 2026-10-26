@@ -137,7 +137,7 @@ public class LivePushCameraView extends BaseGLSurfaceView implements LivePushCam
         return mCameraRender.getTextureId();
     }
 
-    interface FocusListener {
+    public interface FocusListener {
         public void beginFocus(int x,int y);
         public void endFocus(boolean success);
     }

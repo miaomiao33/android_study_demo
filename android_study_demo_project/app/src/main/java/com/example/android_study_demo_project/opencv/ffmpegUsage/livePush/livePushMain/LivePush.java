@@ -1,9 +1,7 @@
-package com.example.android_study_demo_project.opencv.ffmpegUsage.livePush;
+package com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.livePushMain;
 
 import android.os.Handler;
 import android.os.Looper;
-
-import com.example.android_study_demo_project.JNI.NDKUsageMainActivity;
 
 public class LivePush {
     static {
@@ -18,7 +16,7 @@ public class LivePush {
         this.mLiveUrl = liveUrl;
     }
 
-    public void setmConnectListener(ConnectListener connectListener) {
+    public void setConnectListener(ConnectListener connectListener) {
         this.mConnectListener = connectListener;
     }
 
@@ -32,13 +30,19 @@ public class LivePush {
 
     //链接的回调
     //called from JNI
-    private void onConnectError(int errorCode,String errorMsg)
+    public void onConnectError(int errorCode,String errorMsg)
     {
-        stop();
-        if(mConnectListener != null)
-        {
-            mConnectListener.connectError(errorCode,errorMsg);
-        }
+        MAIN_HANDLER.post(new Runnable() {
+            @Override
+            public void run() {
+                stop();
+                if(mConnectListener != null)
+                {
+                    mConnectListener.connectError(errorCode,errorMsg);
+                }
+            }
+        });
+
     }
 
     public void stop()
@@ -53,13 +57,25 @@ public class LivePush {
 
     //链接的回调
     //called from JNI
-    private void onConnectSuccess()
+    public void onConnectSuccess()
     {
-        if(mConnectListener != null)
-        {
-            mConnectListener.connectSuccess();
-        }
+        MAIN_HANDLER.post(new Runnable() {
+            @Override
+            public void run() {
+                if(mConnectListener != null)
+                {
+                    mConnectListener.connectSuccess();
+                }
+            }
+        });
+
     }
+
+    public native void pushSPSPps(byte[] spsData, int spsLen, byte[] ppsData, int ppsLen);
+
+    public native void pushVideo(byte[] videoData, int dataLen, boolean keyFrame);
+
+    public native void pushAudio(byte[] audioData, int DataLen);
 
 
     public interface ConnectListener{

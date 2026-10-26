@@ -32,8 +32,8 @@ void DZJNICall5::callConnectError(ThreadMode threadMode, int code, char *msg) {
     } else if(threadMode == THREAD_CHILD){
         //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
         JNIEnv *env = nullptr;
-        int ret = javaVm->GetEnv((void **)&jniEnv,JNI_VERSION_1_6);
-        bool  needDetach = false;
+        int ret = javaVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
+        bool needDetach = false;
         if(ret == JNI_EDETACHED)
         {
             //线程未挂载，attach
@@ -51,7 +51,7 @@ void DZJNICall5::callConnectError(ThreadMode threadMode, int code, char *msg) {
 
         jstring jMsg = env->NewStringUTF(msg);
         env->CallVoidMethod(jLiveObj,jConnectErrorMid,code,jMsg);
-        env->DeleteGlobalRef(jMsg);
+        env->DeleteLocalRef(jMsg);
 
         if(needDetach)
         {
@@ -75,8 +75,8 @@ void DZJNICall5::callConnectSuccess(ThreadMode threadMode) {
     } else if(threadMode == THREAD_CHILD){
         //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
         JNIEnv *env = nullptr;
-        int ret = javaVm->GetEnv((void **)&jniEnv,JNI_VERSION_1_6);
-        bool  needDetach = false;
+        int ret = javaVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
+        bool needDetach = false;
         if(ret == JNI_EDETACHED)
         {
             //线程未挂载，attach

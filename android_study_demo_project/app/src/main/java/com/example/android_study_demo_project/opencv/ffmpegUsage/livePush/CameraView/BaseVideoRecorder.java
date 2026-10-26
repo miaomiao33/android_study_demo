@@ -102,7 +102,6 @@ public class BaseVideoRecorder {
                 byteBuffer.clear();//清空然后写入
                 byteBuffer.put(pcmData);
                 //pts 44100 * 2 * 2(一秒总字节)，每次累加的是【微秒】
-//                mAudioPts += size * 1.0f / (1.0f/mSampleRate * mChannels * 2);
                 mAudioPts += size * 1.0f / (mSampleRate * mChannels * 2) * 1000000L;
                 //size 22050 * 2 * 2(本次回调拿到的 PCM 字节总数)
                 mAudioCodec.queueInputBuffer(inputBufferIndex,0,size,mAudioPts,0);
