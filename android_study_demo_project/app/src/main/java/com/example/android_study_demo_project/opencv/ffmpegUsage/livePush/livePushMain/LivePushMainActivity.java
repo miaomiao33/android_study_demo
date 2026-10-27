@@ -1,7 +1,6 @@
 package com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.livePushMain;
 
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -10,11 +9,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.android_study_demo_project.R;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.BaseVideoRecorder;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.DefaultVideoRecorder;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.LivePushCameraMainActivity;
 import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.LivePushCameraView;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.LivePushUtils;
 
 public class LivePushMainActivity extends AppCompatActivity {
     private LivePushCameraView mCameraView;
@@ -63,8 +58,12 @@ public class LivePushMainActivity extends AppCompatActivity {
     }
 
     private void startLivePush() {
+        //默认彩色滤镜
         mVideoPush = new DefaultVideoPush(LivePushMainActivity.this,
                 mCameraView.getEglContext(), mCameraView.getTextureId());
+        //黑白滤镜
+//        mVideoPush = new GrayVideoPush(LivePushMainActivity.this,
+//                mCameraView.getEglContext(), mCameraView.getTextureId());
         //这里是 BaseVideoPush 的连接监听
         mVideoPush.setConnectListener(new LivePush.ConnectListener() {
             @Override

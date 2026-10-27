@@ -2,9 +2,6 @@ package com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.liveP
 
 import android.content.Context;
 
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.BaseVideoRecorder;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.RecorderRender;
-
 import javax.microedition.khronos.egl.EGLContext;
 
 /**
@@ -17,6 +14,6 @@ public class DefaultVideoPush extends BaseVideoPush {
 
         //(每隔16ms)会不断调用 RecorderRender 的 onDrawFrame，然后 swapBuffers ，不断 swapBuffers 到 surface 上
         //和cameraView共用一个 FBO 的纹理Id
-        setRenderer(new RecorderRender(context,textureId));
+        setRenderer(new VideoPushRender(context,textureId));
     }
 }

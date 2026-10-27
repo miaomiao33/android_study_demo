@@ -101,7 +101,7 @@ public class BaseVideoPush {
         try {
             mLivePush = new LivePush(liveUrl);
 
-            //这里是 LivePush 的连接
+            //这里是 LivePush 的连接(用于 DZJNICall5 连接之后回调)
             mLivePush.setConnectListener(new LivePush.ConnectListener() {
                 @Override
                 public void connectError(int errorCode, String errorMsg) {
