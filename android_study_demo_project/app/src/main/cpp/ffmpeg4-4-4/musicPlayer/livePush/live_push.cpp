@@ -59,7 +59,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_liveP
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_livePushMain_LivePush_pushSPSPps(
+Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_livePushMain_LivePush_pushSpsPps(
         JNIEnv *env, jobject thiz, jbyteArray sps_data, jint sps_len, jbyteArray pps_data,
         jint pps_len) {
     // TODO: implement pushSPSPps()

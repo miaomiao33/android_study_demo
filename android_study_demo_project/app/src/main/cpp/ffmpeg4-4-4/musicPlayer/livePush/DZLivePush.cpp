@@ -63,6 +63,7 @@ void *initConnectFun(void *context){
                                                "rtmp connect stream error");
         return (void *)INIT_RTMP_CONNECT_STREAM_ERROR_CODE;
     }
+    //RTMP 连接成功，回调 LivePush.java 的方法
     LOGE("TAG rtmp connect success")
     pLivePush->pJniCall5->callConnectSuccess(THREAD_CHILD);
     pLivePush->startTime = RTMP_GetTime();
@@ -97,7 +98,6 @@ void DZLivePush::pushSpsPps(jbyte *spsData, jint spsLen, jbyte *ppsData, jint pp
     //profile_compatibility : (1byte) sps[2] profile compatibility
     //AVCLevelIndication : (1byte) sps[3] Profile level
     //lengthSizeMinusOne : (1byte) Oxff 包长数据所使用的字节数
-
 
     //sps + pps 的数据
     //sps number          (1byte) 0xe1 sps 个数

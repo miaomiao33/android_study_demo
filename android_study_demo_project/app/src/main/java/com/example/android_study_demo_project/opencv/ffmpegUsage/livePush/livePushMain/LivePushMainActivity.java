@@ -82,6 +82,7 @@ public class LivePushMainActivity extends AppCompatActivity {
 //                LivePushUtils.getScreenWidth(LivePushMainActivity.this),
 //                LivePushUtils.getScreenHeight(LivePushMainActivity.this));
                 720/2,1280/2);
+        //开始 RTMP 连接，成功后不断往流媒体服务器推送
         mVideoPush.startPush();
     }
 

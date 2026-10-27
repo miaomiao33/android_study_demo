@@ -3,7 +3,6 @@ package com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.liveP
 import android.content.Context;
 
 import com.example.android_study_demo_project.R;
-import com.example.android_study_demo_project.opencv.ffmpegUsage.livePush.CameraView.RecorderRender;
 
 import javax.microedition.khronos.egl.EGLContext;
 

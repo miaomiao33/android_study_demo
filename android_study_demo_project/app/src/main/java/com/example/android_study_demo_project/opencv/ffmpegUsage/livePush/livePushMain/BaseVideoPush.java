@@ -52,7 +52,7 @@ public class BaseVideoPush {
     private Context mContext;
     private GLSurfaceView.Renderer mRenderer;
     private VideoRenderThread mRendererThread;
-    private VideoEncoderThread mVideoThread;
+    private VideoEncoderThread mVideoEncoderThread;
     private AudioEncoderThread mAudioEncoderThread;
     private AudioRecorderThread mAudioRecorderThread;
     private MediaCodec mVideoCodec;
@@ -73,7 +73,7 @@ public class BaseVideoPush {
 
     private void start() {
         mRendererThread.start();;
-        mVideoThread.start();
+        mVideoEncoderThread.start();
         mAudioEncoderThread.start();
         mAudioRecorderThread.start();
     }
@@ -85,7 +85,7 @@ public class BaseVideoPush {
     public void stopPush()
     {
         mRendererThread.requestExit();
-        mVideoThread.requestExit();
+        mVideoEncoderThread.requestExit();
         mAudioEncoderThread.requestExit();
         mAudioRecorderThread.requestExit();
         mLivePush.stop();
@@ -109,6 +109,7 @@ public class BaseVideoPush {
                     //Log.e("TAG", "connectError:  errorMsg:"+ errorMsg);
 
                     // LivePush 连接失败再去回调 BaseVideoPush 的 mConnectListener
+                    //这里的 mConnectListener 由 activity 进行监听
                     if(mConnectListener != null)
                     {
                         mConnectListener.connectError(errorCode,errorMsg);
@@ -117,7 +118,9 @@ public class BaseVideoPush {
 
                 @Override
                 public void connectSuccess() {
+                    //DZJNICall5 在连接成功之后回调
                     //Log.e("TAG", "connectSuccess: 可以推流了");
+                    //链接成功，开始启动线程
                     start();
                     // LivePush 连接成功再去回调 BaseVideoPush 的 mConnectListener
                     if(mConnectListener != null)
@@ -159,8 +162,7 @@ public class BaseVideoPush {
         mSurface = mVideoCodec.createInputSurface();//下面创建EGL上下文会使用
 
         //开启一个编码采集 InputSurface 上的数据，合成视频
-        mVideoThread = new VideoEncoderThread(mVideoRecorderWr);
-
+        mVideoEncoderThread = new VideoEncoderThread(mVideoRecorderWr);
     }
 
     /**
@@ -272,6 +274,8 @@ public class BaseVideoPush {
             mShouldExit = true;
         }
     }
+
+
     private RecordListener mRecordListener;
 
     public void setOnRecordListener(RecordListener recordListener) {
@@ -354,7 +358,7 @@ public class BaseVideoPush {
                             //在关键帧之前先把 SPS 和 PPS 推到流媒体服务器
                             if(mBufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME)
                             {
-                                mVideoRecorderWr.get().mLivePush.pushSPSPps(mVideoSps,mVideoSps.length,
+                                mVideoRecorderWr.get().mLivePush.pushSpsPps(mVideoSps,mVideoSps.length,
                                         mVideoPps,mVideoPps.length);
                             }
 
