@@ -14,8 +14,7 @@ DZLivePush::DZLivePush(const char *liveUrl, DZJNICall5 *pJniCall) {
 DZLivePush::~DZLivePush() {
     if(pRtmp != NULL)
     {
-//        RTMP_Close(pRtmp);
-//        free(pRtmp);
+        RTMP_Close(pRtmp);
         RTMP_Free(pRtmp);
         pRtmp = NULL;
     }

@@ -5,7 +5,7 @@ import android.os.Looper;
 
 public class LivePush {
     static {
-        System.loadLibrary("ffmpegLib");
+//        System.loadLibrary("ffmpegLib");
     }
 
     private String mLiveUrl;
@@ -47,12 +47,7 @@ public class LivePush {
 
     public void stop()
     {
-        MAIN_HANDLER.post(new Runnable() {
-            @Override
-            public void run() {
-                nStop();
-            }
-        });
+        nStop();
     }
 
     //链接的回调

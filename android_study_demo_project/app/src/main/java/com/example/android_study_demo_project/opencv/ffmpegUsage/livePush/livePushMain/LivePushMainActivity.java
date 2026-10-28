@@ -44,13 +44,9 @@ public class LivePushMainActivity extends AppCompatActivity {
                 Button button = (Button) view;
                 if("开始推流".contentEquals(button.getText()))
                 {
-                    button.setText("结束推流");
+                    button.setText("正在推流");
                     startLivePush();
                     Log.i("TAG","开始推流");
-                }else {
-                    button.setText("开始推流");
-                    mVideoPush.stopPush();
-                    Log.i("TAG","结束录制");
                 }
             }
         });
@@ -74,7 +70,7 @@ public class LivePushMainActivity extends AppCompatActivity {
 
             @Override
             public void connectSuccess() {
-                Log.e("TAG", "connectSuccess: 可以推流了");
+                Log.i("TAG", "connectSuccess: 可以推流了");
             }
         });
 
@@ -89,6 +85,9 @@ public class LivePushMainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mVideoPush.stopPush();
+        if(mVideoPush != null){
+            mVideoPush.release();
+            mVideoPush = null;
+        }
     }
 }

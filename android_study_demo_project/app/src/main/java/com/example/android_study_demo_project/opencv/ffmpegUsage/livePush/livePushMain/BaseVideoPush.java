@@ -78,17 +78,24 @@ public class BaseVideoPush {
         mAudioRecorderThread.start();
     }
 
+    /**
+     * 开始推流（建立RTMP连接，只执行一次）
+     */
     public void startPush()
     {
         mLivePush.initConnect();
     }
-    public void stopPush()
+
+    public void release()
     {
+        // 先断开rtmp
+        if(mLivePush != null) {
+            mLivePush.stop();
+        }
         mRendererThread.requestExit();
         mVideoEncoderThread.requestExit();
         mAudioEncoderThread.requestExit();
         mAudioRecorderThread.requestExit();
-        mLivePush.stop();
     }
 
     /**
@@ -572,10 +579,10 @@ public class BaseVideoPush {
 
         private void onDestroy() {
             try {
-                if(mAudioCodec != null)
-                {
-                    mAudioCodec.stop();
-                    mAudioCodec.release();
+                if(mAudioRecord != null){
+                    mAudioRecord.stop();
+                    mAudioRecord.release();
+                    mAudioRecord = null;
                 }
             }catch (Exception e){
                 e.printStackTrace();
