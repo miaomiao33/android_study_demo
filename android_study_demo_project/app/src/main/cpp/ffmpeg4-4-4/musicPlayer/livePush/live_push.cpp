@@ -47,6 +47,7 @@ Java_com_example_android_1study_1demo_1project_opencv_ffmpegUsage_livePush_liveP
         JNIEnv *env, jobject thiz) {
     if(pLivePush != NULL)
     {
+        pLivePush->stop();
         delete(pLivePush);
         pLivePush = NULL;
     }

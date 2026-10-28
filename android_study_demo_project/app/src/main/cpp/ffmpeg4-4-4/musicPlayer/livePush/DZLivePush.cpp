@@ -63,6 +63,7 @@ void *initConnectFun(void *context){
                                                "rtmp connect stream error");
         return (void *)INIT_RTMP_CONNECT_STREAM_ERROR_CODE;
     }
+    pLivePush->mStreamId = pLivePush->pRtmp->m_stream_id;
     //RTMP 连接成功，回调 LivePush.java 的方法
     LOGE("TAG rtmp connect success")
     pLivePush->pJniCall5->callConnectSuccess(THREAD_CHILD);
@@ -81,12 +82,14 @@ void *initConnectFun(void *context){
         RTMPPacket_Free(pPacket);
         free(pPacket);
     }
+    LOGI("停止了")
+
+    return 0;
 }
 
 void DZLivePush::initConnect() {
-    pthread_t initConnectTid;
     pthread_create(&initConnectTid, NULL, initConnectFun, this);
-    pthread_detach(initConnectTid);
+//    pthread_detach(initConnectTid);
 }
 
 void DZLivePush::pushSpsPps(jbyte *spsData, jint spsLen, jbyte *ppsData, jint ppsLen) {
@@ -124,8 +127,8 @@ void DZLivePush::pushSpsPps(jbyte *spsData, jint spsLen, jbyte *ppsData, jint pp
     body[index++] = 0x00;
     body[index++] = 0x00;
     body[index++] = 0x00;
-//    //configurationVersion: (1byte) 0x01版本
-//    body[index++] = 0x01;
+    //configurationVersion: (1byte) 0x01版本
+    body[index++] = 0x01;
     //AVCProfileIndication : (1byte) sps[1] profile
     body[index++] = spsData[1];
     //profile_compatibility : (1byte) sps[2] profile compatibility
@@ -160,7 +163,7 @@ void DZLivePush::pushSpsPps(jbyte *spsData, jint spsLen, jbyte *ppsData, jint pp
     pPacket->m_nTimeStamp = 0;//SPS 和 PPS 的 m_nTimeStamp 固定为0
     pPacket->m_nBodySize = bodySize;
     pPacket->m_nChannel = 0x04;
-    pPacket->m_nInfoField2 = this->pRtmp->m_stream_id;
+    pPacket->m_nInfoField2 = mStreamId;
 
     pPacketQueue5->push(pPacket);
 }
@@ -196,8 +199,6 @@ void DZLivePush::pushVideo(jbyte *videoData, jint dataLen, jboolean keyFrame) {
     body[index++] = 0x00;
     body[index++] = 0x00;
     body[index++] = 0x00;
-//    //configurationVersion: (1byte) 0x01版本
-//    body[index++] = 0x01;
     //video data length   (4byte） video 长度
     body[index++] = (dataLen >> 24) & 0xFF;
     body[index++] = (dataLen >> 16) & 0xFF;
@@ -213,7 +214,7 @@ void DZLivePush::pushVideo(jbyte *videoData, jint dataLen, jboolean keyFrame) {
     pPacket->m_nTimeStamp = RTMP_GetTime() - startTime;
     pPacket->m_nBodySize = bodySize;
     pPacket->m_nChannel = 0x04;
-    pPacket->m_nInfoField2 = this->pRtmp->m_stream_id;
+    pPacket->m_nInfoField2 = mStreamId;
 
     pPacketQueue5->push(pPacket);
 }
@@ -252,8 +253,16 @@ void DZLivePush::pushAudio(jbyte *audioData, jint dataLen) {
     pPacket->m_nTimeStamp = RTMP_GetTime() - startTime;
     pPacket->m_nBodySize = bodySize;
     pPacket->m_nChannel = 0x04;
-    pPacket->m_nInfoField2 = this->pRtmp->m_stream_id;
+    pPacket->m_nInfoField2 = mStreamId;
 
     pPacketQueue5->push(pPacket);
 
+}
+
+void DZLivePush::stop() {
+    isPushing = false;
+    // 唤醒阻塞在pop_timeout的线程！
+    pPacketQueue5->signal_quit();
+    pthread_join( initConnectTid,NULL);//等待线程安全退出
+    LOGI("等待停止了")
 }

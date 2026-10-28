@@ -28,7 +28,7 @@ void DZJNICall5::callConnectError(ThreadMode threadMode, int code, char *msg) {
     {
         jstring jMsg = jniEnv->NewStringUTF(msg);
         jniEnv->CallVoidMethod(jLiveObj,jConnectErrorMid,code,jMsg);
-        jniEnv->DeleteGlobalRef(jMsg);
+        jniEnv->DeleteLocalRef(jMsg);
     } else if(threadMode == THREAD_CHILD){
         //获取当前线程的 JNIEnv，通过 JavaVM 的 AttachCurrentThread 创建自己的 JNIEnv
         JNIEnv *env = nullptr;

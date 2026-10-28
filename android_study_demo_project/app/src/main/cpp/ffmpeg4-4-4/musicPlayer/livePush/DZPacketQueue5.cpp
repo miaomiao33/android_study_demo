@@ -49,15 +49,17 @@ RTMPPacket *DZPacketQueue5::pop() {
     RTMPPacket *pPacket = NULL;
     pthread_mutex_lock(&packetMutex);
     //队列为空就一直等待
-    while (packetQueue->empty())
+    while (packetQueue->empty() && !m_quit)
     {
         pthread_cond_wait(&packetCond,&packetMutex);
     }
     //有数据了，则获取最顶端
-    pPacket = packetQueue->front();
-    packetQueue->pop();
+    if (!packetQueue->empty() && !m_quit) {
+        pPacket = packetQueue->front();
+        packetQueue->pop();
+    }
     pthread_mutex_unlock(&packetMutex);
-    return nullptr;
+    return pPacket;
 }
 
 
@@ -77,13 +79,17 @@ RTMPPacket* DZPacketQueue5::pop_timeout(int ms)
     }
 
     int ret = 0;
-    while (packetQueue->empty() && ret == 0)
+    while (packetQueue->empty() && !m_quit)
     {
         ret = pthread_cond_timedwait(&packetCond, &packetMutex, &ts);
+        if(ret == ETIMEDOUT)
+        {
+            break;
+        }
     }
 
     RTMPPacket *pkt = nullptr;
-    if (!packetQueue->empty())
+    if (!packetQueue->empty() && !m_quit)
     {
         pkt = packetQueue->front();
         packetQueue->pop();
@@ -91,4 +97,13 @@ RTMPPacket* DZPacketQueue5::pop_timeout(int ms)
 
     pthread_mutex_unlock(&packetMutex);
     return pkt;
+}
+
+// DZPacketQueue5.cpp
+void DZPacketQueue5::signal_quit()
+{
+    pthread_mutex_lock(&packetMutex);
+    m_quit = true;
+    pthread_cond_signal(&packetCond); // 唤醒卡在timedwait的线程
+    pthread_mutex_unlock(&packetMutex);
 }

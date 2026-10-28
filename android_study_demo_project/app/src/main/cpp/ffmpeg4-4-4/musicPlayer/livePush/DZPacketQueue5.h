@@ -20,6 +20,7 @@ public:
     pthread_mutex_t packetMutex;
     //条件变量
     pthread_cond_t packetCond;
+    bool m_quit = false; // 队列退出标记
 public:
     DZPacketQueue5();
     ~DZPacketQueue5();
@@ -33,6 +34,7 @@ public:
     void clear();
 
     RTMPPacket *pop_timeout(int ms);
+    void signal_quit(); // 唤醒等待中的线程
 };
 
 

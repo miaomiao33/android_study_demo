@@ -19,8 +19,10 @@ public:
     char *liveUrl = NULL;
     DZPacketQueue5 *pPacketQueue5 = NULL;
     RTMP *pRtmp = NULL;
-    bool isPushing = true;
+    volatile bool isPushing = true;
     uint32_t startTime;
+    pthread_t initConnectTid;
+    int mStreamId;
 
 public:
     DZLivePush(const char *liveUrl, DZJNICall5 *pJniCall);
@@ -33,6 +35,8 @@ public:
     void pushVideo(jbyte *videoData, jint dataLen, jboolean keyFrame);
 
     void pushAudio(jbyte *audioData, jint audioLen);
+
+    void stop();
 };
 
 
