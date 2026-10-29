@@ -14,6 +14,7 @@ import com.example.android_study_demo_project.R;
 public class LivePushCameraMainActivity extends AppCompatActivity implements BaseVideoRecorder.RecordListener {
     private LivePushCameraView mCameraView;
     private Button startButton;
+    private RecordProgressButton mRecordButton;
     private BaseVideoRecorder mVideoRecorder;//使用多态
     private TextView timeTextView;
 
@@ -22,27 +23,59 @@ public class LivePushCameraMainActivity extends AppCompatActivity implements Bas
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_push_camera_main);
         mCameraView = findViewById(R.id.live_push_camera_view);
-        startButton = findViewById(R.id.bt_live_push_camera_start);
+//        startButton = findViewById(R.id.bt_live_push_camera_start);
+        mRecordButton = findViewById(R.id.bt_live_push_camera_start);
         timeTextView = findViewById(R.id.tv_camera_time);
         mCameraView.setOnFocusListener(new LivePushCameraView.FocusListener() {
             @Override
             public void beginFocus(int x, int y) {
                 Log.i("TAG","开始聚焦");
+                //mFocusView.beginFocus(x,y);
             }
 
             @Override
             public void endFocus(boolean success) {
                 Log.i("TAG","结束聚焦");
+                //mFocusView.endFocus(success);
             }
         });
 
-        startButton.setOnClickListener(new View.OnClickListener() {
+//        startButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Button button = (Button) view;
+//                if("开始录制".contentEquals(button.getText()))
+//                {
+//                    button.setText("结束录制");
+//                    //正常滤镜
+//                    mVideoRecorder = new DefaultVideoRecorder(LivePushCameraMainActivity.this,
+//                            mCameraView.getEglContext(),
+//                            mCameraView.getTextureId());
+////                    //保存为黑白滤镜
+////                    mVideoRecorder = new GrayVideoRecorder(LivePushCameraMainActivity.this,
+////                            mCameraView.getEglContext(),
+////                            mCameraView.getTextureId());
+//                    mVideoRecorder.initVideo(getExternalFilesDir(Environment.DIRECTORY_MUSIC)
+//                                    + "/四月是你的谎言.mp3",
+//                            getExternalFilesDir(Environment.DIRECTORY_MOVIES)+"/videoRecord.mp4",
+//                            720,1280);
+//                    mVideoRecorder.setOnRecordListener(LivePushCameraMainActivity.this);
+//                    mVideoRecorder.startRecord();
+//                    Log.i("TAG","开始录制");
+//                }else {
+//                    button.setText("开始录制");
+//                    mVideoRecorder.stopRecord();
+//
+//                    Log.i("TAG","结束录制");
+//                }
+//            }
+//        });
+
+        mRecordButton.setMaxProgress(30000);//最大30s
+        mRecordButton.setCurrentProgress(0);
+        mRecordButton.setOnRecorderListener(new RecordProgressButton.RecorderListener() {
             @Override
-            public void onClick(View view) {
-                Button button = (Button) view;
-                if("开始录制".contentEquals(button.getText()))
-                {
-                    button.setText("结束录制");
+            public void onStart() {
                     //正常滤镜
                     mVideoRecorder = new DefaultVideoRecorder(LivePushCameraMainActivity.this,
                             mCameraView.getEglContext(),
@@ -58,12 +91,12 @@ public class LivePushCameraMainActivity extends AppCompatActivity implements Bas
                     mVideoRecorder.setOnRecordListener(LivePushCameraMainActivity.this);
                     mVideoRecorder.startRecord();
                     Log.i("TAG","开始录制");
-                }else {
-                    button.setText("开始录制");
-                    mVideoRecorder.stopRecord();
+            }
 
-                    Log.i("TAG","结束录制");
-                }
+            @Override
+            public void onEnd() {
+                mVideoRecorder.stopRecord();
+                Log.i("TAG","结束录制");
             }
         });
 
@@ -82,6 +115,7 @@ public class LivePushCameraMainActivity extends AppCompatActivity implements Bas
             @Override
             public void run() {
                 timeTextView.setText("当前时间:" + times);
+                mRecordButton.setCurrentProgress(times);
             }
         });
     }
